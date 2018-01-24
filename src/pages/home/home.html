@@ -1,0 +1,35 @@
+<ion-header>
+    <ion-navbar>
+        <ion-title>Home</ion-title>
+    </ion-navbar>
+    <ion-card>
+        <ion-card-header class="no-padding">
+            <ion-grid>
+                <ion-row>
+                    <ion-col col-10>
+                        Ajouter une liste:
+                    </ion-col>
+                    <ion-col col-2 text-right>
+                        <button ion-fab mini (click)="createList()"><ion-icon name="add"></ion-icon></button>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+        </ion-card-header>
+        <ion-card-content>
+            <ion-item>
+                <ion-input type="text" placeholder="Nom de la liste" [(ngModel)]="listName"></ion-input>
+            </ion-item>
+        </ion-card-content>
+    </ion-card>
+</ion-header>
+
+<ion-content padding>
+    <h2>Todo Listes</h2>
+    <div>
+        <ion-list>
+            <button ion-item *ngFor="let todo of todos|async" (click)="selectTodo(todo.uuid)" (swipe)="deleteTodoList(todo.uuid)">
+          {{ todo.name }}
+        </button>
+        </ion-list>
+    </div>
+</ion-content>
