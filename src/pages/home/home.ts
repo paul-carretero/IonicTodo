@@ -1,3 +1,4 @@
+import { TodoItem } from './../../model/model';
 import { TodoListPage } from './../todo-list/todo-list';
 import { Component, OnInit } from '@angular/core';
 import { NavController } from 'ionic-angular';
@@ -11,18 +12,31 @@ import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-servic
   templateUrl: 'home.html'
 })
 export class HomePage implements OnInit {
-  public todos: Observable<TodoList[]>;
-  public listName: string;
+  public todoList: TodoList[];
+
+  public listName: String;
 
   constructor(
     public navCtrl: NavController,
     private todoService: TodoServiceProvider
-  ) {}
+  ) {
+    this.listName = '';
+  }
 
   ngOnInit() {
-    this.todos = this.todoService.getList();
-    this.todos.subscribe();
-    this.listName = '';
+    this.todoService.getList().subscribe(data => {
+      this.todoList = data;
+    });
+  }
+
+  public getCompleted(list: TodoItem[]): Number {
+    let res = 0;
+    for (const item of list) {
+      if (item.complete) {
+        res++;
+      }
+    }
+    return res;
   }
 
   public selectTodo(uuid: string): void {
@@ -35,7 +49,7 @@ export class HomePage implements OnInit {
 
   public createList(): void {
     if (this.listName !== '') {
-      this.todoService.addList(this.listName);
+      this.todoService.addList(this.listName.toString());
       this.listName = '';
     }
   }

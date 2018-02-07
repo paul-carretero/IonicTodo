@@ -23,13 +23,11 @@
     </ion-card>
 </ion-header>
 
-<ion-content padding>
+<ion-content>
     <h2>Todo Listes</h2>
-    <div>
-        <ion-list>
-            <button ion-item *ngFor="let todo of todos|async" (click)="selectTodo(todo.uuid)" (swipe)="deleteTodoList(todo.uuid)">
-          {{ todo.name }}
+    <ion-list>
+        <button ion-item *ngFor="let list of todoList" (click)="selectTodo(list.uuid)" (swipe)="deleteTodoList(list.uuid)">
+          {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
         </button>
-        </ion-list>
-    </div>
+    </ion-list>
 </ion-content>

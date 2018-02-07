@@ -1,3 +1,4 @@
+import { FirebaseCredentials } from './firebase.credentials';
 import { TodoEditPage } from './../pages/todo-edit/todo-edit';
 import { TodoPage } from './../pages/todo/todo';
 import { TodoListPage } from './../pages/todo-list/todo-list';
@@ -12,6 +13,12 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
 import { TabsPage } from '../pages/tabs/tabs';
+import { FirebaseProvider } from '../providers/firebase/firebase';
+import { AuthentificationPage } from '../pages/authentification/authentification';
+import { AuthServiceProvider } from '../providers/auth-service/auth-service';
+
+import { AngularFireModule } from 'angularfire2';
+import { AngularFireAuthModule } from 'angularfire2/auth';
 
 @NgModule({
   declarations: [
@@ -20,9 +27,15 @@ import { TabsPage } from '../pages/tabs/tabs';
     TodoListPage,
     TabsPage,
     TodoPage,
-    TodoEditPage
+    TodoEditPage,
+    AuthentificationPage
   ],
-  imports: [BrowserModule, IonicModule.forRoot(MyApp)],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(MyApp),
+    AngularFireModule.initializeApp(FirebaseCredentials),
+    AngularFireAuthModule
+  ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
@@ -30,13 +43,16 @@ import { TabsPage } from '../pages/tabs/tabs';
     HomePage,
     TabsPage,
     TodoPage,
-    TodoEditPage
+    TodoEditPage,
+    AuthentificationPage
   ],
   providers: [
     StatusBar,
     SplashScreen,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
-    TodoServiceProvider
+    TodoServiceProvider,
+    FirebaseProvider,
+    AuthServiceProvider
   ]
 })
 export class AppModule {}

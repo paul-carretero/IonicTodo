@@ -18,7 +18,7 @@ import { AlertController } from 'ionic-angular';
   selector: 'page-todo-list',
   templateUrl: 'todo-list.html'
 })
-export class TodoListPage implements OnInit {
+export class TodoListPage {
   private ListUUID: string;
 
   public todoList: Observable<TodoList>;
@@ -41,7 +41,7 @@ export class TodoListPage implements OnInit {
     console.log('ionViewDidLoad TodoListPage');
   }
 
-  ngOnInit(): void {
+  ionViewWillEnter() {
     this.todoItems = this.todoService.getTodos(this.ListUUID);
     this.todoList = this.todoService.getAList(this.ListUUID);
   }
@@ -60,7 +60,6 @@ export class TodoListPage implements OnInit {
 
   public createTodo(): void {
     this.todoService.addTodo(this.ListUUID, this.newTodo);
-    console.log('done');
   }
 
   public edit(): void {
