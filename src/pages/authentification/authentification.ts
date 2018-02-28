@@ -13,6 +13,7 @@ import { AngularFireAuth } from 'angularfire2/auth';
 import * as firebase from 'firebase/app';
 import { GooglePlus } from '@ionic-native/google-plus';
 import FirebaseGooglePlus from 'firebase';
+import { FirebaseCredentials } from '../../app/firebase.credentials';
 
 /**
  * Generated class for the AuthentificationPage page.
@@ -27,77 +28,88 @@ import FirebaseGooglePlus from 'firebase';
   templateUrl: 'authentification.html'
 })
 export class AuthentificationPage {
-  loading: Loading;
-
-  /*constructor(
-    public navCtrl: NavController,
-    public navParams: NavParams,
-    public afAuth: AngularFireAuth
-  ) {}*/
+  private email: string;
+  private password: string;
+  private userProfile: any;
 
   constructor(
     public navCtrl: NavController,
     public navParams: NavParams,
     private firebase: AngularFireAuth,
-    private googlePlus: GooglePlus
+    private googlePlus: GooglePlus,
+    private alert: AlertController
   ) {
-    /*FirebaseGooglePlus.auth().onAuthStateChanged(user => {
+    FirebaseGooglePlus.auth().onAuthStateChanged(user => {
       if (user) {
+        this.alert
+          .create({
+            title: 'Connection',
+            subTitle: 'googleplus-connexion-success-message',
+            buttons: ['Have fun']
+          })
+          .present();
         this.userProfile = user;
       } else {
         this.userProfile = null;
       }
-    });*/
+    });
   }
 
-  /*login() {
-    this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-  }
-  logout() {
-    this.afAuth.auth.signOut();
-  }*/
-
-  /*public createAccount() {
-    this.nav.push('RegisterPage');
+  ionViewDidLoad() {
+    console.log('ionViewDidLoad LoginPage');
   }
 
-  public login() {
-    this.navCtrl.setRoot(HomePage);
-    this.showLoading();
-    /*this.auth.login(this.registerCredentials).subscribe(
-      allowed => {
-        if (allowed) {
-          this.nav.setRoot('HomePage');
-        } else {
-          this.showError('Access Denied');
-        }
-      },
-      error => {
-        this.showError(error);
-      }
-    );
+  loginGooglePlus(): void {
+    this.googlePlus
+      .login({
+        webClientId: FirebaseCredentials.webClientId,
+        offline: true
+      })
+      .then(res => {
+        this.alert
+          .create({
+            title: 'Connection',
+            subTitle: 'googleplus-connexion-success-message',
+            buttons: ['Have fun']
+          })
+          .present();
+      })
+      .catch(err => {
+        this.alert
+          .create({
+            title: 'Erreur de connection',
+            subTitle:
+              'googleplus-connexion-failed-message' + '\nMessage : ' + err,
+            buttons: ['OK']
+          })
+          .present();
+      });
   }
 
-  /*async asynclogin() {
+  async loginSample() {
     try {
       const result = await this.firebase.auth.signInWithEmailAndPassword(
-        this.registerCredentials.email,
-        this.registerCredentials.password
+        this.email,
+        this.password
       );
       if (result) {
+        this.alert
+          .create({
+            title: 'Connection',
+            subTitle: 'sample-connexion-success-message',
+            buttons: ['Have fun']
+          })
+          .present();
         this.navCtrl.setRoot(HomePage);
-        console.log('good', result);
       }
     } catch (e) {
-      console.error(e);
+      this.alert
+        .create({
+          title: 'Erreur de connection',
+          subTitle: 'sample-connexion-success-message' + '\nMessage : ' + e,
+          buttons: ['OK']
+        })
+        .present();
     }
   }
-
-  showLoading() {
-    this.loading = this.loadingCtrl.create({
-      content: 'Please wait...',
-      dismissOnPageChange: true
-    });
-    this.loading.present();
-  }*/
 }

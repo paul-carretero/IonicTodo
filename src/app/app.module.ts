@@ -1,4 +1,3 @@
-import { FirebaseCredentials } from './firebase.credentials';
 import { TodoEditPage } from './../pages/todo-edit/todo-edit';
 import { TodoPage } from './../pages/todo/todo';
 import { TodoListPage } from './../pages/todo-list/todo-list';
@@ -17,8 +16,11 @@ import { FirebaseProvider } from '../providers/firebase/firebase';
 import { AuthentificationPage } from '../pages/authentification/authentification';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
 
+import { FirebaseCredentials } from './firebase.credentials';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
+import { GooglePlus } from '@ionic-native/google-plus';
+import { AlertController } from 'ionic-angular';
 
 @NgModule({
   declarations: [
@@ -52,7 +54,9 @@ import { AngularFireAuthModule } from 'angularfire2/auth';
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     TodoServiceProvider,
     FirebaseProvider,
-    AuthServiceProvider
+    AuthServiceProvider,
+    GooglePlus,
+    AlertController
   ]
 })
 export class AppModule {}

@@ -4,5 +4,7 @@ export const FirebaseCredentials = {
   databaseURL: 'https://todolist-carretep.firebaseio.com',
   projectId: 'todolist-carretep',
   storageBucket: 'todolist-carretep.appspot.com',
-  messagingSenderId: '1054325728864'
+  messagingSenderId: '1054325728864',
+  webClientId:
+    '1054325728864-08jb9iuds3cjqnjjc8sfjrscoainafht.apps.googleusercontent.com'
 };
