@@ -1,10 +1,10 @@
 export const FirebaseCredentials = {
-  apiKey: 'AIzaSyCBksGncfjCX3Yo4dDd3vQgoEZOef2fv8I',
-  authDomain: 'todolist-carretep.firebaseapp.com',
-  databaseURL: 'https://todolist-carretep.firebaseio.com',
-  projectId: 'todolist-carretep',
-  storageBucket: 'todolist-carretep.appspot.com',
-  messagingSenderId: '1054325728864',
+  apiKey: 'AIzaSyBmEA1h2Rf_ZwOmLwiUVXfDuPGgUoQ1RMk',
+  authDomain: 'todolist-a22af.firebaseapp.com',
+  databaseURL: 'https://todolist-a22af.firebaseio.com',
+  projectId: 'todolist-a22af',
+  storageBucket: 'todolist-a22af.appspot.com',
+  messagingSenderId: '60257779658',
   webClientId:
-    '1054325728864-08jb9iuds3cjqnjjc8sfjrscoainafht.apps.googleusercontent.com'
+    '60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com'
 };

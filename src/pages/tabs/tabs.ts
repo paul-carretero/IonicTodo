@@ -1,14 +1,23 @@
-import { AuthentificationPage } from './../authentification/authentification';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { HomePage } from '../home/home';
+import { AuthentificationPage } from './../authentification/authentification';
+import { NavController, Tabs } from 'ionic-angular';
 
 @Component({
   templateUrl: 'tabs.html'
 })
 export class TabsPage {
-  tab1Root = HomePage;
-  authentification = AuthentificationPage;
+  private tab1Root = HomePage;
+  private tab2Root = AuthentificationPage;
+  public static Me: TabsPage;
+  @ViewChild('navTabs') tabRef: Tabs;
 
-  constructor() {}
+  constructor(public navCtrl: NavController) {
+    TabsPage.Me = this;
+  }
+
+  public setRoot(root: number) {
+    this.tabRef.select(root);
+  }
 }

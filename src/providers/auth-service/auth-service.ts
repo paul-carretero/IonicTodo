@@ -1,19 +1,36 @@
-import { Credential } from './../../model/credentials';
 import { Injectable } from '@angular/core';
+import { AngularFireAuth } from 'angularfire2/auth';
+import * as firebase from 'firebase/app';
 
-/*
-  Generated class for the AuthServiceProvider provider.
+import { Credential } from './../../model/credentials';
+import { GooglePlus } from '@ionic-native/google-plus';
+import { FirebaseCredentials } from '../../app/firebase.credentials';
+import { AlertController } from 'ionic-angular';
 
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
 @Injectable()
 export class AuthServiceProvider {
-  private current: Credential;
+  private userProfile: any;
 
-  constructor() {
-    console.log('Hello AuthServiceProvider Provider');
+  constructor(
+    private firebaseAuth: AngularFireAuth,
+    private googlePlus: GooglePlus,
+    private alert: AlertController
+  ) {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        this.userProfile = user;
+        console.log('OMG SO GOOD OMG GOMG GOMGOMGOMGOMG');
+      } else {
+        this.userProfile = null;
+      }
+    });
   }
 
-  public login(auth: Credential): void {}
+  get connexionStatus(): boolean {
+    return this.firebaseAuth.auth.currentUser != null;
+  }
+
+  logout() {
+    firebase.auth().signOut();
+  }
 }

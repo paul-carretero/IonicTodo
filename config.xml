@@ -87,6 +87,9 @@
         <variable name="REVERSED_CLIENT_ID" value="myreversedclientid" />
     </plugin>
     <allow-navigation href="http://192.168.1.76:8100" />
-    <engine name="browser" spec="5.0.3" />
-    <engine name="android" spec="~7.0.0" />
+    <engine name="android" spec="~6.4.0" />
+    <engine name="browser" spec="~5.0.3" />
+    <plugin name="cordova-plugin-geolocation" spec="^4.0.1">
+        <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="position todo" />
+    </plugin>
 </widget>

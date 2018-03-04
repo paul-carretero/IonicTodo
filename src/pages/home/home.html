@@ -1,33 +1,46 @@
 <ion-header>
     <ion-navbar>
-        <ion-title>Home</ion-title>
+        <ion-title>Vos Liste de Todo</ion-title>
     </ion-navbar>
-    <ion-card>
-        <ion-card-header class="no-padding">
-            <ion-grid>
-                <ion-row>
-                    <ion-col col-10>
-                        Ajouter une liste:
-                    </ion-col>
-                    <ion-col col-2 text-right>
-                        <button ion-fab mini (click)="createList()"><ion-icon name="add"></ion-icon></button>
-                    </ion-col>
-                </ion-row>
-            </ion-grid>
-        </ion-card-header>
-        <ion-card-content>
-            <ion-item>
-                <ion-input type="text" placeholder="Nom de la liste" [(ngModel)]="listName"></ion-input>
-            </ion-item>
-        </ion-card-content>
-    </ion-card>
 </ion-header>
 
 <ion-content>
-    <h2>Todo Listes</h2>
+    <ion-card>
+        <ion-card-header class="no-padding">
+            <button full icon-end ion-button (click)="displayNewList = !displayNewList">
+                Nouvelle Liste
+                <ion-icon *ngIf="!displayNewList" name="ios-arrow-down"></ion-icon>
+                <ion-icon *ngIf="displayNewList" name="ios-arrow-up"></ion-icon>
+            </button>
+        </ion-card-header>
+        <ion-card-content *ngIf="displayNewList">
+            <form [formGroup]="newList" (ngSubmit)="createList()">
+                <ion-item>
+                    <ion-label>Nom</ion-label>
+                    <ion-input type="text" formControlName="name" placeholder="Text Input"></ion-input>
+                </ion-item>
+                <ion-item>
+                    <ion-label>Type
+                    </ion-label>
+                    <ion-select formControlName="icon">
+                        <ion-option selected value="checkmark">Default</ion-option>
+                        <ion-option value="cart">Shopping</ion-option>
+                        <ion-option value="home">Maison</ion-option>
+                        <ion-option value="briefcase">Travail</ion-option>
+                    </ion-select>
+                </ion-item>
+                <button full ion-button type="submit" [disabled]="!newList.valid">Créer une nouvelle liste</button>
+            </form>
+        </ion-card-content>
+    </ion-card>
+    <h2>Listes en cours</h2>
     <ion-list>
-        <button ion-item *ngFor="let list of todoList" (click)="selectTodo(list.uuid)" (swipe)="deleteTodoList(list.uuid)">
-          {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
-        </button>
+        <ion-item>
+            <button ion-item *ngFor="let list of todoList" (click)="selectTodo(list.uuid)" (swipe)="deleteTodoList(list.uuid)">
+            <ion-icon name="{{list.icon}}" item-start></ion-icon>
+            {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
+            <ion-icon name="alert" item-end></ion-icon>
+            </button>
+        </ion-item>
     </ion-list>
 </ion-content>

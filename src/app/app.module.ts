@@ -12,7 +12,6 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
 import { TabsPage } from '../pages/tabs/tabs';
-import { FirebaseProvider } from '../providers/firebase/firebase';
 import { AuthentificationPage } from '../pages/authentification/authentification';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
 
@@ -21,6 +20,7 @@ import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { GooglePlus } from '@ionic-native/google-plus';
 import { AlertController } from 'ionic-angular';
+import { TodoListServiceProvider } from '../providers/todo-list-service/todo-list-service';
 
 @NgModule({
   declarations: [
@@ -53,10 +53,10 @@ import { AlertController } from 'ionic-angular';
     SplashScreen,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     TodoServiceProvider,
-    FirebaseProvider,
     AuthServiceProvider,
     GooglePlus,
-    AlertController
+    AlertController,
+    TodoListServiceProvider
   ]
 })
 export class AppModule {}

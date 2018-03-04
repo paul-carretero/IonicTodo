@@ -1,10 +1,10 @@
-import { TodoPage } from './../todo/todo';
+import { Component } from '@angular/core';
+import { AlertController, IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { TodoList, TodoItem } from './../../model/model';
-import { Component, OnInit } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
-import { AlertController } from 'ionic-angular';
+import { TodoItem, TodoList } from './../../model/model';
+import { TodoPage } from './../todo/todo';
 
 /**
  * Generated class for the TodoListPage page.

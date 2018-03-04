@@ -12,6 +12,7 @@ export class TodoServiceProvider {
     {
       uuid: 'a351e558-29ce-4689-943c-c3e97be0df8b',
       name: 'List 1',
+      icon: 'home',
       items: [
         {
           uuid: '7dc94eb4-d4e9-441b-b06b-0ca29738c8d2',
@@ -87,8 +88,8 @@ export class TodoServiceProvider {
     return Observable.of(this.data.find(d => d.uuid == uuid));
   }
 
-  public addList(listName: string): void {
-    this.data.push({ uuid: uuid(), name: listName, items: [] });
+  public addList(listName: string, icon: string): void {
+    this.data.push({ uuid: uuid(), name: listName, items: [], icon: icon });
   }
 
   public deleteList(listUuid: string): void {

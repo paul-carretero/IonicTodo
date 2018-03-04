@@ -1,6 +1,6 @@
 <ion-header>
     <ion-navbar>
-        <ion-title>login</ion-title>
+        <ion-title>Connexion</ion-title>
     </ion-navbar>
 </ion-header>
 
@@ -15,9 +15,14 @@
                 <ion-label floating>Mot de passe</ion-label>
                 <ion-input type="password" [(ngModel)]="password"></ion-input>
             </ion-item>
-            <button ion-button (click)="loginSample()" icon-start>
-                <ion-icon name="at"></ion-icon>
-                CONNEXION SIMPLE
+            <button ion-button (click)="firebaseLogin()" icon-start>
+                Connexion
+            </button>
+            <button ion-button (click)="createCount()" icon-start>
+                Inscription
+            </button>
+            <button ion-button (click)="resetPassword()" icon-start>
+                Mot de passe oublié ?
             </button>
         </ion-card-content>
     </ion-card>
@@ -25,7 +30,7 @@
         <ion-card-content>
             <button ion-button (click)="loginGooglePlus()" color="danger" icon-start>
                 <ion-icon name="logo-googleplus"></ion-icon>
-                Google plus
+                Connecter avec Google +
             </button>
         </ion-card-content>
     </ion-card>
