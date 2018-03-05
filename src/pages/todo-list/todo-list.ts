@@ -1,17 +1,15 @@
 import { Component } from '@angular/core';
-import { AlertController, IonicPage, NavController, NavParams } from 'ionic-angular';
+import {
+  AlertController,
+  IonicPage,
+  NavController,
+  NavParams
+} from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { TodoItem, TodoList } from './../../model/model';
-import { TodoPage } from './../todo/todo';
-
-/**
- * Generated class for the TodoListPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
+import { TodoEditPage } from './../todo-edit/todo-edit';
 
 @IonicPage()
 @Component({
@@ -22,10 +20,8 @@ export class TodoListPage {
   private ListUUID: string;
 
   public todoList: Observable<TodoList>;
-
   public todoItems: Observable<TodoItem[]>;
-
-  public newTodo: TodoItem;
+  public editList = false;
 
   constructor(
     public navCtrl: NavController,
@@ -34,7 +30,6 @@ export class TodoListPage {
     private alertCtrl: AlertController
   ) {
     this.ListUUID = navParams.get('uuid');
-    this.newTodo = { name: '', complete: false, desc: '' };
   }
 
   ionViewDidLoad() {
@@ -47,48 +42,28 @@ export class TodoListPage {
   }
 
   public deleteTodo(todoUUID: string): void {
-    console.log(todoUUID);
     this.todoService.deleteTodo(this.ListUUID, todoUUID);
   }
 
   public selectTodo(todoUUID: string): void {
-    this.navCtrl.push(TodoPage, {
+    this.navCtrl.push(TodoEditPage, {
       todoUUID: todoUUID,
       listUUID: this.ListUUID
     });
   }
 
-  public createTodo(): void {
-    this.todoService.addTodo(this.ListUUID, this.newTodo);
+  public completeCheck(todo: TodoItem): void {
+    if (todo.complete == false) {
+      this.todoService.complete(this.ListUUID, todo.uuid, true);
+    } else {
+      this.todoService.complete(this.ListUUID, todo.uuid, false);
+    }
   }
 
-  public edit(): void {
-    let alert = this.alertCtrl.create({
-      title: 'Modifier une liste',
-      message: 'Vous pouvez entrer un nouvau nom pour la liste',
-      inputs: [
-        {
-          name: 'name',
-          placeholder: 'nouveau nom'
-        }
-      ],
-      buttons: [
-        {
-          text: 'Annuler',
-          role: 'cancel',
-          handler: data => {
-            console.log('Cancel clicked');
-          }
-        },
-        {
-          text: 'Appliquer',
-          handler: data => {
-            console.log(data.name);
-            this.todoList.subscribe(list => (list.name = data.name));
-          }
-        }
-      ]
+  public createTodo(): void {
+    this.navCtrl.push(TodoEditPage, {
+      todoUUID: null,
+      listUUID: this.ListUUID
     });
-    alert.present();
   }
 }

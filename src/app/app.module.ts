@@ -1,3 +1,4 @@
+import { EditListComponent } from './../components/edit-list/edit-list';
 import { TodoEditPage } from './../pages/todo-edit/todo-edit';
 import { TodoPage } from './../pages/todo/todo';
 import { TodoListPage } from './../pages/todo-list/todo-list';
@@ -20,7 +21,6 @@ import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { GooglePlus } from '@ionic-native/google-plus';
 import { AlertController } from 'ionic-angular';
-import { TodoListServiceProvider } from '../providers/todo-list-service/todo-list-service';
 
 @NgModule({
   declarations: [
@@ -30,7 +30,8 @@ import { TodoListServiceProvider } from '../providers/todo-list-service/todo-lis
     TabsPage,
     TodoPage,
     TodoEditPage,
-    AuthentificationPage
+    AuthentificationPage,
+    EditListComponent
   ],
   imports: [
     BrowserModule,
@@ -46,7 +47,8 @@ import { TodoListServiceProvider } from '../providers/todo-list-service/todo-lis
     TabsPage,
     TodoPage,
     TodoEditPage,
-    AuthentificationPage
+    AuthentificationPage,
+    EditListComponent
   ],
   providers: [
     StatusBar,
@@ -55,8 +57,7 @@ import { TodoListServiceProvider } from '../providers/todo-list-service/todo-lis
     TodoServiceProvider,
     AuthServiceProvider,
     GooglePlus,
-    AlertController,
-    TodoListServiceProvider
+    AlertController
   ]
 })
 export class AppModule {}

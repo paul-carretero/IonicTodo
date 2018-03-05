@@ -17,12 +17,12 @@ export class TodoServiceProvider {
         {
           uuid: '7dc94eb4-d4e9-441b-b06b-0ca29738c8d2',
           name: 'Item 1-1',
-          complete: false
+          complete: true
         },
         {
           uuid: '20c09bdd-1cf8-43b0-9111-977fc4d343bc',
           name: 'Item 1-2',
-          complete: false
+          complete: true
         },
         {
           uuid: 'bef88351-f4f1-4b6a-965d-bb1a4fa3b444',
@@ -99,6 +99,12 @@ export class TodoServiceProvider {
     }
   }
 
+  public updateAList(uuid: string, name: string, icon: string): void {
+    const list = this.data.find(d => d.uuid == uuid);
+    list.name = name;
+    list.icon = icon;
+  }
+
   /*******************************
    * gestions des todos          *
    *******************************/
@@ -111,6 +117,20 @@ export class TodoServiceProvider {
     return Observable.of(
       this.data.find(d => d.uuid == listUUID).items.find(d => d.uuid == uuid)
     );
+  }
+
+  public complete(listUUID: string, todoUUID: string, status: boolean) {
+    const todo = this.data
+      .find(d => d.uuid == listUUID)
+      .items.find(d => d.uuid == todoUUID);
+    todo.complete = status;
+    if (status == true) {
+      todo.posCompleted = null;
+      todo.dateCompleted = null;
+    } else {
+      todo.posCompleted = null;
+      todo.dateCompleted = null;
+    }
   }
 
   public editTodo(listUuid: String, editedItem: TodoItem) {

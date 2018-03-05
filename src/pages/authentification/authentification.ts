@@ -1,4 +1,5 @@
-import { Global } from './../../app/global';
+import { Global } from './../../shared/global';
+import { GenericPage } from './../../shared/generic-page';
 import { Component } from '@angular/core';
 import { GooglePlus } from '@ionic-native/google-plus';
 import * as firebase from 'firebase/app';
@@ -16,32 +17,26 @@ import { HomePage } from '../home/home';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { TabsPage } from '../tabs/tabs';
 
-/**
- * Generated class for the AuthentificationPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
-
 @IonicPage()
 @Component({
   selector: 'page-authentification',
   templateUrl: 'authentification.html'
 })
-export class AuthentificationPage {
+export class AuthentificationPage extends GenericPage {
   private email: string;
   private password: string;
   private userProfile: any;
-  private loading: Loading;
 
   constructor(
-    private navCtrl: NavController,
+    public navCtrl: NavController,
+    public alertCtrl: AlertController,
+    public loadingCtrl: LoadingController,
     private navParams: NavParams,
     private authServiceProvider: AuthServiceProvider,
-    private googlePlus: GooglePlus,
-    private alertCtrl: AlertController,
-    private loadingCtrl: LoadingController
-  ) {}
+    private googlePlus: GooglePlus
+  ) {
+    super(navCtrl, alertCtrl, loadingCtrl);
+  }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad LoginPage');
@@ -49,7 +44,7 @@ export class AuthentificationPage {
 
   async loginGooglePlus(): Promise<void> {
     try {
-      this.showLoading();
+      this.showLoading('tentative de login...');
       const result = await this.googlePlus.login({
         webClientId: FirebaseCredentials.webClientId,
         offline: true
@@ -76,7 +71,7 @@ export class AuthentificationPage {
 
   async firebaseLogin(): Promise<void> {
     try {
-      this.showLoading();
+      this.showLoading('tentative de login...');
       const result = await firebase
         .auth()
         .signInWithEmailAndPassword(this.email, this.password);
@@ -98,7 +93,7 @@ export class AuthentificationPage {
 
   async createCount(): Promise<void> {
     try {
-      this.showLoading();
+      this.showLoading('création du compte...');
       const result = await firebase
         .auth()
         .createUserWithEmailAndPassword(this.email, this.password);
@@ -116,23 +111,5 @@ export class AuthentificationPage {
       );
       this.loading.dismiss();
     }
-  }
-
-  private alert(title: string, text: string) {
-    this.alertCtrl
-      .create({
-        title: title,
-        subTitle: text,
-        buttons: ['OK']
-      })
-      .present();
-  }
-
-  private showLoading() {
-    this.loading = this.loadingCtrl.create({
-      content: 'Chargement...',
-      dismissOnPageChange: true
-    });
-    this.loading.present();
   }
 }

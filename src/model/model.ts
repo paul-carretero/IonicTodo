@@ -15,6 +15,7 @@ export interface TodoItem {
   userName?: string;
 
   // permet de gérer l'envoi de sms de rappel contenant la description par exemple
+  notif?: boolean;
   sendSMS?: boolean;
   SMSNumber?: string;
 

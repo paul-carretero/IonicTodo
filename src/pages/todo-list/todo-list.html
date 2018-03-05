@@ -1,64 +1,48 @@
-<!--
-  Generated template for the TodoListPage page.
-
-  See http://ionicframework.com/docs/components/#navigation for more info on
-  Ionic pages and navigation.
--->
 <ion-header>
     <ion-navbar>
         <ion-title *ngIf="todoList | async; let todoList">
             <ion-grid>
                 <ion-row>
                     <ion-col col-10>
-                        Liste: {{todoList.name}}
+                        <ion-icon name="{{todoList.icon}}"></ion-icon> Liste: {{todoList.name}}
                     </ion-col>
                     <ion-col col-2>
-                        <ion-icon name="md-hammer" (click)="edit()"></ion-icon>
+                        <ion-icon name="ios-create" (click)="editList = !editList"></ion-icon>
                     </ion-col>
                 </ion-row>
             </ion-grid>
-
         </ion-title>
     </ion-navbar>
-
-    <ion-card>
-        <ion-card-header>
-            <ion-grid>
-                <ion-row>
-                    <ion-col col-10>
-                        Ajouter un Todo:
-                    </ion-col>
-                    <ion-col col-2>
-                        <button ion-fab mini (click)="createTodo()"><ion-icon name="add"  ></ion-icon></button>
-                    </ion-col>
-                </ion-row>
-            </ion-grid>
-        </ion-card-header>
-        <ion-card-content>
-            <ion-list>
-                <ion-item>
-                    <ion-label stacked>Nom</ion-label>
-                    <ion-input [(ngModel)]="newTodo.name" type="text"></ion-input>
-                </ion-item>
-                <ion-item>
-                    <ion-label stacked>Description</ion-label>
-                    <ion-input [(ngModel)]="newTodo.desc" type="text"></ion-input>
-                </ion-item>
-            </ion-list>
-        </ion-card-content>
-    </ion-card>
 </ion-header>
 
-
-<ion-content padding>
-
+<ion-content>
+    <ion-card *ngIf="editList">
+        <ion-card-header>
+        </ion-card-header>
+        <ion-card-content>
+            <edit-list [listUUID]="ListUUID"></edit-list>
+        </ion-card-content>
+        <button full ion-button (click)="editList = !editList">
+            <ion-icon name="ios-arrow-up"></ion-icon>
+        </button>
+    </ion-card>
+    <ion-searchbar></ion-searchbar>
     <ion-list>
-        <ion-item-sliding *ngFor="let todo of todoItems|async" (click)="selectTodo(todo.uuid)">
+        <ion-item-sliding *ngFor="let todo of todoItems|async">
             <ion-item>
-                <h2>{{todo.name}}</h2>
+                <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
+                <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
+                <h2 (click)="selectTodo(todo.uuid)">{{todo.name}}</h2>
             </ion-item>
             <ion-item-options side="right">
-                <button (click)="deleteTodo(todo.uuid)" ion-button color="primary">
+                <button (click)="deleteTodo(todo.uuid)" ion-button color="danger">
+                <ion-icon name="trash">
+                  supprimer
+                </ion-icon>
+                </button>
+            </ion-item-options>
+            <ion-item-options side="left">
+                <button (click)="deleteTodo(todo.uuid)" ion-button color="danger">
                 <ion-icon name="trash">
                   supprimer
                 </ion-icon>
@@ -66,4 +50,5 @@
             </ion-item-options>
         </ion-item-sliding>
     </ion-list>
+    <button class="bottom-right-button" ion-fab (click)="createTodo()"><ion-icon name="add" ></ion-icon></button>
 </ion-content>

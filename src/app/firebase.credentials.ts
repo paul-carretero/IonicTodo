@@ -6,5 +6,6 @@ export const FirebaseCredentials = {
   storageBucket: 'todolist-a22af.appspot.com',
   messagingSenderId: '60257779658',
   webClientId:
-    '60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com'
+    '60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com',
+  GoogleMapAPIKey: 'AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE'
 };
