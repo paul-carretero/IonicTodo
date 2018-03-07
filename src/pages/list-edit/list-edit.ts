@@ -1,3 +1,5 @@
+import { Global } from './../../shared/global';
+import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
 import {
   IonicPage,
@@ -25,9 +27,12 @@ export class ListEditPage extends GenericPage {
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
     private formBuilder: FormBuilder,
-    private todoService: TodoServiceProvider
+    private todoService: TodoServiceProvider,
+    private evtCtrl: EventServiceProvider,
+    private navParams: NavParams
   ) {
     super(navCtrl, alertCtrl, loadingCtrl);
+    this.listUUID = navParams.get('uuid');
     this.newList = this.formBuilder.group({
       name: ['', Validators.required],
       icon: ['checkmark']
@@ -35,16 +40,22 @@ export class ListEditPage extends GenericPage {
   }
 
   ionViewDidEnter() {
+    const header = Global.DEFAULT_PAGE_DATA;
+
     if (this.listUUID != null) {
       const todoList = this.todoService
         .getAList(this.listUUID)
         .subscribe(list => {
-          console.log(this.listUUID);
+          header.title = 'Editer "' + list.name + '" ';
+          this.evtCtrl.getHeadeSubject().next(header);
           this.newList = this.formBuilder.group({
             name: [list.name, Validators.required],
             icon: [list.icon]
           });
         });
+    } else {
+      header.title = 'Nouvelle Liste';
+      this.evtCtrl.getHeadeSubject().next(header);
     }
   }
 
@@ -53,6 +64,10 @@ export class ListEditPage extends GenericPage {
       return 'Créer une nouvelle liste';
     }
     return 'Mettre à jour cette liste';
+  }
+
+  public generateDescription(): string {
+    throw new Error('Method not implemented.');
   }
 
   public defList(): void {

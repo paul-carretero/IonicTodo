@@ -20,7 +20,7 @@ import {
 import { Subscription } from 'rxjs';
 
 import { GenericPage } from '../../shared/generic-page';
-import { TodoItem } from './../../model/model';
+import { TodoItem } from './../../model/todo-item';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 
@@ -53,6 +53,7 @@ export class TodoEditPage extends GenericPage {
     this.listUUID = navParams.get('listUUID');
     this.todo = { name: '', complete: false, desc: '', uuid: this.todoUUID };
     this.todoForm = this.formBuilder.group({});
+    this.MapService.lol();
   }
 
   get isInCreation(): boolean {
@@ -88,15 +89,16 @@ export class TodoEditPage extends GenericPage {
           this.todo = data;
         });
     }
-    this.synthService.synthText('Banana');
-    this.synthService.synthText('For');
-    this.synthService.synthText('Scale');
   }
 
   ionViewDidLeave(): void {
     if (this.todoSub != null) {
       this.todoSub.unsubscribe();
     }
+  }
+
+  public generateDescription(): string {
+    throw new Error('Method not implemented.');
   }
 
   public validate(): void {
@@ -120,13 +122,10 @@ export class TodoEditPage extends GenericPage {
       }
     };
     this.map = GoogleMaps.create('mapwrapper', mapOptions);
-    console.log('map?');
     // Wait the MAP_READY before using any methods.
     this.map
       .one(GoogleMapsEvent.MAP_READY)
       .then(() => {
-        console.log('Map is ready!');
-
         // Now you can use all methods safely.
         this.map
           .addMarker({

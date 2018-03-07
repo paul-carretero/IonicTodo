@@ -1,16 +1,19 @@
-import { HomeOptPage } from './opt/home-opt';
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component } from '@angular/core';
 import {
   AlertController,
   LoadingController,
-  NavController,
-  PopoverController
+  NavController
 } from 'ionic-angular';
+import { Subscription } from 'rxjs';
 
-import { TodoList } from '../../model/model';
+import { TodoList } from '../../model/todo-list';
+import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
+import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
-import { TodoItem } from './../../model/model';
+import { MenuRequest } from './../../model/menu-request';
+import { TodoItem } from './../../model/todo-item';
+import { EventServiceProvider } from './../../providers/event/event-service';
 import { Global } from './../../shared/global';
 import { ListEditPage } from './../list-edit/list-edit';
 import { TodoListPage } from './../todo-list/todo-list';
@@ -21,28 +24,61 @@ import { TodoListPage } from './../todo-list/todo-list';
 })
 export class HomePage extends GenericPage {
   public todoList: TodoList[];
-  public pageData = Global.PAGES_DATA.get(Global.HOMEPAGE);
-
-  @ViewChild('popoverContent', { read: ElementRef })
-  content: ElementRef;
-  @ViewChild('popoverText', { read: ElementRef })
-  text: ElementRef;
+  private updateSub: Subscription;
+  private menuEvtSub: Subscription;
 
   constructor(
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
     private todoService: TodoServiceProvider,
-    private popoverCtrl: PopoverController
+    private evtCtrl: EventServiceProvider,
+    private ttsCtrl: SpeechSynthServiceProvider,
+    private speechCtrl: SpeechRecServiceProvider
   ) {
     super(navCtrl, alertCtrl, loadingCtrl);
-    this.pageData.validable = true;
-    this.pageData.popoverMenu = HomeOptPage;
   }
 
-  ionViewDidLoad() {
-    this.todoService.getList().subscribe(data => {
+  ionViewWillEnter() {
+    this.updateSub = this.todoService.getList().subscribe(data => {
       this.todoList = data;
+    });
+
+    const pageData = Global.NO_MENU_PAGE_DATA;
+    pageData.title = 'Listes de Tâches';
+    this.evtCtrl.getHeadeSubject().next(pageData);
+
+    this.listenForMenuEvent();
+  }
+
+  ionViewWillLeave() {
+    this.updateSub.unsubscribe();
+    this.menuEvtSub.unsubscribe();
+  }
+
+  public generateDescription(): string {
+    let description = 'Voici vos liste de tâches en cours:';
+
+    description += 'Voici vos liste de tâches terminé:';
+
+    return description;
+  }
+
+  private listenForMenuEvent(): void {
+    this.menuEvtSub = this.evtCtrl.getMenuRequestSubject().subscribe(req => {
+      switch (req) {
+        case MenuRequest.HELP: {
+          this.alert(
+            'Aide sur la page',
+            "TODO: ecrire de l'aide<br/>nouvelle ligne !"
+          );
+          break;
+        }
+        case MenuRequest.SPEECH_SYNTH: {
+          this.ttsCtrl.synthText(this.generateDescription());
+          break;
+        }
+      }
     });
   }
 

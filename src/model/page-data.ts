@@ -1,8 +1,5 @@
 export interface PageData {
   title: string;
-  listenable?: boolean;
-  talkable?: boolean;
-  popoverMenu?: any;
+  helpOnly?: boolean;
   validable?: boolean;
-  dislayLeftMenu?: boolean;
 }

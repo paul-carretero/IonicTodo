@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 
-import { TodoItem } from '../../model/model';
+import { TodoItem } from '../../model/todo-item';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { TodoEditPage } from './../todo-edit/todo-edit';
 
@@ -34,7 +34,7 @@ export class TodoPage implements OnInit {
     this.listUUID = navParams.get('listUUID');
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {}
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad TodoPage');

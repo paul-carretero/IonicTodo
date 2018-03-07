@@ -1,10 +1,4 @@
-export interface TodoList {
-  uuid: string;
-  name: string;
-  items: TodoItem[];
-  icon?: string;
-}
-
+import { Coordinates } from './coordinates';
 export interface TodoItem {
   // désignation
   uuid?: string;
@@ -18,8 +12,8 @@ export interface TodoItem {
   SMSNumber?: string;
 
   // emplacement du todo
-  posCreated?: { lat: number; lon: number };
-  posCompleted?: { lat: number; lon: number };
+  posCreated?: Coordinates;
+  posCompleted?: Coordinates;
   address?: string;
 
   // image en base64 du todo

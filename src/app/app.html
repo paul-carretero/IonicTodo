@@ -3,14 +3,26 @@
 <ion-menu [content]="content" id="menu-left">
     <ion-header>
         <ion-toolbar color="danger">
-            <ion-title>Vos listes de Tâches</ion-title>
+            <ion-title>Menu</ion-title>
         </ion-toolbar>
     </ion-header>
     <ion-content>
+        <ion-item-divider color="dark">Fonctionalités</ion-item-divider>
         <ion-list>
+            <button ion-item menuClose="menu-left" detail-none>
+                Flasher un QR code
+            </button>
+            <button *ngIf="!JeVoisBien" ion-item detail-none (click)="voirMieux()">
+                Mieux Voir
+            </button>
+            <button *ngIf="JeVoisBien" ion-item detail-none (click)="voirMieux()">
+                Arréter de Mieux Voir
+            </button>
             <button ion-item menuClose="menu-left" detail-none>
                 Fermer
             </button>
+            <ion-item-divider color="dark">Vos listes en cours</ion-item-divider>
+            <ion-item-divider color="dark">Vos listes Terminées</ion-item-divider>
         </ion-list>
     </ion-content>
 </ion-menu>

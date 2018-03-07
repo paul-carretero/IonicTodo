@@ -1,4 +1,5 @@
-import { EventServiceProvider } from './../providers/user-event/event-service';
+import { PopoverOptionsPage } from './../pages/popover-options/popover-options';
+import { EventServiceProvider } from './../providers/event/event-service';
 import { HeaderComponent } from './../components/header/header';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
@@ -32,7 +33,8 @@ import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { ListEditPage } from '../pages/list-edit/list-edit';
-import { HomeOptPage } from '../pages/home/opt/home-opt';
+import { Flashlight } from '@ionic-native/flashlight';
+import { NativeGeocoder } from '@ionic-native/native-geocoder';
 
 @NgModule({
   declarations: [
@@ -45,7 +47,7 @@ import { HomeOptPage } from '../pages/home/opt/home-opt';
     AuthentificationPage,
     HeaderComponent,
     ListEditPage,
-    HomeOptPage
+    PopoverOptionsPage
   ],
   imports: [
     BrowserModule,
@@ -64,7 +66,7 @@ import { HomeOptPage } from '../pages/home/opt/home-opt';
     AuthentificationPage,
     HeaderComponent,
     ListEditPage,
-    HomeOptPage
+    PopoverOptionsPage
   ],
   providers: [
     StatusBar,
@@ -81,7 +83,9 @@ import { HomeOptPage } from '../pages/home/opt/home-opt';
     SpeechRecognition,
     SpeechSynthServiceProvider,
     TextToSpeech,
-    EventServiceProvider
+    EventServiceProvider,
+    Flashlight,
+    NativeGeocoder
   ]
 })
 export class AppModule {}

@@ -4,7 +4,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { v4 as uuid } from 'uuid';
 
-import { TodoItem, TodoList } from '../../model/model';
+import { TodoItem } from '../../model/todo-item';
+import { TodoList } from '../../model/todo-list';
 
 @Injectable()
 export class TodoServiceProvider {

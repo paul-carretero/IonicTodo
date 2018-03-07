@@ -1,0 +1,9 @@
+<ion-list>
+  <ion-list-header>Options</ion-list-header>
+  <button *ngIf="!helpOnly" ion-item (click)="delete()">Supprimer</button>
+  <button *ngIf="!helpOnly" ion-item (click)="edit()">Editer</button>
+  <button *ngIf="!helpOnly" ion-item (click)="share()">Partager</button>
+  <button *ngIf="!helpOnly" ion-item (click)="send()">Envoyer</button>
+  <button ion-item (click)="help()">Aide</button>
+  <button ion-item (click)="close()">Annuler</button>
+</ion-list>

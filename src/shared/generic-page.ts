@@ -41,4 +41,6 @@ export abstract class GenericPage {
       })
       .present();
   }
+
+  public abstract generateDescription(): string;
 }
