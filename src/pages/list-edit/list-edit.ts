@@ -1,21 +1,24 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component } from '@angular/core';
 import {
+  IonicPage,
+  NavController,
+  NavParams,
   AlertController,
-  LoadingController,
-  NavController
+  LoadingController
 } from 'ionic-angular';
-
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
+import { TodoListPage } from '../todo-list/todo-list';
 
+@IonicPage()
 @Component({
-  selector: 'edit-list',
-  templateUrl: 'edit-list.html'
+  selector: 'page-list-edit',
+  templateUrl: 'list-edit.html'
 })
-export class EditListComponent extends GenericPage implements OnInit {
+export class ListEditPage extends GenericPage {
   public newList: FormGroup;
-  @Input() public listUUID: string;
+  public listUUID: string;
 
   constructor(
     public navCtrl: NavController,
@@ -25,9 +28,13 @@ export class EditListComponent extends GenericPage implements OnInit {
     private todoService: TodoServiceProvider
   ) {
     super(navCtrl, alertCtrl, loadingCtrl);
+    this.newList = this.formBuilder.group({
+      name: ['', Validators.required],
+      icon: ['checkmark']
+    });
   }
 
-  ngOnInit() {
+  ionViewDidEnter() {
     if (this.listUUID != null) {
       const todoList = this.todoService
         .getAList(this.listUUID)
@@ -38,11 +45,6 @@ export class EditListComponent extends GenericPage implements OnInit {
             icon: [list.icon]
           });
         });
-    } else {
-      this.newList = this.formBuilder.group({
-        name: ['', Validators.required],
-        icon: ['checkmark']
-      });
     }
   }
 
@@ -54,9 +56,10 @@ export class EditListComponent extends GenericPage implements OnInit {
   }
 
   public defList(): void {
+    let nextUuid = this.listUUID;
     if (this.listUUID == null) {
       this.showLoading('Création de la liste...');
-      this.todoService.addList(
+      nextUuid = this.todoService.addList(
         this.newList.value.name,
         this.newList.value.icon
       );
@@ -81,5 +84,10 @@ export class EditListComponent extends GenericPage implements OnInit {
       );
     }
     this.loading.dismiss();
+    this.selectTodoList(nextUuid);
+  }
+
+  public selectTodoList(uuid: string): void {
+    this.navCtrl.push(TodoListPage, { uuid: uuid });
   }
 }

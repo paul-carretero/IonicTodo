@@ -1,5 +1,3 @@
-import { Geoposition } from '@ionic-native/geolocation';
-
 export interface TodoList {
   uuid: string;
   name: string;
@@ -19,9 +17,10 @@ export interface TodoItem {
   sendSMS?: boolean;
   SMSNumber?: string;
 
-  // emplacement ou le todo a été créé
-  posCreated?: Geoposition;
-  posCompleted?: Geoposition;
+  // emplacement du todo
+  posCreated?: { lat: number; lon: number };
+  posCompleted?: { lat: number; lon: number };
+  address?: string;
 
   // image en base64 du todo
   picture?: string;

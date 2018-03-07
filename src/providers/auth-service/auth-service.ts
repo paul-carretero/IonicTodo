@@ -2,20 +2,11 @@ import { Injectable } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
 import * as firebase from 'firebase/app';
 
-import { Credential } from './../../model/credentials';
-import { GooglePlus } from '@ionic-native/google-plus';
-import { FirebaseCredentials } from '../../app/firebase.credentials';
-import { AlertController } from 'ionic-angular';
-
 @Injectable()
 export class AuthServiceProvider {
   private userProfile: any;
 
-  constructor(
-    private firebaseAuth: AngularFireAuth,
-    private googlePlus: GooglePlus,
-    private alert: AlertController
-  ) {
+  constructor(private firebaseAuth: AngularFireAuth) {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         this.userProfile = user;

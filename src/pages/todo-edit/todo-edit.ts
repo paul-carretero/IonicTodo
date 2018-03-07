@@ -1,3 +1,4 @@
+import { MapServiceProvider } from './../../providers/map-service/map-service';
 import { Component } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import {
@@ -21,6 +22,7 @@ import { Subscription } from 'rxjs';
 import { GenericPage } from '../../shared/generic-page';
 import { TodoItem } from './../../model/model';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
+import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 
 @IonicPage()
 @Component({
@@ -42,7 +44,9 @@ export class TodoEditPage extends GenericPage {
     public loadingCtrl: LoadingController,
     private navParams: NavParams,
     private todoService: TodoServiceProvider,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private MapService: MapServiceProvider,
+    private synthService: SpeechSynthServiceProvider
   ) {
     super(navCtrl, alertCtrl, loadingCtrl);
     this.todoUUID = navParams.get('todoUUID');
@@ -84,6 +88,9 @@ export class TodoEditPage extends GenericPage {
           this.todo = data;
         });
     }
+    this.synthService.synthText('Banana');
+    this.synthService.synthText('For');
+    this.synthService.synthText('Scale');
   }
 
   ionViewDidLeave(): void {
@@ -102,9 +109,6 @@ export class TodoEditPage extends GenericPage {
   }
 
   private loadMap() {
-    console.log('<1>map?');
-    console.log('<2>map?');
-    console.log('<3>map?');
     let mapOptions: GoogleMapOptions = {
       camera: {
         target: {
@@ -115,7 +119,6 @@ export class TodoEditPage extends GenericPage {
         tilt: 30
       }
     };
-    console.log('<1>map?');
     this.map = GoogleMaps.create('mapwrapper', mapOptions);
     console.log('map?');
     // Wait the MAP_READY before using any methods.
@@ -140,12 +143,8 @@ export class TodoEditPage extends GenericPage {
               alert('clicked');
             });
           })
-          .catch(err => {
-            console.log('MAYDAY ' + err);
-          });
+          .catch(err => {});
       })
-      .catch(err => {
-        console.log('MAYDAYV2 ' + err);
-      });
+      .catch(err => {});
   }
 }

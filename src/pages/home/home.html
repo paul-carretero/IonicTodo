@@ -1,23 +1,8 @@
 <ion-header>
-    <ion-navbar>
-        <ion-title>Vos Liste de Tâches</ion-title>
-    </ion-navbar>
+    <HeaderComponent></HeaderComponent>
 </ion-header>
 
-<ion-content>
-    <ion-card>
-        <ion-card-header class="no-padding">
-            <button full icon-end ion-button (click)="displayNewList = !displayNewList">
-                Nouvelle Liste
-                <ion-icon *ngIf="!displayNewList" name="ios-arrow-down"></ion-icon>
-                <ion-icon *ngIf="displayNewList" name="ios-arrow-up"></ion-icon>
-            </button>
-        </ion-card-header>
-        <ion-card-content *ngIf="displayNewList">
-            <edit-list [listUUID]="null"></edit-list>
-        </ion-card-content>
-    </ion-card>
-    <ion-searchbar></ion-searchbar>
+<ion-content padding>
     <ion-list>
         <ion-item-divider color="light">
             Listes de Todo en cours
@@ -32,14 +17,14 @@
                 <ion-item-options side="left">
                     <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
                         <ion-icon name="trash">
-                        supprimer
+                            supprimer
                         </ion-icon>
                     </button>
                 </ion-item-options>
                 <ion-item-options side="right">
                     <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
                         <ion-icon name="trash">
-                        supprimer
+                            supprimer
                         </ion-icon>
                     </button>
                 </ion-item-options>
@@ -59,18 +44,21 @@
                 <ion-item-options side="left">
                     <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
                         <ion-icon name="trash">
-                        supprimer
+                            supprimer
                         </ion-icon>
                     </button>
                 </ion-item-options>
                 <ion-item-options side="right">
                     <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
                         <ion-icon name="trash">
-                        supprimer
+                            supprimer
                         </ion-icon>
                     </button>
                 </ion-item-options>
             </ion-item-sliding>
         </ng-container>
     </ion-list>
+    <button class="bottom-right-button" ion-fab (click)="createTodoList()">
+        <ion-icon name="add"></ion-icon>
+    </button>
 </ion-content>

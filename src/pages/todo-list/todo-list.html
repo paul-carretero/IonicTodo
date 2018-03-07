@@ -16,16 +16,6 @@
 </ion-header>
 
 <ion-content>
-    <ion-card *ngIf="editList">
-        <ion-card-header>
-        </ion-card-header>
-        <ion-card-content>
-            <edit-list [listUUID]="ListUUID"></edit-list>
-        </ion-card-content>
-        <button full ion-button (click)="editList = !editList">
-            <ion-icon name="ios-arrow-up"></ion-icon>
-        </button>
-    </ion-card>
     <ion-searchbar></ion-searchbar>
     <ion-list>
         <ion-item-sliding *ngFor="let todo of todoItems|async">
@@ -36,19 +26,21 @@
             </ion-item>
             <ion-item-options side="right">
                 <button (click)="deleteTodo(todo.uuid)" ion-button color="danger">
-                <ion-icon name="trash">
-                  supprimer
-                </ion-icon>
+                    <ion-icon name="trash">
+                        supprimer
+                    </ion-icon>
                 </button>
             </ion-item-options>
             <ion-item-options side="left">
                 <button (click)="deleteTodo(todo.uuid)" ion-button color="danger">
-                <ion-icon name="trash">
-                  supprimer
-                </ion-icon>
+                    <ion-icon name="trash">
+                        supprimer
+                    </ion-icon>
                 </button>
             </ion-item-options>
         </ion-item-sliding>
     </ion-list>
-    <button class="bottom-right-button" ion-fab (click)="createTodo()"><ion-icon name="add" ></ion-icon></button>
+    <button class="bottom-right-button" ion-fab (click)="createTodo()">
+        <ion-icon name="add"></ion-icon>
+    </button>
 </ion-content>

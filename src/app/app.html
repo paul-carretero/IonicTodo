@@ -1,1 +1,16 @@
-<ion-nav [root]="rootPage"></ion-nav>
+<ion-nav [root]="rootPage" #content swipeBackEnabled="true"></ion-nav>
+
+<ion-menu [content]="content" id="menu-left">
+    <ion-header>
+        <ion-toolbar color="danger">
+            <ion-title>Vos listes de Tâches</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ion-content>
+        <ion-list>
+            <button ion-item menuClose="menu-left" detail-none>
+                Fermer
+            </button>
+        </ion-list>
+    </ion-content>
+</ion-menu>

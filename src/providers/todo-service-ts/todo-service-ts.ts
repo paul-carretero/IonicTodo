@@ -88,8 +88,21 @@ export class TodoServiceProvider {
     return Observable.of(this.data.find(d => d.uuid == uuid));
   }
 
-  public addList(listName: string, icon: string): void {
-    this.data.push({ uuid: uuid(), name: listName, items: [], icon: icon });
+  /**
+   * permet de créer une liste
+   * @param listName le nom de la liste à créer
+   * @param icon un type de liste (associé à une icone ionic)
+   * @returns l'uuid de la liste nouvellement créée
+   */
+  public addList(listName: string, icon: string): string {
+    const newUuid = uuid();
+    this.data.push({
+      uuid: newUuid,
+      name: listName,
+      items: [],
+      icon: icon
+    });
+    return newUuid;
   }
 
   public deleteList(listUuid: string): void {

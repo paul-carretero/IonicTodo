@@ -1,26 +1,38 @@
-import { EditListComponent } from './../components/edit-list/edit-list';
-import { TodoEditPage } from './../pages/todo-edit/todo-edit';
-import { TodoPage } from './../pages/todo/todo';
-import { TodoListPage } from './../pages/todo-list/todo-list';
-import { NgModule, ErrorHandler } from '@angular/core';
+import { EventServiceProvider } from './../providers/user-event/event-service';
+import { HeaderComponent } from './../components/header/header';
+import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
-import { MyApp } from './app.component';
-
-import { HomePage } from '../pages/home/home';
-
-import { StatusBar } from '@ionic-native/status-bar';
+import { GooglePlus } from '@ionic-native/google-plus';
+import { LocalNotifications } from '@ionic-native/local-notifications';
+import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { SplashScreen } from '@ionic-native/splash-screen';
-import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
-import { TabsPage } from '../pages/tabs/tabs';
-import { AuthentificationPage } from '../pages/authentification/authentification';
-import { AuthServiceProvider } from '../providers/auth-service/auth-service';
-
-import { FirebaseCredentials } from './firebase.credentials';
+import { StatusBar } from '@ionic-native/status-bar';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
-import { GooglePlus } from '@ionic-native/google-plus';
-import { AlertController } from 'ionic-angular';
+import { TextToSpeech } from '@ionic-native/text-to-speech';
+import {
+  AlertController,
+  IonicApp,
+  IonicErrorHandler,
+  IonicModule
+} from 'ionic-angular';
+
+import { AuthentificationPage } from '../pages/authentification/authentification';
+import { HomePage } from '../pages/home/home';
+import { TabsPage } from '../pages/tabs/tabs';
+import { AuthServiceProvider } from '../providers/auth-service/auth-service';
+import { MapServiceProvider } from '../providers/map-service/map-service';
+import { NotifServiceProvider } from '../providers/notif-service/notif-service';
+import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
+import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
+import { TodoEditPage } from './../pages/todo-edit/todo-edit';
+import { TodoListPage } from './../pages/todo-list/todo-list';
+import { TodoPage } from './../pages/todo/todo';
+import { MyApp } from './app.component';
+import { FirebaseCredentials } from './firebase.credentials';
+import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
+import { ListEditPage } from '../pages/list-edit/list-edit';
+import { HomeOptPage } from '../pages/home/opt/home-opt';
 
 @NgModule({
   declarations: [
@@ -31,7 +43,9 @@ import { AlertController } from 'ionic-angular';
     TodoPage,
     TodoEditPage,
     AuthentificationPage,
-    EditListComponent
+    HeaderComponent,
+    ListEditPage,
+    HomeOptPage
   ],
   imports: [
     BrowserModule,
@@ -48,7 +62,9 @@ import { AlertController } from 'ionic-angular';
     TodoPage,
     TodoEditPage,
     AuthentificationPage,
-    EditListComponent
+    HeaderComponent,
+    ListEditPage,
+    HomeOptPage
   ],
   providers: [
     StatusBar,
@@ -57,7 +73,15 @@ import { AlertController } from 'ionic-angular';
     TodoServiceProvider,
     AuthServiceProvider,
     GooglePlus,
-    AlertController
+    AlertController,
+    NotifServiceProvider,
+    LocalNotifications,
+    MapServiceProvider,
+    SpeechRecServiceProvider,
+    SpeechRecognition,
+    SpeechSynthServiceProvider,
+    TextToSpeech,
+    EventServiceProvider
   ]
 })
 export class AppModule {}

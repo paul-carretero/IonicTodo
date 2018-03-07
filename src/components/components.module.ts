@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
-import { EditListComponent } from './edit-list/edit-list';
+import { HeaderComponent } from './header/header';
 @NgModule({
-	declarations: [EditListComponent],
-	imports: [],
-	exports: [EditListComponent]
+  declarations: [HeaderComponent],
+  imports: [],
+  exports: [HeaderComponent]
 })
 export class ComponentsModule {}

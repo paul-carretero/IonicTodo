@@ -1,0 +1,23 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+<ion-content padding>
+  <form [formGroup]="newList" (ngSubmit)="defList()">
+    <ion-item>
+      <ion-label>Nom</ion-label>
+      <ion-input type="text" formControlName="name" placeholder="Text Input"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Type
+      </ion-label>
+      <ion-select formControlName="icon">
+        <ion-option selected value="checkmark">Default</ion-option>
+        <ion-option value="cart">Shopping</ion-option>
+        <ion-option value="home">Maison</ion-option>
+        <ion-option value="briefcase">Travail</ion-option>
+      </ion-select>
+    </ion-item>
+    <button full ion-button type="submit" [disabled]="!newList.valid">{{submitText}}</button>
+  </form>
+</ion-content>
