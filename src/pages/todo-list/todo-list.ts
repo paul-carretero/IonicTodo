@@ -36,12 +36,12 @@ export class TodoListPage extends GenericPage {
     public navCtrl: NavController,
     public loadingCtrl: LoadingController,
     public alertCtrl: AlertController,
+    public evtCtrl: EventServiceProvider,
     private todoService: TodoServiceProvider,
     private navParams: NavParams,
-    private evtCtrl: EventServiceProvider,
     private ttsCtrl: SpeechSynthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
     this.ListUUID = navParams.get('uuid');
   }
 

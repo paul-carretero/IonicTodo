@@ -1,4 +1,4 @@
-import { Coordinates } from './coordinates';
+import { ILatLng } from '@ionic-native/google-maps';
 export interface TodoItem {
   // désignation
   uuid?: string;
@@ -12,8 +12,8 @@ export interface TodoItem {
   SMSNumber?: string;
 
   // emplacement du todo
-  posCreated?: Coordinates;
-  posCompleted?: Coordinates;
+  posCreated?: ILatLng;
+  posCompleted?: ILatLng;
   address?: string;
 
   // image en base64 du todo

@@ -1,3 +1,4 @@
+import { EventServiceProvider } from './../../providers/event/event-service';
 import { MapServiceProvider } from './../../providers/map-service/map-service';
 import { Component } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
@@ -42,13 +43,14 @@ export class TodoEditPage extends GenericPage {
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
+    public evtCtrl: EventServiceProvider,
     private navParams: NavParams,
     private todoService: TodoServiceProvider,
     private formBuilder: FormBuilder,
     private MapService: MapServiceProvider,
     private synthService: SpeechSynthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
     this.todoUUID = navParams.get('todoUUID');
     this.listUUID = navParams.get('listUUID');
     this.todo = { name: '', complete: false, desc: '', uuid: this.todoUUID };
@@ -92,9 +94,7 @@ export class TodoEditPage extends GenericPage {
   }
 
   ionViewDidLeave(): void {
-    if (this.todoSub != null) {
-      this.todoSub.unsubscribe();
-    }
+    this.todoSub.unsubscribe();
   }
 
   public generateDescription(): string {

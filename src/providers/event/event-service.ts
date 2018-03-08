@@ -1,3 +1,4 @@
+import { NavRequest } from './../../model/nav-request';
 import { Global } from './../../shared/global';
 import { Injectable } from '@angular/core';
 import { Subject, BehaviorSubject } from 'rxjs';
@@ -22,15 +23,15 @@ export class EventServiceProvider {
   private menuRequestSubject: Subject<MenuRequest>;
 
   /**
-   * Flux spécial de demande de reconnaissance vocale
+   * Flux de commande de navigation, typiquement du menu de gauche
    */
-  private speechRequestSubject: Subject<void>;
+  private navRequestSubject: Subject<NavRequest>;
 
   constructor() {
     this.userValidation = new Subject<boolean>();
     this.headerData = new BehaviorSubject<PageData>(Global.DEFAULT_PAGE_DATA);
     this.menuRequestSubject = new Subject<MenuRequest>();
-    this.speechRequestSubject = new Subject<void>();
+    this.navRequestSubject = new Subject<NavRequest>();
   }
 
   public getUserValidation(): Subject<boolean> {
@@ -53,7 +54,7 @@ export class EventServiceProvider {
     return this.menuRequestSubject;
   }
 
-  public getSpeechRequestSubject(): Subject<void> {
-    return this.speechRequestSubject;
+  public getNavRequestSubject(): Subject<NavRequest> {
+    return this.navRequestSubject;
   }
 }

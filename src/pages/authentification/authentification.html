@@ -15,22 +15,42 @@
                 <ion-label floating>Mot de passe</ion-label>
                 <ion-input type="password" [(ngModel)]="password"></ion-input>
             </ion-item>
-            <button ion-button (click)="firebaseLogin()" icon-start>
+            <button ion-button (click)="firebaseLogin()" icon-start round full>
+                <ion-icon name="cloud"></ion-icon>
                 Connexion
             </button>
-            <button ion-button (click)="createCount()" icon-start>
+            <button ion-button (click)="createCount()" icon-start round small full>
+                <ion-icon name="log-in"></ion-icon>
                 Inscription
             </button>
-            <button ion-button (click)="resetPassword()" icon-start>
-                Mot de passe oublié ?
+            <button ion-button (click)="resetPassword()" icon-start round small full>
+                <ion-icon name="mail"></ion-icon>
+                Mot de passe
+                <br/> oublié
             </button>
         </ion-card-content>
     </ion-card>
     <ion-card>
         <ion-card-content>
-            <button ion-button (click)="loginGooglePlus()" color="danger" icon-start>
+            <button ion-button (click)="loginGooglePlus()" color="danger" icon-start round full>
                 <ion-icon name="logo-googleplus"></ion-icon>
                 Connecter avec Google +
+            </button>
+        </ion-card-content>
+    </ion-card>
+    <ion-card>
+        <ion-card-content>
+            <button ion-button (click)="offlineMode()" color="secondary" icon-start small round full>
+                <ion-icon name="cloud-outline"></ion-icon>
+                Mode Hors Connexion
+            </button>
+        </ion-card-content>
+    </ion-card>
+    <ion-card>
+        <ion-card-content>
+            <button ion-button (click)="logout()" color="danger" icon-start round full>
+                <ion-icon name="log-out"></ion-icon>
+                Me déconnecter
             </button>
         </ion-card-content>
     </ion-card>

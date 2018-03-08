@@ -1,27 +1,49 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
 import * as firebase from 'firebase/app';
+import { User } from 'firebase/app';
+import { UniqueDeviceID } from '@ionic-native/unique-device-id';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable()
 export class AuthServiceProvider {
-  private userProfile: any;
+  private userProfile: User;
+  private useHorsConnexion = false;
+  private connexionSubject: BehaviorSubject<boolean>;
 
-  constructor(private firebaseAuth: AngularFireAuth) {
+  constructor(
+    private firebaseAuth: AngularFireAuth,
+    private devideIdCtrl: UniqueDeviceID
+  ) {
+    this.connexionSubject = new BehaviorSubject<boolean>(false);
+    this.listenForUpdate();
+  }
+
+  private listenForUpdate(): void {
     firebase.auth().onAuthStateChanged(user => {
-      if (user) {
+      if (user != null && user.uid != null) {
         this.userProfile = user;
-        console.log('OMG SO GOOD OMG GOMG GOMGOMGOMGOMG');
+        this.connexionSubject.next(true);
       } else {
         this.userProfile = null;
+        this.connexionSubject.next(false);
       }
     });
   }
 
-  get connexionStatus(): boolean {
-    return this.firebaseAuth.auth.currentUser != null;
+  public getUserId(): Promise<any> {
+    return this.userProfile.getToken();
   }
 
-  logout() {
+  public getMachineId(): Promise<any> {
+    return this.devideIdCtrl.get();
+  }
+
+  public logout() {
     firebase.auth().signOut();
+  }
+
+  public getConnexionSubject(): BehaviorSubject<boolean> {
+    return this.connexionSubject;
   }
 }

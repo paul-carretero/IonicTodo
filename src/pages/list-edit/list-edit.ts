@@ -26,12 +26,12 @@ export class ListEditPage extends GenericPage {
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
+    public evtCtrl: EventServiceProvider,
     private formBuilder: FormBuilder,
     private todoService: TodoServiceProvider,
-    private evtCtrl: EventServiceProvider,
     private navParams: NavParams
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
     this.listUUID = navParams.get('uuid');
     this.newList = this.formBuilder.group({
       name: ['', Validators.required],
@@ -40,7 +40,7 @@ export class ListEditPage extends GenericPage {
   }
 
   ionViewDidEnter() {
-    const header = Global.DEFAULT_PAGE_DATA;
+    const header = Global.VALIDABLE_PAGE_DATA;
 
     if (this.listUUID != null) {
       const todoList = this.todoService

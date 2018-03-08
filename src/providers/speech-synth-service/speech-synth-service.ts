@@ -18,7 +18,7 @@ export class SpeechSynthServiceProvider {
   }
 
   /**
-   * Workaround pour corriger un bug sur la fonction tts.stop()
+   * Workaround pour corriger un bug sur la fonction TextToSpeech.stop()
    * @see https://github.com/ionic-team/ionic-native/issues/2137
    * @private
    * @memberof SpeechSynthServiceProvider

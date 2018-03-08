@@ -28,7 +28,9 @@ export class PopoverOptionsPage {
     });
   }
 
-  ionViewWillLeave() {}
+  ionViewWillLeave() {
+    this.updateSub.unsubscribe();
+  }
 
   public close() {
     this.viewCtrl.dismiss();

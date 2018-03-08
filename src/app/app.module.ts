@@ -1,16 +1,18 @@
-import { PopoverOptionsPage } from './../pages/popover-options/popover-options';
-import { EventServiceProvider } from './../providers/event/event-service';
-import { HeaderComponent } from './../components/header/header';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { Flashlight } from '@ionic-native/flashlight';
 import { GooglePlus } from '@ionic-native/google-plus';
 import { LocalNotifications } from '@ionic-native/local-notifications';
+import { NativeGeocoder } from '@ionic-native/native-geocoder';
+import { QRScanner } from '@ionic-native/qr-scanner';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
+import { TextToSpeech } from '@ionic-native/text-to-speech';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
-import { TextToSpeech } from '@ionic-native/text-to-speech';
+import { AngularFireDatabaseModule } from 'angularfire2/database';
+import { AngularFirestoreModule } from 'angularfire2/firestore';
 import {
   AlertController,
   IonicApp,
@@ -20,21 +22,24 @@ import {
 
 import { AuthentificationPage } from '../pages/authentification/authentification';
 import { HomePage } from '../pages/home/home';
+import { ListEditPage } from '../pages/list-edit/list-edit';
+import { QrReaderPage } from '../pages/qr-reader/qr-reader';
 import { TabsPage } from '../pages/tabs/tabs';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
 import { MapServiceProvider } from '../providers/map-service/map-service';
 import { NotifServiceProvider } from '../providers/notif-service/notif-service';
 import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
+import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
+import { HeaderComponent } from './../components/header/header';
+import { PopoverOptionsPage } from './../pages/popover-options/popover-options';
 import { TodoEditPage } from './../pages/todo-edit/todo-edit';
 import { TodoListPage } from './../pages/todo-list/todo-list';
 import { TodoPage } from './../pages/todo/todo';
+import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
-import { ListEditPage } from '../pages/list-edit/list-edit';
-import { Flashlight } from '@ionic-native/flashlight';
-import { NativeGeocoder } from '@ionic-native/native-geocoder';
+import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 
 @NgModule({
   declarations: [
@@ -47,13 +52,15 @@ import { NativeGeocoder } from '@ionic-native/native-geocoder';
     AuthentificationPage,
     HeaderComponent,
     ListEditPage,
-    PopoverOptionsPage
+    PopoverOptionsPage,
+    QrReaderPage
   ],
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
     AngularFireModule.initializeApp(FirebaseCredentials),
-    AngularFireAuthModule
+    AngularFireAuthModule,
+    AngularFirestoreModule.enablePersistence()
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -66,7 +73,8 @@ import { NativeGeocoder } from '@ionic-native/native-geocoder';
     AuthentificationPage,
     HeaderComponent,
     ListEditPage,
-    PopoverOptionsPage
+    PopoverOptionsPage,
+    QrReaderPage
   ],
   providers: [
     StatusBar,
@@ -85,7 +93,9 @@ import { NativeGeocoder } from '@ionic-native/native-geocoder';
     TextToSpeech,
     EventServiceProvider,
     Flashlight,
-    NativeGeocoder
+    NativeGeocoder,
+    QRScanner,
+    UniqueDeviceID
   ]
 })
 export class AppModule {}

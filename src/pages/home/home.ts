@@ -31,12 +31,12 @@ export class HomePage extends GenericPage {
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
+    public evtCtrl: EventServiceProvider,
     private todoService: TodoServiceProvider,
-    private evtCtrl: EventServiceProvider,
     private ttsCtrl: SpeechSynthServiceProvider,
     private speechCtrl: SpeechRecServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
   }
 
   ionViewWillEnter() {

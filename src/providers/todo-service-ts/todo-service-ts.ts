@@ -1,3 +1,4 @@
+import { AuthServiceProvider } from './../auth-service/auth-service';
 import 'rxjs/Rx';
 
 import { Injectable } from '@angular/core';
@@ -6,72 +7,44 @@ import { v4 as uuid } from 'uuid';
 
 import { TodoItem } from '../../model/todo-item';
 import { TodoList } from '../../model/todo-list';
+import { AngularFireDatabase, AngularFireList } from 'angularfire2/database';
+import {
+  AngularFirestoreCollection,
+  AngularFirestore
+} from 'angularfire2/firestore';
 
 @Injectable()
 export class TodoServiceProvider {
-  private data: TodoList[] = [
-    {
-      uuid: 'a351e558-29ce-4689-943c-c3e97be0df8b',
-      name: 'List 1',
-      icon: 'home',
-      items: [
-        {
-          uuid: '7dc94eb4-d4e9-441b-b06b-0ca29738c8d2',
-          name: 'Item 1-1',
-          complete: true
-        },
-        {
-          uuid: '20c09bdd-1cf8-43b0-9111-977fc4d343bc',
-          name: 'Item 1-2',
-          complete: true
-        },
-        {
-          uuid: 'bef88351-f4f1-4b6a-965d-bb1a4fa3b444',
-          name: 'Item 1-3',
-          complete: true
-        }
-      ]
-    },
-    {
-      uuid: '90c04913-c1a2-47e5-9535-c7a430cdcf9c',
-      name: 'List 2',
-      items: [
-        {
-          uuid: '72849f5f-2ef6-444b-98b0-b50fc019f97c',
-          name: 'Item 2-1',
-          complete: false
-        },
-        {
-          uuid: '80d4cbbe-1c64-4603-8d00-ee4932045333',
-          name: 'Item 2-2',
-          complete: true
-        },
-        {
-          uuid: 'a1cd4568-590b-428b-989d-165f22365485',
-          name: 'Item 2-3',
-          complete: true
-        }
-      ]
-    },
-    {
-      uuid: '90c04913-c1a2-47e5-9535-c7a430cdcf93',
-      name: 'List 3',
-      items: []
-    },
-    {
-      uuid: '90c04913-c1a2-47e5-9535-c7a430cdcf94',
-      name: 'List 4',
-      items: []
-    },
-    {
-      uuid: '90c04913-c1a2-47e5-9535-c7a430cdcf95',
-      name: 'List 5',
-      items: []
-    }
-  ];
+  private data = [];
 
-  constructor() {
-    console.log('Hello TodoServiceProvider Provider');
+  /**
+   * ensemble des listes de l'utilisateur courrant
+   * @private
+   * @type {AngularFirestoreCollection<TodoList>}
+   * @memberof TodoServiceProvider
+   */
+  private todoListCollection: AngularFirestoreCollection<TodoList>;
+  private todoLists: Observable<TodoList[]>;
+
+  constructor(
+    private firestoreCtrl: AngularFirestore,
+    private authCtrl: AuthServiceProvider
+  ) {
+    this.todoLists = new Observable();
+    this.updateDBLink();
+  }
+
+  private updateDBLink(): void {
+    this.authCtrl.getConnexionSubject().subscribe((isConnected: boolean) => {
+      if (isConnected) {
+        this.authCtrl.getUserId().then((id: any) => {
+          this.todoListCollection = this.firestoreCtrl.collection<TodoList>(
+            'user/' + id + '/list'
+          );
+          this.todoLists = this.todoListCollection.valueChanges();
+        });
+      }
+    });
   }
 
   /*******************************
@@ -82,7 +55,7 @@ export class TodoServiceProvider {
    * récupère l'ensemble des listes de todo
    */
   public getList(): Observable<TodoList[]> {
-    return Observable.of(this.data);
+    return this.todoLists;
   }
 
   public getAList(uuid: String): Observable<TodoList> {
@@ -97,7 +70,7 @@ export class TodoServiceProvider {
    */
   public addList(listName: string, icon: string): string {
     const newUuid = uuid();
-    this.data.push({
+    this.todoListCollection.doc(newUuid).set({
       uuid: newUuid,
       name: listName,
       items: [],

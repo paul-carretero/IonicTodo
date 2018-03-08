@@ -1,12 +1,10 @@
-import { Coordinates } from './../../model/coordinates';
-import { HttpClient } from '@angular/common/http';
+import { ILatLng } from '@ionic-native/google-maps';
 import { Injectable } from '@angular/core';
 import {
   NativeGeocoder,
-  NativeGeocoderReverseResult,
-  NativeGeocoderForwardResult
+  NativeGeocoderForwardResult,
+  NativeGeocoderReverseResult
 } from '@ionic-native/native-geocoder';
-import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class MapServiceProvider {
@@ -36,15 +34,15 @@ export class MapServiceProvider {
     return promise;
   }
 
-  public AddressToCoord(address: string): Promise<Coordinates> {
-    const promise: Promise<Coordinates> = new Promise<Coordinates>(
+  public AddressToCoord(address: string): Promise<ILatLng> {
+    const promise: Promise<ILatLng> = new Promise<ILatLng>(
       (resolve, reject) => {
         this.nativeGeocoder
           .forwardGeocode(address)
           .then((res: NativeGeocoderForwardResult) => {
             resolve({
-              latitude: res[0].latitude,
-              longitude: res[0].longitude
+              lat: res[0].latitude,
+              lng: res[0].longitude
             });
           })
           .catch((error: any) => {
@@ -57,8 +55,8 @@ export class MapServiceProvider {
 
   public lol() {
     this.AddressToCoord('23 rue du marechal Lyautey 33500 Libourne').then(
-      (coordinate: Coordinates) => {
-        this.coordToAddress(coordinate.latitude, coordinate.longitude).then(
+      (coordinate: ILatLng) => {
+        this.coordToAddress(coordinate.lat, coordinate.lng).then(
           (res: string) => {
             console.log(res);
           }

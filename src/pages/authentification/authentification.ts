@@ -16,6 +16,7 @@ import { FirebaseCredentials } from '../../app/firebase.credentials';
 import { HomePage } from '../home/home';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { TabsPage } from '../tabs/tabs';
+import { EventServiceProvider } from '../../providers/event/event-service';
 
 @IonicPage()
 @Component({
@@ -31,15 +32,16 @@ export class AuthentificationPage extends GenericPage {
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
+    public evtCtrl: EventServiceProvider,
     private navParams: NavParams,
     private authServiceProvider: AuthServiceProvider,
     private googlePlus: GooglePlus
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
   }
 
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad LoginPage');
+  public generateDescription(): string {
+    throw new Error('Method not implemented.');
   }
 
   async loginGooglePlus(): Promise<void> {
@@ -53,12 +55,22 @@ export class AuthentificationPage extends GenericPage {
         const googleCredential = firebase.auth.GoogleAuthProvider.credential(
           result.idToken
         );
-        firebase.auth().signInWithCredential(googleCredential);
-        this.alert(
-          'Connexion',
-          'Connexion avec votre compte Google effectuée avec succès!'
-        );
-        this.navCtrl.parent.select(Global.HOMEPAGE);
+        firebase
+          .auth()
+          .signInWithCredential(googleCredential)
+          .then((res: any) => {
+            this.alert(
+              'Connexion',
+              'Connexion avec votre compte Google effectuée avec succès!'
+            );
+            firebase
+              .auth()
+              .currentUser.getIdToken(true)
+              .then((res: any) => {
+                this.alert('debug', JSON.stringify(res).charAt(10));
+              });
+            this.navCtrl.parent.select(Global.HOMEPAGE);
+          });
       }
     } catch (err) {
       this.alert(
@@ -89,6 +101,12 @@ export class AuthentificationPage extends GenericPage {
       );
       this.loading.dismiss();
     }
+  }
+
+  async logout(): Promise<void> {
+    this.showLoading('Déconnexion en cours');
+    await firebase.auth().signOut();
+    this.loading.dismiss();
   }
 
   async createCount(): Promise<void> {
