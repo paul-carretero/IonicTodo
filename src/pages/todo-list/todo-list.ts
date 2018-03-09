@@ -47,7 +47,8 @@ export class TodoListPage extends GenericPage {
 
   ionViewWillEnter() {
     const pageData = Global.DEFAULT_PAGE_DATA;
-    this.todoItems = this.todoService.getTodos(this.ListUUID);
+    //this.todoItems = this.todoService.getTodos(this.ListUUID);
+    this.todoItems = Observable.of([]);
     this.todoList = this.todoService.getAList(this.ListUUID);
     this.todoList
       .subscribe(res => {
@@ -59,7 +60,9 @@ export class TodoListPage extends GenericPage {
   }
 
   ionViewWillLeave() {
-    this.menuEvtSub.unsubscribe();
+    if (this.menuEvtSub != null) {
+      this.menuEvtSub.unsubscribe();
+    }
   }
 
   private listenForMenuEvent(): void {

@@ -1,3 +1,4 @@
+import { PageData } from './../../model/page-data';
 import { Subscription } from 'rxjs';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
@@ -17,15 +18,20 @@ import { MenuRequest } from '../../model/menu-request';
 export class PopoverOptionsPage {
   private updateSub: Subscription;
   private helpOnly: boolean;
+  private importable: boolean;
+
   constructor(
     private viewCtrl: ViewController,
     private evtCtrl: EventServiceProvider
   ) {}
 
   ionViewWillEnter() {
-    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe(newData => {
-      this.helpOnly = newData.helpOnly;
-    });
+    this.updateSub = this.evtCtrl
+      .getHeadeSubject()
+      .subscribe((newData: PageData) => {
+        this.helpOnly = newData.helpOnly;
+        this.importable = newData.importable;
+      });
   }
 
   ionViewWillLeave() {
@@ -59,5 +65,10 @@ export class PopoverOptionsPage {
   public help() {
     this.viewCtrl.dismiss();
     this.evtCtrl.getMenuRequestSubject().next(MenuRequest.HELP);
+  }
+
+  public import() {
+    this.viewCtrl.dismiss();
+    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.IMPORT);
   }
 }

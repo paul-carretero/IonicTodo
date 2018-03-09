@@ -1,13 +1,44 @@
 import { ILatLng } from '@ionic-native/google-maps';
 export interface TodoItem {
-  // désignation
+  /**
+   * Identifieur unique du todo
+   *
+   * @type {string}
+   * @memberof TodoItem
+   */
   uuid?: string;
+
+  /**
+   * Nom du todo
+   *
+   * @type {string}
+   * @memberof TodoItem
+   */
   name: string;
+
+  /**
+   * Description détaillé du todo
+   *
+   * @type {string}
+   * @memberof TodoItem
+   */
   desc?: string;
   userName?: string;
 
-  // permet de gérer l'envoi de sms de rappel contenant la description par exemple
+  /**
+   * Vrai si l'on doit envoyer une notification (native) avant que le todo n'arrive à la deadline
+   *
+   * @type {boolean}
+   * @memberof TodoItem
+   */
   notif?: boolean;
+
+  /**
+   * Vrai si l'on doit envoyer un SMS pour
+   *
+   * @type {boolean}
+   * @memberof TodoItem
+   */
   sendSMS?: boolean;
   SMSNumber?: string;
 

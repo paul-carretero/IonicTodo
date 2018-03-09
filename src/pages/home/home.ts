@@ -5,6 +5,7 @@ import {
   NavController
 } from 'ionic-angular';
 import { Subscription } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
 
 import { TodoList } from '../../model/todo-list';
 import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
@@ -23,8 +24,7 @@ import { TodoListPage } from './../todo-list/todo-list';
   templateUrl: 'home.html'
 })
 export class HomePage extends GenericPage {
-  public todoList: TodoList[];
-  private updateSub: Subscription;
+  public todoList: Observable<TodoList[]>;
   private menuEvtSub: Subscription;
 
   constructor(
@@ -40,9 +40,7 @@ export class HomePage extends GenericPage {
   }
 
   ionViewWillEnter() {
-    this.updateSub = this.todoService.getList().subscribe(data => {
-      this.todoList = data;
-    });
+    this.todoList = this.todoService.getPrivateLists();
 
     const pageData = Global.NO_MENU_PAGE_DATA;
     pageData.title = 'Listes de Tâches';
@@ -52,7 +50,6 @@ export class HomePage extends GenericPage {
   }
 
   ionViewWillLeave() {
-    this.updateSub.unsubscribe();
     this.menuEvtSub.unsubscribe();
   }
 

@@ -40,6 +40,7 @@ import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
 import { UniqueDeviceID } from '@ionic-native/unique-device-id';
+import { SettingServiceProvider } from '../providers/setting/setting-service';
 
 @NgModule({
   declarations: [
@@ -95,7 +96,8 @@ import { UniqueDeviceID } from '@ionic-native/unique-device-id';
     Flashlight,
     NativeGeocoder,
     QRScanner,
-    UniqueDeviceID
+    UniqueDeviceID,
+    SettingServiceProvider
   ]
 })
 export class AppModule {}

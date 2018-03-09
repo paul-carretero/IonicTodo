@@ -44,7 +44,9 @@ export abstract class GenericPage {
 
   /**
    * affiche un élément modal de chargement
-   * @param text le texte affiché lors du chargement
+   *
+   * @param {string} text le texte affiché lors du chargement
+   * @memberof GenericPage
    */
   public showLoading(text: string) {
     this.loading = this.loadingCtrl.create({
@@ -56,8 +58,8 @@ export abstract class GenericPage {
 
   /**
    * affiche une fenêtre d'information
-   * @param title le titre de la fenêtre d'alerte
-   * @param text le texte de le fenêtre d'alerte
+   * @param {string} title le titre de la fenêtre d'alerte
+   * @param {string} text le texte de le fenêtre d'alerte
    */
   public alert(title: string, text: string) {
     this.alertCtrl

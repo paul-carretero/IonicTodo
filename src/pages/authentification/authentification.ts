@@ -1,3 +1,5 @@
+import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Rx';
 import { Global } from './../../shared/global';
 import { GenericPage } from './../../shared/generic-page';
 import { Component } from '@angular/core';
@@ -17,6 +19,7 @@ import { HomePage } from '../home/home';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { TabsPage } from '../tabs/tabs';
 import { EventServiceProvider } from '../../providers/event/event-service';
+import { User } from '@firebase/auth-types';
 
 @IonicPage()
 @Component({
@@ -24,9 +27,11 @@ import { EventServiceProvider } from '../../providers/event/event-service';
   templateUrl: 'authentification.html'
 })
 export class AuthentificationPage extends GenericPage {
-  private email: string;
-  private password: string;
-  private userProfile: any;
+  private connSub: Subscription;
+  public isConnected: Observable<boolean>;
+  public email: string;
+  public password: string;
+  public userProfile: User;
 
   constructor(
     public navCtrl: NavController,
@@ -34,10 +39,32 @@ export class AuthentificationPage extends GenericPage {
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     private navParams: NavParams,
-    private authServiceProvider: AuthServiceProvider,
+    private authCtrl: AuthServiceProvider,
     private googlePlus: GooglePlus
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
+  }
+
+  ionViewWillEnter() {
+    this.authCtrl.getConnexionSubject().subscribe((user: User) => {
+      this.userProfile = user;
+    });
+
+    if (!this.authCtrl.getConnexionSubject().getValue()) {
+      this.connSub = this.authCtrl
+        .getConnexionSubject()
+        .subscribe((user: User) => {
+          if (user != null) {
+            this.navCtrl.parent.select(Global.HOMEPAGE);
+          }
+        });
+    }
+  }
+
+  ionViewWillLeave() {
+    if (this.connSub != null) {
+      this.connSub.unsubscribe();
+    }
   }
 
   public generateDescription(): string {
@@ -49,7 +76,7 @@ export class AuthentificationPage extends GenericPage {
       this.showLoading('tentative de login...');
       const result = await this.googlePlus.login({
         webClientId: FirebaseCredentials.webClientId,
-        offline: true
+        offline: false
       });
       if (result) {
         const googleCredential = firebase.auth.GoogleAuthProvider.credential(
@@ -63,19 +90,12 @@ export class AuthentificationPage extends GenericPage {
               'Connexion',
               'Connexion avec votre compte Google effectuée avec succès!'
             );
-            firebase
-              .auth()
-              .currentUser.getIdToken(true)
-              .then((res: any) => {
-                this.alert('debug', JSON.stringify(res).charAt(10));
-              });
-            this.navCtrl.parent.select(Global.HOMEPAGE);
           });
       }
     } catch (err) {
       this.alert(
         'Erreur de connexion',
-        'Connexion à votre compte Google impossible' + 'Message : ' + err
+        'Connexion à votre compte Google impossible' + 'Message : <br/>' + err
       );
       this.loading.dismiss();
     }
@@ -92,12 +112,11 @@ export class AuthentificationPage extends GenericPage {
           'Connexion',
           'Connexion avec votre compte effectuée avec succès!'
         );
-        this.navCtrl.parent.select(Global.HOMEPAGE);
       }
     } catch (err) {
       this.alert(
         'Erreur de connexion',
-        'Connexion à votre compte impossible' + 'Message : ' + err
+        'Connexion à votre compte impossible' + 'Message : <br/>' + err
       );
       this.loading.dismiss();
     }
@@ -121,13 +140,20 @@ export class AuthentificationPage extends GenericPage {
           'Création de votre compte effectuée avec succès!'
         );
         this.loading.dismiss();
+        this.firebaseLogin();
       }
     } catch (err) {
       this.alert(
         'Erreur de connection',
-        'Création de votre compte impossible' + 'Message : ' + err
+        'Création de votre compte impossible' + 'Message : <br/>' + err
       );
       this.loading.dismiss();
     }
+  }
+
+  async offlineMode(): Promise<void> {
+    await this.logout();
+    this.authCtrl.allowOffline();
+    this.navCtrl.parent.select(Global.HOMEPAGE);
   }
 }

@@ -4,6 +4,7 @@ export enum MenuRequest {
   SHARE,
   SEND,
   HELP,
+  IMPORT,
   SPEECH_REC,
   SPEECH_SYNTH
 }

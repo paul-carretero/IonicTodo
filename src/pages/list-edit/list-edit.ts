@@ -70,32 +70,20 @@ export class ListEditPage extends GenericPage {
     throw new Error('Method not implemented.');
   }
 
-  public defList(): void {
+  public async defList(): Promise<void> {
     let nextUuid = this.listUUID;
     if (this.listUUID == null) {
       this.showLoading('Création de la liste...');
-      nextUuid = this.todoService.addList(
+      nextUuid = await this.todoService.addList(
         this.newList.value.name,
         this.newList.value.icon
-      );
-      this.alert(
-        'Création',
-        'Création de la liste ' +
-          this.newList.value.name +
-          ' effectuée avec succès!'
       );
     } else {
       this.showLoading('Mise à jour de la liste...');
-      this.todoService.updateAList(
+      this.todoService.updateList(
         this.listUUID,
         this.newList.value.name,
         this.newList.value.icon
-      );
-      this.alert(
-        'Mise à jour',
-        'Mise à jour de la liste ' +
-          this.newList.value.name +
-          ' effectuée avec succès!'
       );
     }
     this.loading.dismiss();

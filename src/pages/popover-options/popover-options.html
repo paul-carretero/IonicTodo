@@ -4,6 +4,7 @@
   <button *ngIf="!helpOnly" ion-item (click)="edit()">Editer</button>
   <button *ngIf="!helpOnly" ion-item (click)="share()">Partager</button>
   <button *ngIf="!helpOnly" ion-item (click)="send()">Envoyer</button>
+  <button *ngIf="!helpOnly && importable" ion-item (click)="send()">Envoyer</button>
   <button ion-item (click)="help()">Aide</button>
   <button ion-item (click)="close()">Annuler</button>
 </ion-list>

@@ -7,7 +7,7 @@
         <ion-item-divider color="light">
             Listes de Todo en cours
         </ion-item-divider>
-        <ng-container *ngFor="let list of todoList">
+        <ng-container *ngFor="let list of todoList | async">
             <ion-item-sliding *ngIf="getCompleted(list.items) < list.items.length || list.items.length == 0">
                 <ion-item (click)="selectTodoList(list.uuid)">
                     <ion-icon name="{{list.icon}}" item-start></ion-icon>
@@ -35,7 +35,7 @@
         <ion-item-divider color="light">
             Listes Terminées
         </ion-item-divider>
-        <ng-container *ngFor="let list of todoList">
+        <ng-container *ngFor="let list of todoList | async">
             <ion-item-sliding *ngIf="getCompleted(list.items) == list.items.length && list.items.length > 0">
                 <ion-item (click)="selectTodoList(list.uuid)">
                     <ion-icon name="{{list.icon}}" item-start></ion-icon>
@@ -57,6 +57,10 @@
                 </ion-item-options>
             </ion-item-sliding>
         </ng-container>
+
+        <ion-item-divider color="light">
+            Listes Locales
+        </ion-item-divider>
     </ion-list>
     <button class="bottom-right-button" ion-fab (click)="createTodoList()">
         <ion-icon name="add"></ion-icon>

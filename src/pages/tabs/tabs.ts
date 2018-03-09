@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
-import { AlertController, Tabs } from 'ionic-angular';
+import { AlertController, Tabs, NavController } from 'ionic-angular';
 
 import { QrReaderPage } from '../qr-reader/qr-reader';
 import { EventServiceProvider } from './../../providers/event/event-service';
@@ -17,10 +17,15 @@ export class TabsPage {
   @ViewChild('navTabs') tabRef: Tabs;
 
   constructor(
+    private navCtrl: NavController,
     private evtCtrl: EventServiceProvider,
     private flashlight: Flashlight,
     private alertCtrl: AlertController
   ) {}
+
+  ionViewDidLoad() {
+    this.setRoot(1);
+  }
 
   public setRoot(root: number) {
     this.tabRef.select(root);
