@@ -1,27 +1,29 @@
-import { QrcodeGeneratePage } from './../list-sharer/qrcode-generate/qrcode-generate';
-import { PageData } from './../../model/page-data';
-import { Global } from './../../shared/global';
 import { Component } from '@angular/core';
 import {
   AlertController,
   IonicPage,
+  LoadingController,
   NavController,
   NavParams,
-  LoadingController
+  ToastController
 } from 'ionic-angular';
+import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
+import { Media } from '../../model/media';
+import { MenuRequest } from '../../model/menu-request';
+import { EventServiceProvider } from '../../providers/event/event-service';
+import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
+import { GenericPage } from '../../shared/generic-page';
+import { ListEditPage } from '../list-edit/list-edit';
+import { PageData } from './../../model/page-data';
 import { TodoItem } from './../../model/todo-item';
 import { TodoList } from './../../model/todo-list';
+import { Global } from './../../shared/global';
+import { QrcodeGeneratePage } from './../list-sharer/qrcode-generate/qrcode-generate';
 import { TodoEditPage } from './../todo-edit/todo-edit';
-import { EventServiceProvider } from '../../providers/event/event-service';
-import { Subscription } from 'rxjs';
-import { MenuRequest } from '../../model/menu-request';
-import { GenericPage } from '../../shared/generic-page';
-import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
-import { ListEditPage } from '../list-edit/list-edit';
-import { Media } from '../../model/media';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 @IonicPage()
 @Component({
@@ -67,38 +69,20 @@ export class TodoListPage extends GenericPage {
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
-  /**
-   * Creates an instance of TodoListPage.
-   * @param {NavController} navCtrl
-   * @param {LoadingController} loadingCtrl
-   * @param {AlertController} alertCtrl
-   * @param {EventServiceProvider} evtCtrl
-   * @param {SpeechSynthServiceProvider} ttsCtrl
-   * @param {TodoServiceProvider} todoService
-   * @param {NavParams} navParams
-   * @memberof TodoListPage
-   */
   constructor(
     public navCtrl: NavController,
     public loadingCtrl: LoadingController,
     public alertCtrl: AlertController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
+    public toastCtrl: ToastController,
+    private authCtrl: AuthServiceProvider,
     private todoService: TodoServiceProvider,
     private navParams: NavParams
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
-    this.listUUID = navParams.get('uuid');
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    this.listUUID = this.navParams.get('uuid');
     this.todoItems = Observable.of([]);
-  }
-
-  private initDataList(pageData: PageData): void {
-    const listType = this.todoService.getListType(this.listUUID);
-    this.todoList = this.todoService.getAList(this.listUUID, listType);
-    this.listeSub = this.todoList.subscribe(res => {
-      pageData.title = 'Liste "' + res.name + '"';
-      this.evtCtrl.getHeadeSubject().next(pageData);
-    });
   }
 
   /**************************************************************************/
@@ -114,6 +98,19 @@ export class TodoListPage extends GenericPage {
     if (this.listeSub != null) {
       this.listeSub.unsubscribe();
     }
+  }
+
+  /**************************************************************************/
+  /************************ METHODE INTERNES/PRIVATE ************************/
+  /**************************************************************************/
+
+  private initDataList(pageData: PageData): void {
+    const listType = this.todoService.getListType(this.listUUID);
+    this.todoList = this.todoService.getAList(this.listUUID, listType);
+    this.listeSub = this.todoList.subscribe(res => {
+      pageData.title = 'Liste "' + res.name + '"';
+      this.evtCtrl.getHeadeSubject().next(pageData);
+    });
   }
 
   /**************************************************************************/

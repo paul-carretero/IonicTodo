@@ -1,16 +1,18 @@
-import { TodoListPath } from './../../model/todo-list-path';
-import { GenericPage } from '../../shared/generic-page';
-import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
-import { EventServiceProvider } from '../../providers/event/event-service';
 import {
   AlertController,
   LoadingController,
   NavController,
-  NavParams
+  NavParams,
+  ToastController
 } from 'ionic-angular';
+
 import { MenuRequest } from '../../model/menu-request';
-import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { TodoList } from '../../model/todo-list';
+import { EventServiceProvider } from '../../providers/event/event-service';
+import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
+import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
+import { GenericPage } from '../../shared/generic-page';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 export class GenericSharer extends GenericPage {
   /**
@@ -32,9 +34,10 @@ export class GenericSharer extends GenericPage {
     public alertCtrl: AlertController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
-    public todoCtrl: TodoServiceProvider
+    public todoCtrl: TodoServiceProvider,
+    public toastCtrl: ToastController
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
     this.listUUID = navParams.get('uuid');
     this.request = navParams.get('request');
   }
@@ -51,15 +54,11 @@ export class GenericSharer extends GenericPage {
         .subscribe((list: TodoList) => {
           sub.unsubscribe();
           this.json = JSON.stringify(list);
-          console.log(this.json);
         });
     } else {
       this.json = JSON.stringify(this.todoCtrl.getListLink(this.listUUID));
-      console.log(this.json);
     }
   }
-
-  ionViewWillLeave() {}
 
   public menuEventHandler(req: MenuRequest): void {
     throw new Error('Method not implemented.');

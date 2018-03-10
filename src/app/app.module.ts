@@ -1,3 +1,5 @@
+import { SQLite } from '@ionic-native/sqlite';
+import { SettingsPage } from './../pages/settings/settings';
 import { QrcodeGeneratePage } from './../pages/list-sharer/qrcode-generate/qrcode-generate';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
@@ -14,6 +16,7 @@ import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
+import { ScreenOrientation } from '@ionic-native/screen-orientation';
 import {
   AlertController,
   IonicApp,
@@ -57,7 +60,8 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     ListEditPage,
     PopoverOptionsPage,
     QrReaderPage,
-    QrcodeGeneratePage
+    QrcodeGeneratePage,
+    SettingsPage
   ],
   imports: [
     BrowserModule,
@@ -80,7 +84,8 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     ListEditPage,
     PopoverOptionsPage,
     QrReaderPage,
-    QrcodeGeneratePage
+    QrcodeGeneratePage,
+    SettingsPage
   ],
   providers: [
     StatusBar,
@@ -104,7 +109,9 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     UniqueDeviceID,
     SettingServiceProvider,
     NgxQRCodeModule,
-    CameraPreview
+    CameraPreview,
+    ScreenOrientation,
+    SQLite
   ]
 })
 export class AppModule {}

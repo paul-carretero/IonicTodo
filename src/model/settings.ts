@@ -1,19 +1,37 @@
-export interface Settings {
+/**
+ * Spécifie les index des paramètres
+ *
+ * @export
+ * @enum {number}
+ */
+export enum Settings {
   /**
-   * True : l'application reconnectera le dernier utilisateur (par défault...)
-   * False : l'application déconnectera l'utilisateur automatiquement lors de sa fermeture/ouverture
-   *
-   * @type {boolean}
-   * @memberof Settings
+   * Connexion Automatique
    */
-  autoLogIn: boolean;
+  AUTO_LOG_IN,
 
   /**
-   * True : les alert seront synthétiser vocalement
-   * False : par défault : les alert ne seront pas lus
-   *
-   * @type {boolean}
-   * @memberof Settings
+   * Mode hors ligne désactivé
    */
-  autoReadAlert: boolean;
+  DISABLE_OFFLINE,
+
+  /**
+   * envoi de sms désactivé
+   */
+  DISABLE_SMS,
+
+  /**
+   * Notifications machine désactivées
+   */
+  DISABLE_NOTIF,
+
+  /**
+   * Délai avant la deadline pour lancer une notification
+   */
+  NOTIF_DELAY,
+
+  /**
+   * Synthétise automatiquement les alerts
+   */
+  AUTO_READ_ALERT
 }

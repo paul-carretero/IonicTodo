@@ -1,42 +1,56 @@
-<ion-tabs #navTabs>
-    <ion-tab [root]="tab1Root" tabTitle="Vos Tâches" tabIcon="list" #content swipeBackEnabled="true"></ion-tab>
-    <ion-tab [root]="tab2Root" tabTitle="Authentifiction" tabIcon="key"></ion-tab>
-    <ion-tab [root]="tab2Root" tabTitle="Configuration" tabIcon="settings"></ion-tab>
-    <!--<ion-tab [root]="tab2Root" tabTitle="About" tabIcon="information-circle"></ion-tab>
-    <ion-tab [root]="tab3Root" tabTitle="Contact" tabIcon="contacts"></ion-tab>-->
+<ion-tabs #navTabs selectedIndex="1">
+    <ng-container (click)="checkIfNotAllowed()">
+        <ion-tab [root]="tab1Root" tabTitle="Vos Tâches" tabIcon="list" #content swipeBackEnabled="true" [enabled]="allowNavigate"></ion-tab>
+    </ng-container>
+    <ion-tab [root]="tab2Root" tabTitle="Authentification" tabIcon="key"></ion-tab>
+    <ng-container (click)="checkIfNotAllowed()">
+        <ion-tab [root]="tab3Root" tabTitle="Configuration" tabIcon="settings" [enabled]="allowNavigate"></ion-tab>
+    </ng-container>
 </ion-tabs>
 
 <ion-menu [content]="content" id="menu-left">
     <ion-header>
         <ion-toolbar color="danger">
-            <ion-title>Menu</ion-title>
+            <ion-title>TODO: trouver un nom</ion-title>
         </ion-toolbar>
     </ion-header>
     <ion-content>
-        <ion-item-divider color="dark">Fonctionalités</ion-item-divider>
+        <ion-item-divider color="dark">Mode: {{modeName}}</ion-item-divider>
         <ion-list>
-            <button ion-item menuClose="menu-left" detail-none (click)="showQrPage()" icon-start>
-                <ion-icon name="qr-scanner"></ion-icon>
-                Flasher un QR code
+            <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showQrPage()" icon-start>
+                <ion-icon small name="qr-scanner"></ion-icon>
+                Recevoir une liste (QR Code)
+            </button>
+            <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showNFCPage()" icon-start>
+                <ion-icon small name="phone-portrait"></ion-icon>
+                Recevoir une liste (NFC)
+            </button>
+            <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showBTPage()" icon-start>
+                <ion-icon small name="bluetooth"></ion-icon>
+                Recevoir une liste (Bluetooth)
             </button>
             <button *ngIf="!JeVoisBien" ion-item detail-none (click)="voirMieux()" icon-start>
-                <ion-icon name="ios-sunny"></ion-icon>
+                <ion-icon small name="ios-sunny"></ion-icon>
                 Mieux Voir
             </button>
             <button *ngIf="JeVoisBien" ion-item detail-none (click)="voirMieux()" icon-start>
-                <ion-icon name="ios-sunny-outline"></ion-icon>
+                <ion-icon small name="ios-sunny-outline"></ion-icon>
                 Arréter de Mieux Voir
             </button>
-            <button ion-item menuClose="menu-left" detail-none (click)="logout()" icon-start>
-                <ion-icon name="log-out"></ion-icon>
+            <button *ngIf="canLogOut" ion-item menuClose="menu-left" detail-none (click)="logInOut()" icon-start>
+                <ion-icon small name="log-out"></ion-icon>
                 Se déconnecter
             </button>
+            <button *ngIf="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="logInOut()" icon-start>
+                <ion-icon small name="log-in"></ion-icon>
+                Se connecter
+            </button>
             <button ion-item menuClose="menu-left" detail-none (click)="home()" icon-start>
-                <ion-icon name="list"></ion-icon>
+                <ion-icon small name="list"></ion-icon>
                 Accueil
             </button>
             <button ion-item menuClose="menu-left" detail-none icon-start>
-                <ion-icon name="close"></ion-icon>
+                <ion-icon small name="close"></ion-icon>
                 Fermer
             </button>
         </ion-list>

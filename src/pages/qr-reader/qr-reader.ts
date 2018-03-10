@@ -1,24 +1,24 @@
-import { Subscription } from 'rxjs';
-import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
-import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
 import {
-  IonicPage,
-  NavController,
-  NavParams,
-  AlertController,
-  LoadingController
-} from 'ionic-angular';
-import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
-import { GenericPage } from './../../shared/generic-page';
-import { MenuRequest } from '../../model/menu-request';
-import {
   CameraPreview,
-  CameraPreviewPictureOptions,
-  CameraPreviewOptions,
-  CameraPreviewDimensions
+  CameraPreviewOptions
 } from '@ionic-native/camera-preview';
-import { ToastController } from 'ionic-angular';
+import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
+import {
+  AlertController,
+  IonicPage,
+  LoadingController,
+  NavController,
+  ToastController
+} from 'ionic-angular';
+import { Subscription } from 'rxjs';
+
+import { MenuRequest } from '../../model/menu-request';
+import { EventServiceProvider } from './../../providers/event/event-service';
+import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
+import { GenericPage } from './../../shared/generic-page';
+import { ScreenOrientation } from '@ionic-native/screen-orientation';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 @IonicPage()
 @Component({
@@ -50,28 +50,31 @@ export class QrReaderPage extends GenericPage {
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
+    public toastCtrl: ToastController,
     private qrScanner: QRScanner,
-    private navParams: NavParams,
     private cameraPreview: CameraPreview,
-    private toastCtrl: ToastController
+    private screenCtrl: ScreenOrientation
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
   }
 
   ionViewDidEnter() {
     this.checkAuthForScan();
-    this.cameraPreview.startCamera(QrReaderPage.cameraPreviewOpts);
-    this.cameraOn = true;
+    this.cameraPreview.startCamera(QrReaderPage.cameraPreviewOpts).then(() => {
+      this.cameraOn = true;
+    });
+    this.screenCtrl.lock(this.screenCtrl.ORIENTATIONS.PORTRAIT);
   }
 
   ionViewWillLeave() {
-    if (!this.scanSub.closed) {
+    if (this.scanSub != null && !this.scanSub.closed) {
       this.scanSub.unsubscribe();
     }
     if ((this.cameraOn = true)) {
       this.cameraPreview.stopCamera();
     }
     this.qrScanner.destroy();
+    this.screenCtrl.unlock();
   }
 
   private async checkAuthForScan(): Promise<void> {
@@ -100,24 +103,18 @@ export class QrReaderPage extends GenericPage {
 
     setTimeout(() => {
       if (!this.scanSub.closed) {
-        this.failToast();
+        this.displayToast(
+          'Impossible de trouver un QR Code à scanner, veuillez rééssayer'
+        );
         this.scanSub.unsubscribe();
         this.qrScanner.destroy();
-        this.cameraPreview.startCamera(QrReaderPage.cameraPreviewOpts);
-        this.cameraOn = true;
+        this.cameraPreview
+          .startCamera(QrReaderPage.cameraPreviewOpts)
+          .then(() => {
+            this.cameraOn = true;
+          });
       }
     }, QrReaderPage.MAX_SCAN_TIME);
-  }
-
-  private failToast() {
-    this.toastCtrl
-      .create({
-        message:
-          'Impossible de trouver un QR Code à scanner, veuillez rééssayer',
-        duration: 3000,
-        position: 'bottom'
-      })
-      .present();
   }
 
   public generateDescription(): string {

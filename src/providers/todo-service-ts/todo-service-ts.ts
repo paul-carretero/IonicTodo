@@ -17,7 +17,6 @@ import { TodoList, ListType } from '../../model/todo-list';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Subscription } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
-import { List } from 'ionic-angular';
 
 @Injectable()
 export class TodoServiceProvider {

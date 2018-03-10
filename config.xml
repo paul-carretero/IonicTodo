@@ -108,4 +108,6 @@
     <plugin name="cordova-plugin-qrscanner" spec="^2.5.0" />
     <plugin name="cordova-plugin-camera-preview" spec="^0.9.0" />
     <engine name="android" spec="~7.0.0" />
+    <plugin name="cordova-plugin-screen-orientation" spec="^3.0.1" />
+    <plugin name="cordova-sqlite-storage" spec="^2.2.1" />
 </widget>

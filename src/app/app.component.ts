@@ -1,9 +1,7 @@
-import { QrReaderPage } from './../pages/qr-reader/qr-reader';
-import { Component, ViewChild } from '@angular/core';
-import { Flashlight } from '@ionic-native/flashlight';
+import { Component } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
-import { Platform, AlertController, NavController, Nav } from 'ionic-angular';
+import { Platform } from 'ionic-angular';
 
 import { TabsPage } from '../pages/tabs/tabs';
 

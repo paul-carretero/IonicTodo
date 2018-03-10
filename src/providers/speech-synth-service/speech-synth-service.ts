@@ -1,9 +1,8 @@
-import { MenuRequest } from './../../model/menu-request';
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
-import { Subject } from 'rxjs';
+
 import { EventServiceProvider } from '../event/event-service';
+import { MenuRequest } from './../../model/menu-request';
 
 @Injectable()
 export class SpeechSynthServiceProvider {

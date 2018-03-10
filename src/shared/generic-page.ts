@@ -1,15 +1,17 @@
-import { NavRequest } from './../model/nav-request';
-import { Subscription } from 'rxjs';
-import { Component } from '@angular/core';
+import { AuthServiceProvider } from './../providers/auth-service/auth-service';
 import {
   AlertController,
   Loading,
   LoadingController,
-  NavController
+  NavController,
+  ToastController
 } from 'ionic-angular';
-import { EventServiceProvider } from '../providers/event/event-service';
+import { Subscription } from 'rxjs';
+
 import { MenuRequest } from '../model/menu-request';
+import { EventServiceProvider } from '../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
+import { NavRequest } from './../model/nav-request';
 
 export abstract class GenericPage {
   public loading: Loading;
@@ -29,21 +31,13 @@ export abstract class GenericPage {
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
-  /**
-   * Creates an instance of GenericPage.
-   * @param {NavController} navCtrl
-   * @param {AlertController} alertCtrl
-   * @param {LoadingController} loadingCtrl
-   * @param {EventServiceProvider} evtCtrl
-   * @param {SpeechSynthServiceProvider} ttsCtrl
-   * @memberof GenericPage
-   */
   constructor(
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider
+    public ttsCtrl: SpeechSynthServiceProvider,
+    public toastCtrl: ToastController
   ) {}
 
   /**************************************************************************/
@@ -57,7 +51,6 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   ionViewWillEnter() {
-    this.clear(); // magic of JS (do not touch)
     this.navSub = this.evtCtrl
       .getNavRequestSubject()
       .subscribe((navReq: NavRequest) => this.navCtrl.push(navReq.page));
@@ -100,9 +93,10 @@ export abstract class GenericPage {
    * affiche un élément modal de chargement
    *
    * @param {string} text le texte affiché lors du chargement
+   * @param {number} [duration]
    * @memberof GenericPage
    */
-  public showLoading(text: string, duration?: number) {
+  public showLoading(text: string, duration?: number): void {
     if (duration == null) {
       duration = 60000; // 1min max default
     }
@@ -120,13 +114,22 @@ export abstract class GenericPage {
    * @param {string} title le titre de la fenêtre d'alerte
    * @param {string} text le texte de le fenêtre d'alerte
    */
-  public alert(title: string, text: string) {
+  public alert(title: string, text: string): void {
     this.alertCtrl
       .create({
         title: title,
         subTitle: text,
         buttons: ['OK']
       })
+      .present();
+  }
+
+  public displayToast(message: string, duration?: number): void {
+    if (duration == null) {
+      duration = 3000;
+    }
+    this.toastCtrl
+      .create({ message: message, duration: duration, position: 'bottom' })
       .present();
   }
 

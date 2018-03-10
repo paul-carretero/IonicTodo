@@ -2,13 +2,12 @@ import { Component } from '@angular/core';
 import {
   AlertController,
   LoadingController,
-  NavController
+  NavController,
+  ToastController
 } from 'ionic-angular';
-import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
-import { TodoList, ListType } from '../../model/todo-list';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
+import { ListType, TodoList } from '../../model/todo-list';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
@@ -18,6 +17,7 @@ import { EventServiceProvider } from './../../providers/event/event-service';
 import { Global } from './../../shared/global';
 import { ListEditPage } from './../list-edit/list-edit';
 import { TodoListPage } from './../todo-list/todo-list';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 /**
  * Page principale de l'application.
@@ -53,9 +53,10 @@ export class HomePage extends GenericPage {
    * @param {AlertController} alertCtrl
    * @param {LoadingController} loadingCtrl
    * @param {EventServiceProvider} evtCtrl
-   * @param {TodoServiceProvider} todoService
    * @param {SpeechSynthServiceProvider} ttsCtrl
-   * @param {SpeechRecServiceProvider} speechCtrl
+   * @param {ToastController} toastCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {TodoServiceProvider} todoService
    * @memberof HomePage
    */
   constructor(
@@ -64,10 +65,11 @@ export class HomePage extends GenericPage {
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
-    private todoService: TodoServiceProvider,
-    private speechCtrl: SpeechRecServiceProvider
+    public toastCtrl: ToastController,
+    private authCtrl: AuthServiceProvider,
+    private todoService: TodoServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
   }
 
   /**************************************************************************/
@@ -81,7 +83,7 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   ionViewDidEnter() {
-    const pageData = Global.NO_MENU_PAGE_DATA;
+    const pageData = Global.DEFAULT_PAGE_DATA;
     pageData.title = 'Listes de Tâches';
     this.evtCtrl.getHeadeSubject().next(pageData);
 
@@ -99,17 +101,7 @@ export class HomePage extends GenericPage {
    * @param {MenuRequest} req
    * @memberof HomePage
    */
-  public menuEventHandler(req: MenuRequest): void {
-    switch (req) {
-      case MenuRequest.HELP: {
-        this.alert(
-          'Aide sur la page',
-          "TODO: ecrire de l'aide<br/>nouvelle ligne !"
-        );
-        break;
-      }
-    }
-  }
+  public menuEventHandler(req: MenuRequest): void {}
 
   /**
    *
@@ -121,6 +113,14 @@ export class HomePage extends GenericPage {
     let description = 'Voici vos liste de tâches en cours:';
     description += 'Voici vos liste de tâches terminé:';
     return description;
+  }
+
+  /**************************************************************************/
+  /********************************* GETTER *********************************/
+  /**************************************************************************/
+
+  get isConnected(): boolean {
+    return this.authCtrl.isConnected();
   }
 
   /**************************************************************************/

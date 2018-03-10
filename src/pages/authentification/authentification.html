@@ -8,26 +8,28 @@
     <ng-container *ngIf="!userProfile">
         <ion-card>
             <ion-card-content>
-                <ion-item>
-                    <ion-label floating>Adresse email</ion-label>
-                    <ion-input type="email" [(ngModel)]="email"></ion-input>
-                </ion-item>
-                <ion-item>
-                    <ion-label floating>Mot de passe</ion-label>
-                    <ion-input type="password" [(ngModel)]="password"></ion-input>
-                </ion-item>
-                <button ion-button (click)="firebaseLogin()" icon-start round full>
-                    <ion-icon name="cloud"></ion-icon>
-                    Connexion
-                </button>
-                <button ion-button (click)="createCount()" icon-start round small full>
-                    <ion-icon name="log-in"></ion-icon>
-                    Inscription
-                </button>
-                <button ion-button (click)="resetPassword()" icon-start round small full>
-                    <ion-icon name="mail"></ion-icon>
-                    Mot de passe oublié
-                </button>
+                <form [formGroup]="authForm">
+                    <ion-item>
+                        <ion-label floating>Adresse email</ion-label>
+                        <ion-input formControlName="email" type="email"></ion-input>
+                    </ion-item>
+                    <ion-item>
+                        <ion-label floating>Mot de passe</ion-label>
+                        <ion-input formControlName="password" type="password"></ion-input>
+                    </ion-item>
+                    <button ion-button (click)="firebaseLogin()" icon-start round full [disabled]="!authForm.valid">
+                        <ion-icon name="cloud"></ion-icon>
+                        Connexion
+                    </button>
+                    <button ion-button (click)="createCount()" icon-start round small full [disabled]="!authForm.valid">
+                        <ion-icon name="log-in"></ion-icon>
+                        Inscription
+                    </button>
+                    <button ion-button (click)="resetPassword()" icon-start round small full [disabled]="!isEmailValid">
+                        <ion-icon name="mail"></ion-icon>
+                        Mot de passe oublié
+                    </button>
+                </form>
             </ion-card-content>
         </ion-card>
         <ion-card>
@@ -40,7 +42,7 @@
         </ion-card>
         <ion-card>
             <ion-card-content>
-                <button ion-button (click)="offlineMode()" color="dark" icon-start small round full>
+                <button ion-button (click)="offlineMode()" color="dark" icon-start small round full [disabled]="isOffline || offlineDisabled">
                     <ion-icon name="cloud-outline"></ion-icon>
                     Mode Hors Connexion
                 </button>

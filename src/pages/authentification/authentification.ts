@@ -1,27 +1,27 @@
-import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Rx';
-import { Global } from './../../shared/global';
-import { GenericPage } from './../../shared/generic-page';
 import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { User } from '@firebase/auth-types';
 import { GooglePlus } from '@ionic-native/google-plus';
 import * as firebase from 'firebase/app';
 import {
   AlertController,
   IonicPage,
+  LoadingController,
   NavController,
-  NavParams,
-  Loading,
-  LoadingController
+  ToastController
 } from 'ionic-angular';
+import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Rx';
 
 import { FirebaseCredentials } from '../../app/firebase.credentials';
-import { HomePage } from '../home/home';
-import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
-import { TabsPage } from '../tabs/tabs';
-import { EventServiceProvider } from '../../providers/event/event-service';
-import { User } from '@firebase/auth-types';
 import { MenuRequest } from '../../model/menu-request';
+import { EventServiceProvider } from '../../providers/event/event-service';
+import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
+import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
+import { GenericPage } from './../../shared/generic-page';
+import { Global } from './../../shared/global';
+import { SettingServiceProvider } from '../../providers/setting/setting-service';
+import { Settings } from '../../model/settings';
 
 @IonicPage()
 @Component({
@@ -31,9 +31,9 @@ import { MenuRequest } from '../../model/menu-request';
 export class AuthentificationPage extends GenericPage {
   private connSub: Subscription;
   public isConnected: Observable<boolean>;
-  public email: string;
-  public password: string;
+  public authForm: FormGroup;
   public userProfile: User;
+  public offlineDisabled = true;
 
   constructor(
     public navCtrl: NavController,
@@ -41,38 +41,57 @@ export class AuthentificationPage extends GenericPage {
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
-    private navParams: NavParams,
+    public toastCtrl: ToastController,
     private authCtrl: AuthServiceProvider,
-    private googlePlus: GooglePlus
+    private googlePlus: GooglePlus,
+    private formBuilder: FormBuilder,
+    private settingCtrl: SettingServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
-  }
-
-  ionViewDidEnter() {
-    this.authCtrl.getConnexionSubject().subscribe((user: User) => {
-      this.userProfile = user;
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    this.authForm = this.formBuilder.group({
+      email: ['', Validators.email],
+      password: ['', Validators.required]
     });
-
-    if (!this.authCtrl.getConnexionSubject().getValue()) {
-      this.connSub = this.authCtrl
-        .getConnexionSubject()
-        .subscribe((user: User) => {
-          if (user != null) {
-            this.navCtrl.parent.select(Global.HOMEPAGE);
-          }
-        });
-    }
   }
 
-  ionViewWillLeave() {
+  /**
+   * Gère les redirection automatique une fois connecté vers la page principale
+   *
+   * @memberof AuthentificationPage
+   */
+  ionViewDidEnter(): void {
+    let notLogged = this.authCtrl.getConnexionSubject().getValue() == null;
+    this.connSub = this.authCtrl
+      .getConnexionSubject()
+      .subscribe((user: User) => {
+        this.userProfile = user;
+        if (notLogged && user != null) {
+          this.navCtrl.parent.select(Global.HOMEPAGE);
+        }
+        notLogged = user == null;
+      });
+    this.settingCtrl
+      .getSetting(Settings.DISABLE_OFFLINE)
+      .then((res: string) => {
+        this.offlineDisabled = res === 'true';
+      });
+  }
+
+  ionViewWillLeave(): void {
     if (this.connSub != null) {
       this.connSub.unsubscribe();
     }
   }
 
-  public menuEventHandler(req: MenuRequest): void {
-    throw new Error('Method not implemented.');
+  get isEmailValid(): boolean {
+    return this.authForm.get('email').valid;
   }
+
+  get isOffline(): boolean {
+    return this.authCtrl.isOffline();
+  }
+
+  public menuEventHandler(req: MenuRequest): void {}
 
   public generateDescription(): string {
     throw new Error('Method not implemented.');
@@ -93,8 +112,7 @@ export class AuthentificationPage extends GenericPage {
           .auth()
           .signInWithCredential(googleCredential)
           .then((res: any) => {
-            this.alert(
-              'Connexion',
+            this.displayToast(
               'Connexion avec votre compte Google effectuée avec succès!'
             );
           });
@@ -109,16 +127,16 @@ export class AuthentificationPage extends GenericPage {
   }
 
   async firebaseLogin(): Promise<void> {
+    const email: string = this.authForm.get('email').value;
+    const password: string = this.authForm.get('password').value;
+
     try {
       this.showLoading('tentative de login...');
       const result = await firebase
         .auth()
-        .signInWithEmailAndPassword(this.email, this.password);
+        .signInWithEmailAndPassword(email, password);
       if (result) {
-        this.alert(
-          'Connexion',
-          'Connexion avec votre compte effectuée avec succès!'
-        );
+        this.displayToast('Connexion avec votre compte effectuée avec succès!');
       }
     } catch (err) {
       this.alert(
@@ -136,15 +154,18 @@ export class AuthentificationPage extends GenericPage {
   }
 
   async createCount(): Promise<void> {
+    const email: string = this.authForm.get('email').value;
+    const password: string = this.authForm.get('password').value;
+
     try {
       this.showLoading('création du compte...');
       const result = await firebase
         .auth()
-        .createUserWithEmailAndPassword(this.email, this.password);
+        .createUserWithEmailAndPassword(email, password);
       if (result) {
-        this.alert(
-          'Connexion',
-          'Création de votre compte effectuée avec succès!'
+        this.displayToast(
+          'Création de votre compte effectuée avec succès!',
+          1000
         );
         this.loading.dismiss();
         this.firebaseLogin();
@@ -161,6 +182,9 @@ export class AuthentificationPage extends GenericPage {
   async offlineMode(): Promise<void> {
     await this.logout();
     this.authCtrl.allowOffline();
+    this.displayToast(
+      'Mode Hors Connexion activé: Certaines Fonctionalités ne seront pas disponible'
+    );
     this.navCtrl.parent.select(Global.HOMEPAGE);
   }
 }

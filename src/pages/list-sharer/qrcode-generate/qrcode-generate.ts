@@ -1,24 +1,18 @@
-import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
-import { GenericSharer } from './../generic-sharer';
 import { Component } from '@angular/core';
 import {
+  AlertController,
   IonicPage,
+  LoadingController,
   NavController,
   NavParams,
-  LoadingController,
-  AlertController
+  ToastController
 } from 'ionic-angular';
-import { GenericPage } from '../../../shared/generic-page';
-import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
-import { EventServiceProvider } from '../../../providers/event/event-service';
-import { MenuRequest } from '../../../model/menu-request';
 
-/**
- * Generated class for the QrcodeGeneratePage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
+import { EventServiceProvider } from '../../../providers/event/event-service';
+import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
+import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
+import { GenericSharer } from './../generic-sharer';
+import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 
 @IonicPage()
 @Component({
@@ -33,7 +27,8 @@ export class QrcodeGeneratePage extends GenericSharer {
     public alertCtrl: AlertController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
-    public todoCtrl: TodoServiceProvider
+    public todoCtrl: TodoServiceProvider,
+    public toastCtrl: ToastController
   ) {
     super(
       navParams,
@@ -42,7 +37,8 @@ export class QrcodeGeneratePage extends GenericSharer {
       alertCtrl,
       evtCtrl,
       ttsCtrl,
-      todoCtrl
+      todoCtrl,
+      toastCtrl
     );
   }
 }

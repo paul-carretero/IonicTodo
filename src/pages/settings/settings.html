@@ -1,0 +1,57 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>Paramètres Locaux</ion-title>
+    <ion-buttons right>
+      <button (click)="reset()" button-right>
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding>
+  <ion-list>
+    <ion-item-divider color="light">
+      Sécurité
+    </ion-item-divider>
+    <ion-item>
+      <ion-label>Connexion Automatique:</ion-label>
+      <ion-toggle [(ngModel)]="autoLogIn" (ionChange)="defSetting($event,setting.AUTO_LOG_IN)"></ion-toggle>
+    </ion-item>
+    <ion-item>
+      <ion-label>Désactiver Hors Connexion:</ion-label>
+      <ion-toggle [(ngModel)]="disableOffline" [disabled]='!isConnected' (ionChange)="defSetting($event,setting.DISABLE_OFFLINE)"></ion-toggle>
+    </ion-item>
+    <ion-item-divider color="light">
+      Connectivité
+    </ion-item-divider>
+    <ion-item>
+      <ion-label>Désactiver SMS:</ion-label>
+      <ion-toggle [(ngModel)]="disableSMS" (ionChange)="defSetting($event,setting.DISABLE_SMS)"></ion-toggle>
+    </ion-item>
+    <ion-item-divider color="light">
+      Notifications
+    </ion-item-divider>
+    <ion-item>
+      <ion-label>Désactiver notifications:</ion-label>
+      <ion-toggle [(ngModel)]="disableNotification" (ionChange)="defSetting($event,setting.DISABLE_NOTIF)"></ion-toggle>
+    </ion-item>
+    <ion-item>
+      <ion-label color="dark">Quand?:</ion-label>
+      <ion-select [(ngModel)]="notifWhen" (ionChange)="defSettingNotif()">
+        <ion-option value="0">Lors de la deadline</ion-option>
+        <ion-option value="1">1H avant</ion-option>
+        <ion-option value="24">24H avant</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item-divider color="light">
+      Divers
+    </ion-item-divider>
+    <ion-item>
+      <ion-label>Lecture automatique des notifications (internes):</ion-label>
+      <ion-toggle [(ngModel)]="autoReadAlert" (ionChange)="defSetting($event,setting.AUTO_READ_ALERT)"></ion-toggle>
+    </ion-item>
+  </ion-list>
+</ion-content>

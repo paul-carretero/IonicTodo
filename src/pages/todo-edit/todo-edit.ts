@@ -7,7 +7,8 @@ import {
   IonicPage,
   LoadingController,
   NavController,
-  NavParams
+  NavParams,
+  ToastController
 } from 'ionic-angular';
 import {
   GoogleMaps,
@@ -25,6 +26,7 @@ import { TodoItem } from './../../model/todo-item';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { MenuRequest } from '../../model/menu-request';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 @IonicPage()
 @Component({
@@ -46,19 +48,24 @@ export class TodoEditPage extends GenericPage {
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
+    public toastCtrl: ToastController,
     private navParams: NavParams,
     private todoService: TodoServiceProvider,
     private formBuilder: FormBuilder,
     private MapService: MapServiceProvider,
     private synthService: SpeechSynthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
     this.todoUUID = navParams.get('todoUUID');
     this.listUUID = navParams.get('listUUID');
     this.todo = { name: '', complete: false, desc: '', uuid: this.todoUUID };
     this.todoForm = this.formBuilder.group({});
     this.MapService.lol();
   }
+
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
 
   ionViewDidEnter(): void {
     this.loadMap();

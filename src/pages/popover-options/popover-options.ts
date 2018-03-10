@@ -1,16 +1,15 @@
-import { Media } from './../../model/media';
-import { PageData } from './../../model/page-data';
-import { Subscription } from 'rxjs';
-import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
 import {
+  ActionSheetController,
   IonicPage,
-  NavController,
-  NavParams,
-  ViewController,
-  ActionSheetController
+  ViewController
 } from 'ionic-angular';
+import { Subscription } from 'rxjs';
+
 import { MenuRequest } from '../../model/menu-request';
+import { Media } from './../../model/media';
+import { PageData } from './../../model/page-data';
+import { EventServiceProvider } from './../../providers/event/event-service';
 
 @IonicPage()
 @Component({
@@ -19,25 +18,32 @@ import { MenuRequest } from '../../model/menu-request';
 })
 export class PopoverOptionsPage {
   private updateSub: Subscription;
-  private helpOnly: boolean;
-  private importable: boolean;
+  private editable: boolean;
+  private shareable: boolean;
 
+  /**
+   * Creates an instance of PopoverOptionsPage.
+   * @param {ViewController} viewCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {ActionSheetController} actionSheetCtrl
+   * @memberof PopoverOptionsPage
+   */
   constructor(
     private viewCtrl: ViewController,
     private evtCtrl: EventServiceProvider,
     public actionSheetCtrl: ActionSheetController
   ) {}
 
-  ionViewDidEnter() {
+  ionViewDidLoad() {
     this.updateSub = this.evtCtrl
       .getHeadeSubject()
       .subscribe((newData: PageData) => {
-        this.helpOnly = newData.helpOnly;
-        this.importable = newData.importable;
+        this.editable = newData.editable;
+        this.shareable = newData.shareable;
       });
   }
 
-  ionViewWillLeave() {
+  ionViewWillUnload() {
     this.updateSub.unsubscribe();
   }
 
@@ -57,7 +63,7 @@ export class PopoverOptionsPage {
         },
         {
           text: 'Envoyer par NFC',
-          icon: 'logo-rss',
+          icon: 'phone-portrait',
           handler: () => {
             this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
             this.evtCtrl.defMedia(Media.NFC);

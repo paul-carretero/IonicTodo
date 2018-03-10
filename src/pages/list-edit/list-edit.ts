@@ -11,7 +11,8 @@ import {
   NavController,
   NavParams,
   AlertController,
-  LoadingController
+  LoadingController,
+  ToastController
 } from 'ionic-angular';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
@@ -56,19 +57,34 @@ export class ListEditPage extends GenericPage {
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
+  /**
+   * Creates an instance of ListEditPage.
+   * @param {NavController} navCtrl
+   * @param {AlertController} alertCtrl
+   * @param {LoadingController} loadingCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {ToastController} toastCtrl
+   * @param {FormBuilder} formBuilder
+   * @param {TodoServiceProvider} todoService
+   * @param {NavParams} navParams
+   * @param {AuthServiceProvider} authCtrl
+   * @memberof ListEditPage
+   */
   constructor(
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
+    public toastCtrl: ToastController,
+    private authCtrl: AuthServiceProvider,
     private formBuilder: FormBuilder,
     private todoService: TodoServiceProvider,
-    private navParams: NavParams,
-    private authCtrl: AuthServiceProvider
+    private navParams: NavParams
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
-    this.listUUID = navParams.get('uuid');
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    this.listUUID = this.navParams.get('uuid');
     this.defineNewList();
   }
 
