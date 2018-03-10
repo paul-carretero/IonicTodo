@@ -55,11 +55,16 @@ export class AuthServiceProvider {
   }
 
   public logout(): Promise<any> {
+    this.useHorsConnexion = false;
     return this.firebaseAuth.auth.signOut();
   }
 
   public getConnexionSubject(): BehaviorSubject<User> {
     return this.connexionSubject;
+  }
+
+  public isConnected(): boolean {
+    return this.connexionSubject.getValue() != null;
   }
 
   /**

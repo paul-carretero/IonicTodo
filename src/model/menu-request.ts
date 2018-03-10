@@ -6,5 +6,6 @@ export enum MenuRequest {
   HELP,
   IMPORT,
   SPEECH_REC,
-  SPEECH_SYNTH
+  SPEECH_SYNTH,
+  VALIDATE
 }

@@ -20,6 +20,7 @@
     "@angular/http": "5.0.3",
     "@angular/platform-browser": "5.0.3",
     "@angular/platform-browser-dynamic": "5.0.3",
+    "@ionic-native/camera-preview": "^4.5.3",
     "@ionic-native/core": "4.4.0",
     "@ionic-native/firebase": "^4.5.2",
     "@ionic-native/flashlight": "^4.5.3",
@@ -39,6 +40,7 @@
     "cordova-android": "7.0.0",
     "cordova-browser": "5.0.3",
     "cordova-plugin-badge": "^0.8.7",
+    "cordova-plugin-camera-preview": "^0.9.0",
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-device": "^1.1.7",
     "cordova-plugin-firebase": "^0.1.25",
@@ -96,8 +98,9 @@
       "cordova-plugin-tts": {},
       "cordova-plugin-flashlight": {},
       "cordova-plugin-nativegeocoder": {},
+      "cordova-plugin-uniquedeviceid": {},
       "cordova-plugin-qrscanner": {},
-      "cordova-plugin-uniquedeviceid": {}
+      "cordova-plugin-camera-preview": {}
     },
     "platforms": [
       "browser",

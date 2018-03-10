@@ -46,7 +46,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   public valid(): void {
-    this.evtCtrl.userValid();
+    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.VALIDATE);
   }
 
   public startSpeechRec() {

@@ -1,0 +1,12 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+<ion-content>
+  <ion-card *ngIf="json">
+    <ngx-qrcode [qrc-value]="json"></ngx-qrcode>
+  </ion-card>
+  <ion-card padding>
+    Vous pouvez flasher ce QR Code pour importer cette liste de todo sur un autre appareil.
+  </ion-card>
+</ion-content>

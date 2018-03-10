@@ -8,12 +8,4 @@ export interface AppUser {
    * @memberof User
    */
   todoListSharedWithMe: TodoListPath[];
-
-  /**
-   * Ensemble des UUID des todos partagés par d'autre utilisateur avec cet utilisateur
-   *
-   * @type {string[]}
-   * @memberof User
-   */
-  todoItemSharedWithMe: TodoItemPath[];
 }

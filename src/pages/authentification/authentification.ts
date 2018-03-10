@@ -1,3 +1,4 @@
+import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Rx';
 import { Global } from './../../shared/global';
@@ -20,6 +21,7 @@ import { AuthServiceProvider } from './../../providers/auth-service/auth-service
 import { TabsPage } from '../tabs/tabs';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { User } from '@firebase/auth-types';
+import { MenuRequest } from '../../model/menu-request';
 
 @IonicPage()
 @Component({
@@ -38,14 +40,15 @@ export class AuthentificationPage extends GenericPage {
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
+    public ttsCtrl: SpeechSynthServiceProvider,
     private navParams: NavParams,
     private authCtrl: AuthServiceProvider,
     private googlePlus: GooglePlus
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
   }
 
-  ionViewWillEnter() {
+  ionViewDidEnter() {
     this.authCtrl.getConnexionSubject().subscribe((user: User) => {
       this.userProfile = user;
     });
@@ -65,6 +68,10 @@ export class AuthentificationPage extends GenericPage {
     if (this.connSub != null) {
       this.connSub.unsubscribe();
     }
+  }
+
+  public menuEventHandler(req: MenuRequest): void {
+    throw new Error('Method not implemented.');
   }
 
   public generateDescription(): string {
@@ -124,7 +131,7 @@ export class AuthentificationPage extends GenericPage {
 
   async logout(): Promise<void> {
     this.showLoading('Déconnexion en cours');
-    await firebase.auth().signOut();
+    await this.authCtrl.logout();
     this.loading.dismiss();
   }
 

@@ -1,3 +1,8 @@
+import { Subscription } from 'rxjs';
+import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
+import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
+import { ListType } from './../../model/todo-list';
+import { PageData } from './../../model/page-data';
 import { Global } from './../../shared/global';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
@@ -12,53 +17,245 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { TodoListPage } from '../todo-list/todo-list';
+import { MenuRequest } from '../../model/menu-request';
+import { User } from 'firebase/app';
 
+/**
+ * Présente la listes des todo d'une liste de todo.
+ * Donne également accès à des opérations sur cette liste (par des menus)
+ *
+ * @export
+ * @class ListEditPage
+ * @extends {GenericPage}
+ */
 @IonicPage()
 @Component({
   selector: 'page-list-edit',
   templateUrl: 'list-edit.html'
 })
 export class ListEditPage extends GenericPage {
+  /**
+   * Formulaire d'édition de liste
+   *
+   * @type {FormGroup}
+   * @memberof ListEditPage
+   */
   public newList: FormGroup;
+
+  /**
+   * Identifiant unique de la liste déjà existante, null si la liste est à créer
+   *
+   * @type {string}
+   * @memberof ListEditPage
+   */
   public listUUID: string;
+
+  private authSub: Subscription;
+
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
 
   constructor(
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
+    public ttsCtrl: SpeechSynthServiceProvider,
     private formBuilder: FormBuilder,
     private todoService: TodoServiceProvider,
-    private navParams: NavParams
+    private navParams: NavParams,
+    private authCtrl: AuthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
     this.listUUID = navParams.get('uuid');
-    this.newList = this.formBuilder.group({
-      name: ['', Validators.required],
-      icon: ['checkmark']
-    });
+    this.defineNewList();
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * initialise le header de la page
+   *
+   * @memberof ListEditPage
+   */
   ionViewDidEnter() {
     const header = Global.VALIDABLE_PAGE_DATA;
 
     if (this.listUUID != null) {
-      const todoList = this.todoService
-        .getAList(this.listUUID)
-        .subscribe(list => {
-          header.title = 'Editer "' + list.name + '" ';
-          this.evtCtrl.getHeadeSubject().next(header);
-          this.newList = this.formBuilder.group({
-            name: [list.name, Validators.required],
-            icon: [list.icon]
-          });
-        });
+      this.defineEditList(header);
     } else {
       header.title = 'Nouvelle Liste';
       this.evtCtrl.getHeadeSubject().next(header);
     }
   }
 
+  ionViewDidLoad() {
+    this.authSub = this.authCtrl
+      .getConnexionSubject()
+      .subscribe((user: User) => {
+        if (user != null) {
+          this.newList.get('local').enable();
+          this.newList.get('isPrivate').enable();
+        } else {
+          if (this.authSub != null) {
+            this.navCtrl.popToRoot();
+          }
+        }
+      });
+  }
+
+  ionViewWillUnload() {
+    this.authSub.unsubscribe();
+  }
+
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
+
+  /**
+   *
+   * @override
+   * @param {MenuRequest} req
+   * @memberof ListEditPage
+   */
+  public menuEventHandler(req: MenuRequest): void {
+    switch (req) {
+      case MenuRequest.HELP:
+        this.alert(
+          'Aide sur la page',
+          "TODO: ecrire de l'aide<br/>nouvelle ligne !"
+        );
+        break;
+      case MenuRequest.VALIDATE:
+        this.defList();
+        break;
+    }
+  }
+
+  /**
+   *
+   * @override
+   * @returns {string}
+   * @memberof ListEditPage
+   */
+  public generateDescription(): string {
+    throw new Error('Method not implemented.');
+  }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  private defineNewList(): void {
+    let local = false;
+    if (!this.authCtrl.isConnected()) {
+      local = true;
+    }
+
+    this.newList = this.formBuilder.group({
+      name: ['', Validators.required],
+      icon: ['list-box', Validators.required],
+      isPrivate: [false, Validators.required],
+      local: [local, Validators.required]
+    });
+
+    if (!this.authCtrl.isConnected()) {
+      this.newList.get('local').disable();
+      this.newList.get('isPrivate').disable();
+    }
+  }
+
+  /**
+   * Permet d'initialiser le formulaire dans le cas d'une mise à jour de liste
+   *
+   * @private
+   * @param {PageData} header
+   * @returns {Promise<void>}
+   * @memberof ListEditPage
+   */
+  private defineEditList(header: PageData): void {
+    const listType = this.todoService.getListType(this.listUUID);
+
+    let local = false;
+    if (listType == ListType.LOCAL) {
+      local = true;
+    }
+
+    const todoList = this.todoService
+      .getAList(this.listUUID, listType)
+      .subscribe(list => {
+        header.title = 'Editer "' + list.name + '" ';
+        this.evtCtrl.getHeadeSubject().next(header);
+        this.newList = this.formBuilder.group({
+          name: [list.name, Validators.required],
+          icon: [list.icon, Validators.required],
+          isPrivate: [list.isPrivate, Validators.required],
+          local: [local, Validators.required]
+        });
+
+        if (listType == ListType.SHARED) {
+          this.newList.get('local').disable();
+        }
+
+        todoList.unsubscribe();
+      });
+  }
+
+  private async updateList(): Promise<void> {
+    let destType: ListType = ListType.PRIVATE;
+    if (this.newList.get('local').value) {
+      destType = ListType.LOCAL;
+    }
+
+    this.showLoading('Mise à jour de la liste...');
+
+    await this.todoService.updateList(
+      {
+        uuid: this.listUUID,
+        name: this.newList.value.name,
+        items: [],
+        icon: this.newList.value.icon,
+        isPrivate: this.newList.get('isPrivate').value
+      },
+      destType
+    );
+    this.navCtrl.pop();
+  }
+
+  private async defineList(): Promise<void> {
+    let destType: ListType = ListType.PRIVATE;
+    if (this.newList.get('local').value) {
+      destType = ListType.LOCAL;
+    }
+    this.showLoading('Création de la liste...');
+    const nextUuid = await this.todoService.addList(
+      {
+        uuid: null,
+        name: this.newList.value.name,
+        items: [],
+        icon: this.newList.value.icon,
+        isPrivate: this.newList.get('isPrivate').value
+      },
+      destType
+    );
+    this.navCtrl.pop();
+    this.navCtrl.push(TodoListPage, { uuid: nextUuid });
+  }
+
+  /**************************************************************************/
+  /********************************* GETTER *********************************/
+  /**************************************************************************/
+
+  /**
+   * Texte pour valider la création ou la modification de la liste
+   *
+   * @readonly
+   * @type {string}
+   * @memberof ListEditPage
+   */
   get submitText(): string {
     if (this.listUUID == null) {
       return 'Créer une nouvelle liste';
@@ -66,31 +263,22 @@ export class ListEditPage extends GenericPage {
     return 'Mettre à jour cette liste';
   }
 
-  public generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
 
-  public async defList(): Promise<void> {
-    let nextUuid = this.listUUID;
-    if (this.listUUID == null) {
-      this.showLoading('Création de la liste...');
-      nextUuid = await this.todoService.addList(
-        this.newList.value.name,
-        this.newList.value.icon
-      );
+  public defList(): void {
+    if (this.newList.valid) {
+      if (this.listUUID == null) {
+        this.defineList();
+      } else {
+        this.updateList();
+      }
     } else {
-      this.showLoading('Mise à jour de la liste...');
-      this.todoService.updateList(
-        this.listUUID,
-        this.newList.value.name,
-        this.newList.value.icon
+      this.alert(
+        'Opération Impossible',
+        "Veuillez vérifier d'avoir renseignée toutes les données"
       );
     }
-    this.loading.dismiss();
-    this.selectTodoList(nextUuid);
-  }
-
-  public selectTodoList(uuid: string): void {
-    this.navCtrl.push(TodoListPage, { uuid: uuid });
   }
 }

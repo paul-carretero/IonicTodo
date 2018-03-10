@@ -24,6 +24,7 @@ import { GenericPage } from '../../shared/generic-page';
 import { TodoItem } from './../../model/todo-item';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
+import { MenuRequest } from '../../model/menu-request';
 
 @IonicPage()
 @Component({
@@ -44,18 +45,39 @@ export class TodoEditPage extends GenericPage {
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
+    public ttsCtrl: SpeechSynthServiceProvider,
     private navParams: NavParams,
     private todoService: TodoServiceProvider,
     private formBuilder: FormBuilder,
     private MapService: MapServiceProvider,
     private synthService: SpeechSynthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl);
     this.todoUUID = navParams.get('todoUUID');
     this.listUUID = navParams.get('listUUID');
     this.todo = { name: '', complete: false, desc: '', uuid: this.todoUUID };
     this.todoForm = this.formBuilder.group({});
     this.MapService.lol();
+  }
+
+  ionViewDidEnter(): void {
+    this.loadMap();
+    if (this.todoUUID != null) {
+      this.todoSub = this.todoService
+        .getTodo(this.listUUID, this.todoUUID)
+        .subscribe(data => {
+          this.initForm(data);
+          this.todo = data;
+        });
+    }
+  }
+
+  ionViewWillLeave(): void {
+    this.todoSub.unsubscribe();
+  }
+
+  public menuEventHandler(req: MenuRequest): void {
+    throw new Error('Method not implemented.');
   }
 
   get isInCreation(): boolean {
@@ -79,22 +101,6 @@ export class TodoEditPage extends GenericPage {
       complete: [todo.name, Validators.required],
       deadline: [todo.deadline]
     });
-  }
-
-  ionViewWillEnter(): void {
-    this.loadMap();
-    if (this.todoUUID != null) {
-      this.todoSub = this.todoService
-        .getTodo(this.listUUID, this.todoUUID)
-        .subscribe(data => {
-          this.initForm(data);
-          this.todo = data;
-        });
-    }
-  }
-
-  ionViewDidLeave(): void {
-    this.todoSub.unsubscribe();
   }
 
   public generateDescription(): string {

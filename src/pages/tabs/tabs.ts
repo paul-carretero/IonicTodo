@@ -1,3 +1,4 @@
+import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
 import { AlertController, Tabs, NavController } from 'ionic-angular';
@@ -6,6 +7,7 @@ import { QrReaderPage } from '../qr-reader/qr-reader';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { AuthentificationPage } from './../authentification/authentification';
 import { HomePage } from './../home/home';
+import { Global } from '../../shared/global';
 
 @Component({
   templateUrl: 'tabs.html'
@@ -20,14 +22,15 @@ export class TabsPage {
     private navCtrl: NavController,
     private evtCtrl: EventServiceProvider,
     private flashlight: Flashlight,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private authCtrl: AuthServiceProvider
   ) {}
 
   ionViewDidLoad() {
-    this.setRoot(1);
+    this.setRoot(Global.AUTHPAGE);
   }
 
-  public setRoot(root: number) {
+  private setRoot(root: number) {
     this.tabRef.select(root);
   }
 
@@ -63,5 +66,14 @@ export class TabsPage {
     } else {
       this.flashlight.switchOff();
     }
+  }
+
+  public logout(): void {
+    this.authCtrl.logout();
+    this.setRoot(Global.AUTHPAGE);
+  }
+
+  public home(): void {
+    this.setRoot(Global.HOMEPAGE);
   }
 }

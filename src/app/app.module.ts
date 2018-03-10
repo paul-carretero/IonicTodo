@@ -1,3 +1,4 @@
+import { QrcodeGeneratePage } from './../pages/list-sharer/qrcode-generate/qrcode-generate';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { Flashlight } from '@ionic-native/flashlight';
@@ -9,9 +10,9 @@ import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
+import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
-import { AngularFireDatabaseModule } from 'angularfire2/database';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
 import {
   AlertController,
@@ -28,6 +29,7 @@ import { TabsPage } from '../pages/tabs/tabs';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
 import { MapServiceProvider } from '../providers/map-service/map-service';
 import { NotifServiceProvider } from '../providers/notif-service/notif-service';
+import { SettingServiceProvider } from '../providers/setting/setting-service';
 import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
@@ -39,8 +41,8 @@ import { TodoPage } from './../pages/todo/todo';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-import { UniqueDeviceID } from '@ionic-native/unique-device-id';
-import { SettingServiceProvider } from '../providers/setting/setting-service';
+import { NgxQRCodeModule } from 'ngx-qrcode2';
+import { CameraPreview } from '@ionic-native/camera-preview';
 
 @NgModule({
   declarations: [
@@ -54,10 +56,12 @@ import { SettingServiceProvider } from '../providers/setting/setting-service';
     HeaderComponent,
     ListEditPage,
     PopoverOptionsPage,
-    QrReaderPage
+    QrReaderPage,
+    QrcodeGeneratePage
   ],
   imports: [
     BrowserModule,
+    NgxQRCodeModule,
     IonicModule.forRoot(MyApp),
     AngularFireModule.initializeApp(FirebaseCredentials),
     AngularFireAuthModule,
@@ -75,7 +79,8 @@ import { SettingServiceProvider } from '../providers/setting/setting-service';
     HeaderComponent,
     ListEditPage,
     PopoverOptionsPage,
-    QrReaderPage
+    QrReaderPage,
+    QrcodeGeneratePage
   ],
   providers: [
     StatusBar,
@@ -97,7 +102,9 @@ import { SettingServiceProvider } from '../providers/setting/setting-service';
     NativeGeocoder,
     QRScanner,
     UniqueDeviceID,
-    SettingServiceProvider
+    SettingServiceProvider,
+    NgxQRCodeModule,
+    CameraPreview
   ]
 })
 export class AppModule {}

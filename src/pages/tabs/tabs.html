@@ -27,20 +27,18 @@
                 <ion-icon name="ios-sunny-outline"></ion-icon>
                 Arréter de Mieux Voir
             </button>
-            <button ion-item menuClose="menu-left" detail-none (click)="showQrPage()" icon-start>
+            <button ion-item menuClose="menu-left" detail-none (click)="logout()" icon-start>
                 <ion-icon name="log-out"></ion-icon>
                 Se déconnecter
             </button>
-            <button ion-item menuClose="menu-left" detail-none (click)="showQrPage()" icon-start>
-                <ion-icon name="log-in"></ion-icon>
-                Se connecter
+            <button ion-item menuClose="menu-left" detail-none (click)="home()" icon-start>
+                <ion-icon name="list"></ion-icon>
+                Accueil
             </button>
             <button ion-item menuClose="menu-left" detail-none icon-start>
                 <ion-icon name="close"></ion-icon>
                 Fermer
             </button>
-            <ion-item-divider color="dark">Vos listes en cours</ion-item-divider>
-            <ion-item-divider color="dark">Vos listes Terminées</ion-item-divider>
         </ion-list>
     </ion-content>
 </ion-menu>

@@ -1,3 +1,4 @@
+import { Media } from './../../model/media';
 import { NavRequest } from './../../model/nav-request';
 import { Global } from './../../shared/global';
 import { Injectable } from '@angular/core';
@@ -7,11 +8,6 @@ import { MenuRequest } from '../../model/menu-request';
 
 @Injectable()
 export class EventServiceProvider {
-  /**
-   * flux des actions de validation de l'utilisateur, vrai si validation, faux si cancel
-   */
-  private userValidation: Subject<boolean>;
-
   /**
    * Flux des mises à jour de l'affichage du header
    */
@@ -27,23 +23,12 @@ export class EventServiceProvider {
    */
   private navRequestSubject: Subject<NavRequest>;
 
+  private media: Media;
+
   constructor() {
-    this.userValidation = new Subject<boolean>();
     this.headerData = new BehaviorSubject<PageData>(Global.DEFAULT_PAGE_DATA);
     this.menuRequestSubject = new Subject<MenuRequest>();
     this.navRequestSubject = new Subject<NavRequest>();
-  }
-
-  public getUserValidation(): Subject<boolean> {
-    return this.userValidation;
-  }
-
-  public userValid(): void {
-    this.userValidation.next(true);
-  }
-
-  public userCancel(): void {
-    this.userValidation.next(false);
   }
 
   public getHeadeSubject(): BehaviorSubject<PageData> {
@@ -56,5 +41,13 @@ export class EventServiceProvider {
 
   public getNavRequestSubject(): Subject<NavRequest> {
     return this.navRequestSubject;
+  }
+
+  public defMedia(media: Media): void {
+    this.media = media;
+  }
+
+  public getMedia(): Media {
+    return this.media;
   }
 }
