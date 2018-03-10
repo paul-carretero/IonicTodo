@@ -21,7 +21,7 @@ import { PageData } from './../../model/page-data';
 import { TodoItem } from './../../model/todo-item';
 import { TodoList } from './../../model/todo-list';
 import { Global } from './../../shared/global';
-import { QrcodeGeneratePage } from './../list-sharer/qrcode-generate/qrcode-generate';
+import { QrcodeGeneratePage } from './../list-sender/qrcode-generate/qrcode-generate';
 import { TodoEditPage } from './../todo-edit/todo-edit';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
@@ -90,7 +90,7 @@ export class TodoListPage extends GenericPage {
   /**************************************************************************/
 
   ionViewDidEnter() {
-    const pageData = Global.DEFAULT_PAGE_DATA;
+    const pageData = Global.SHARE_EDIT_PAGE_DATA;
     this.initDataList(pageData);
   }
 

@@ -1,6 +1,7 @@
+import { BtSenderPage } from './../pages/list-sender/bt-sender/bt-sender';
 import { SQLite } from '@ionic-native/sqlite';
 import { SettingsPage } from './../pages/settings/settings';
-import { QrcodeGeneratePage } from './../pages/list-sharer/qrcode-generate/qrcode-generate';
+import { QrcodeGeneratePage } from './../pages/list-sender/qrcode-generate/qrcode-generate';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { Flashlight } from '@ionic-native/flashlight';
@@ -27,7 +28,6 @@ import {
 import { AuthentificationPage } from '../pages/authentification/authentification';
 import { HomePage } from '../pages/home/home';
 import { ListEditPage } from '../pages/list-edit/list-edit';
-import { QrReaderPage } from '../pages/qr-reader/qr-reader';
 import { TabsPage } from '../pages/tabs/tabs';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
 import { MapServiceProvider } from '../providers/map-service/map-service';
@@ -46,6 +46,11 @@ import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
 import { NgxQRCodeModule } from 'ngx-qrcode2';
 import { CameraPreview } from '@ionic-native/camera-preview';
+import { QrReaderPage } from '../pages/list-receiver/qr-reader/qr-reader';
+import { BtServiceProvider } from '../providers/bt-service/bt-service';
+import { BluetoothSerial } from '@ionic-native/bluetooth-serial';
+import { NfcProvider } from '../providers/nfc/nfc';
+import { NFC } from '@ionic-native/nfc';
 
 @NgModule({
   declarations: [
@@ -61,7 +66,8 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     PopoverOptionsPage,
     QrReaderPage,
     QrcodeGeneratePage,
-    SettingsPage
+    SettingsPage,
+    BtSenderPage
   ],
   imports: [
     BrowserModule,
@@ -85,7 +91,8 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     PopoverOptionsPage,
     QrReaderPage,
     QrcodeGeneratePage,
-    SettingsPage
+    SettingsPage,
+    BtSenderPage
   ],
   providers: [
     StatusBar,
@@ -111,7 +118,11 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     NgxQRCodeModule,
     CameraPreview,
     ScreenOrientation,
-    SQLite
+    SQLite,
+    BtServiceProvider,
+    BluetoothSerial,
+    NfcProvider,
+    NFC
   ]
 })
 export class AppModule {}

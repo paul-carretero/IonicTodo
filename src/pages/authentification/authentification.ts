@@ -8,7 +8,9 @@ import {
   IonicPage,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  App,
+  NavControllerBase
 } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Rx';
@@ -45,7 +47,8 @@ export class AuthentificationPage extends GenericPage {
     private authCtrl: AuthServiceProvider,
     private googlePlus: GooglePlus,
     private formBuilder: FormBuilder,
-    private settingCtrl: SettingServiceProvider
+    private settingCtrl: SettingServiceProvider,
+    private app: App
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
     this.authForm = this.formBuilder.group({
@@ -150,6 +153,8 @@ export class AuthentificationPage extends GenericPage {
   async logout(): Promise<void> {
     this.showLoading('Déconnexion en cours');
     await this.authCtrl.logout();
+    this.navCtrl.parent.select(Global.HOMEPAGE);
+    this.navCtrl.parent.popToRoot();
     this.loading.dismiss();
   }
 

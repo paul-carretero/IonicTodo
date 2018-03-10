@@ -1,10 +1,11 @@
+import { BtSenderPage } from './../list-sender/bt-sender/bt-sender';
+import { QrReaderPage } from './../list-receiver/qr-reader/qr-reader';
 import { SettingsPage } from './../settings/settings';
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
 import { AlertController, Tabs, ToastController } from 'ionic-angular';
 
 import { Global } from '../../shared/global';
-import { QrReaderPage } from '../qr-reader/qr-reader';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { AuthentificationPage } from './../authentification/authentification';
@@ -78,6 +79,10 @@ export class TabsPage {
 
   public showQrPage(): void {
     this.evtCtrl.getNavRequestSubject().next({ page: QrReaderPage });
+  }
+
+  public showBTPage(): void {
+    this.evtCtrl.getNavRequestSubject().next({ page: BtSenderPage });
   }
 
   public voirMieux(): void {

@@ -1,3 +1,4 @@
+import { Global } from './../../shared/global';
 import {
   AlertController,
   LoadingController,
@@ -49,15 +50,21 @@ export class GenericSharer extends GenericPage {
    */
   ionViewDidEnter() {
     if (this.request == MenuRequest.SEND) {
-      const sub = this.todoCtrl
-        .getAList(this.listUUID)
-        .subscribe((list: TodoList) => {
-          sub.unsubscribe();
-          this.json = JSON.stringify(list);
-        });
+      this.sendListHandler();
     } else {
       this.json = JSON.stringify(this.todoCtrl.getListLink(this.listUUID));
     }
+  }
+
+  private sendListHandler(): void {
+    const sub = this.todoCtrl
+      .getAList(this.listUUID)
+      .subscribe((list: TodoList) => {
+        sub.unsubscribe();
+        list.magic = Global.TODO_LIST_MAGIC;
+        list.uuid = null;
+        this.json = JSON.stringify(list);
+      });
   }
 
   public menuEventHandler(req: MenuRequest): void {

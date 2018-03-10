@@ -1,3 +1,4 @@
+import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { Component } from '@angular/core';
 import {
   CameraPreview,
@@ -13,19 +14,19 @@ import {
 } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { MenuRequest } from '../../model/menu-request';
-import { EventServiceProvider } from './../../providers/event/event-service';
-import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
-import { GenericPage } from './../../shared/generic-page';
+import { MenuRequest } from '../../../model/menu-request';
+import { EventServiceProvider } from '../../../providers/event/event-service';
+import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
+import { GenericReceiver } from '../generic-receiver';
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
-import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
+import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 
 @IonicPage()
 @Component({
   selector: 'page-qr-reader',
   templateUrl: 'qr-reader.html'
 })
-export class QrReaderPage extends GenericPage {
+export class QrReaderPage extends GenericReceiver {
   private static readonly MAX_SCAN_TIME = 8000;
 
   private static readonly cameraPreviewOpts: CameraPreviewOptions = {
@@ -51,18 +52,25 @@ export class QrReaderPage extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
+    public todoCtrl: TodoServiceProvider,
     private qrScanner: QRScanner,
     private cameraPreview: CameraPreview,
     private screenCtrl: ScreenOrientation
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(
+      navCtrl,
+      alertCtrl,
+      loadingCtrl,
+      evtCtrl,
+      ttsCtrl,
+      toastCtrl,
+      todoCtrl
+    );
   }
 
   ionViewDidEnter() {
     this.checkAuthForScan();
-    this.cameraPreview.startCamera(QrReaderPage.cameraPreviewOpts).then(() => {
-      this.cameraOn = true;
-    });
+    this.startPreview();
     this.screenCtrl.lock(this.screenCtrl.ORIENTATIONS.PORTRAIT);
   }
 
@@ -70,9 +78,7 @@ export class QrReaderPage extends GenericPage {
     if (this.scanSub != null && !this.scanSub.closed) {
       this.scanSub.unsubscribe();
     }
-    if ((this.cameraOn = true)) {
-      this.cameraPreview.stopCamera();
-    }
+    this.stopPreview();
     this.qrScanner.destroy();
     this.screenCtrl.unlock();
   }
@@ -84,37 +90,52 @@ export class QrReaderPage extends GenericPage {
     }
   }
 
-  public async scan(): Promise<void> {
-    if ((this.cameraOn = true)) {
+  private async startPreview(): Promise<void> {
+    if (this.cameraOn == false) {
+      this.qrScanner.destroy();
+      await this.cameraPreview.startCamera(QrReaderPage.cameraPreviewOpts);
+      this.cameraOn = true;
+    }
+  }
+
+  private async stopPreview(): Promise<void> {
+    if (this.cameraOn == true) {
       await this.cameraPreview.stopCamera();
       this.cameraOn = false;
     }
+  }
 
-    this.showLoading('tentative de scan en cours', QrReaderPage.MAX_SCAN_TIME);
-
-    await this.qrScanner.prepare();
-
-    this.scanSub = this.qrScanner.scan().subscribe((text: string) => {
-      this.loading.dismiss();
-      console.log(text);
-      this.alert('Scanned something', text);
-      this.scanSub.unsubscribe();
-    });
-
+  private timeoutNoData(): void {
     setTimeout(() => {
       if (!this.scanSub.closed) {
         this.displayToast(
           'Impossible de trouver un QR Code à scanner, veuillez rééssayer'
         );
         this.scanSub.unsubscribe();
-        this.qrScanner.destroy();
-        this.cameraPreview
-          .startCamera(QrReaderPage.cameraPreviewOpts)
-          .then(() => {
-            this.cameraOn = true;
-          });
+        this.startPreview();
       }
     }, QrReaderPage.MAX_SCAN_TIME);
+  }
+
+  public async scan(): Promise<void> {
+    this.stopPreview();
+    this.showLoading('Tentative de scan en cours', QrReaderPage.MAX_SCAN_TIME);
+    await this.qrScanner.prepare();
+
+    this.scanSub = this.qrScanner.scan().subscribe((text: string) => {
+      this.loading.dismiss();
+      this.scanSub.unsubscribe();
+      this.importHandler(text).then((success: boolean) => {
+        if (success) {
+          this.navCtrl.popToRoot();
+        } else {
+          this.loading.dismiss();
+          this.startPreview();
+        }
+      });
+    });
+
+    this.timeoutNoData();
   }
 
   public generateDescription(): string {

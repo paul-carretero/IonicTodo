@@ -12,30 +12,56 @@ export class Global {
   /**
    * Index de la page d'accueil
    *
+   * @readonly
    * @static
+   * @type {number}
    * @memberof Global
    */
-  public static readonly HOMEPAGE = 0;
+  public static readonly HOMEPAGE: number = 0;
 
   /**
    * Index de la page d'authentification
-   *
+   * @readonly
    * @static
+   * @type {number}
    * @memberof Global
    */
-  public static readonly AUTHPAGE = 1;
+  public static readonly AUTHPAGE: number = 1;
 
   /**
    * Index de la page d'options
    *
+   * @readonly
    * @static
+   * @type {number}
    * @memberof Global
    */
-  public static readonly OPTSPAGE = 2;
+  public static readonly OPTSPAGE: number = 2;
+
+  /**
+   * Identifie une liste de todo, pour deserialization
+   *
+   * @readonly
+   * @static
+   * @type {string}
+   * @memberof Global
+   */
+  public static readonly TODO_LIST_MAGIC: string = '(╯°□°）╯︵ ┻━┻';
+
+  /**
+   * Identifie un lien vers une liste de todo pour désérialisation
+   *
+   * @readonly
+   * @static
+   * @type {string}
+   * @memberof Global
+   */
+  public static readonly LIST_PATH_MAGIC: string = '┬─┬ノ( º _ ºノ)';
 
   /**
    * Page non éditable, non partageable et non validable
    *
+   * @readonly
    * @static
    * @type {PageData}
    * @memberof Global
@@ -50,6 +76,7 @@ export class Global {
   /**
    * Page non éditable, non partageable et validable
    *
+   * @readonly
    * @static
    * @type {PageData}
    * @memberof Global
@@ -64,6 +91,7 @@ export class Global {
   /**
    *  Page éditable, partageable et non validable
    *
+   * @readonly
    * @static
    * @type {PageData}
    * @memberof Global
@@ -78,6 +106,7 @@ export class Global {
   /**
    * Page éditable, non partageable et non validable
    *
+   * @readonly
    * @static
    * @type {PageData}
    * @memberof Global

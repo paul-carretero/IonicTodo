@@ -1,3 +1,4 @@
+import { Global } from './../shared/global';
 import { TodoItem } from './todo-item';
 
 /**
@@ -7,6 +8,14 @@ import { TodoItem } from './todo-item';
  * @interface TodoList
  */
 export interface TodoList {
+  /**
+   * Magic string pour identifier cette classe comme une liste de todo
+   *
+   * @type {string}
+   * @memberof TodoList
+   */
+  magic?: string;
+
   /**
    * Identifieur unique de la liste
    *

@@ -97,6 +97,10 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   public showLoading(text: string, duration?: number): void {
+    if (this.loading != null) {
+      this.loading.dismissAll();
+    }
+
     if (duration == null) {
       duration = 60000; // 1min max default
     }
@@ -131,6 +135,32 @@ export abstract class GenericPage {
     this.toastCtrl
       .create({ message: message, duration: duration, position: 'bottom' })
       .present();
+  }
+
+  public confirm(title: string, message: string): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      this.alertCtrl
+        .create({
+          title: title,
+          message: message,
+          buttons: [
+            {
+              text: 'Annuler',
+              role: 'cancel',
+              handler: () => {
+                resolve(false);
+              }
+            },
+            {
+              text: 'Valider',
+              handler: () => {
+                resolve(true);
+              }
+            }
+          ]
+        })
+        .present();
+    });
   }
 
   /**************************************************************************/
