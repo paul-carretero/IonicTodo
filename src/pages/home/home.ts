@@ -48,6 +48,14 @@ export class HomePage extends GenericPage {
   public localTodoList: Observable<TodoList[]>;
 
   /**
+   * Liste des listes partagés avec cet utilisateur
+   *
+   * @type {Observable<TodoList[]>}
+   * @memberof HomePage
+   */
+  public sharedTodoList: Observable<TodoList[]>;
+
+  /**
    * Creates an instance of HomePage.
    * @param {NavController} navCtrl
    * @param {AlertController} alertCtrl
@@ -89,6 +97,7 @@ export class HomePage extends GenericPage {
 
     this.todoList = this.todoService.getTodoList(ListType.PRIVATE);
     this.localTodoList = this.todoService.getTodoList(ListType.LOCAL);
+    this.sharedTodoList = this.todoService.getSharedTodoList();
   }
 
   /**************************************************************************/

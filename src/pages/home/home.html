@@ -64,6 +64,29 @@
                 <ion-icon name="lock" small></ion-icon> Listes Partagées
             </ion-item-divider>
 
+            <ng-container *ngFor="let list of sharedTodoList | async">
+                <ion-item-sliding>
+                    <ion-item (click)="selectTodoList(list.uuid)">
+                        <ion-icon name="{{list.icon}}" item-start></ion-icon>
+                        {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
+                    </ion-item>
+                    <ion-item-options side="left">
+                        <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
+                            <ion-icon name="trash">
+                                supprimer
+                            </ion-icon>
+                        </button>
+                    </ion-item-options>
+                    <ion-item-options side="right">
+                        <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
+                            <ion-icon name="trash">
+                                supprimer
+                            </ion-icon>
+                        </button>
+                    </ion-item-options>
+                </ion-item-sliding>
+            </ng-container>
+
         </ng-container>
 
         <ion-item-divider color="light" icon-start>

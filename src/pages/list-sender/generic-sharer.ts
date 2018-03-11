@@ -44,7 +44,7 @@ export class GenericSharer extends GenericPage {
   }
 
   /**
-   * Charge le liste demandé et la stocke dans une promesse de json
+   * Charge le liste demandé et la stocke dans un json
    *
    * @memberof QrcodeGeneratePage
    */
@@ -52,7 +52,9 @@ export class GenericSharer extends GenericPage {
     if (this.request == MenuRequest.SEND) {
       this.sendListHandler();
     } else {
-      this.json = JSON.stringify(this.todoCtrl.getListLink(this.listUUID));
+      const link = this.todoCtrl.getListLink(this.listUUID);
+      link.magic = Global.LIST_PATH_MAGIC;
+      this.json = JSON.stringify(link);
     }
   }
 

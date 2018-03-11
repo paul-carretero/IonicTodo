@@ -28,7 +28,17 @@ export abstract class GenericReceiver extends GenericPage {
   }
 
   private async listPathHandler(data: TodoListPath): Promise<boolean> {
-    return false;
+    const resConf: boolean = await this.confirm(
+      'Confirmation',
+      'Etes vous sur de vouloir liée cette liste à votre compte ?'
+    );
+    this.showLoading('Import de la liste en cours');
+    if (resConf == false) {
+      return false;
+    }
+    await this.todoCtrl.addListLink(data);
+    this.loading.dismiss();
+    return true;
   }
 
   private async todoListHandler(data: TodoList): Promise<boolean> {
@@ -60,7 +70,7 @@ export abstract class GenericReceiver extends GenericPage {
     if (listData.magic === Global.TODO_LIST_MAGIC) {
       return await this.todoListHandler(listData);
     } else if (listData.magic === Global.LIST_PATH_MAGIC) {
-      return await this.todoListHandler(listData);
+      return await this.listPathHandler(listData);
     }
     console.log('pas compatible => ' + json);
     this.displayToast("Erreur lors de l'import, veuillez vérifier la source");

@@ -86,7 +86,25 @@ export class TodoServiceProvider {
    * @type {AngularFirestoreDocument<User>}
    * @memberof TodoServiceProvider
    */
-  private currentUserData: AngularFirestoreDocument<AppUser>;
+  private currentUserDataDoc: AngularFirestoreDocument<AppUser>;
+
+  /**
+   * Représente notament les listes partagée avec l'utilisateur courant, mise à jour en temps réel
+   *
+   * @private
+   * @type {Observable<AppUser>}
+   * @memberof TodoServiceProvider
+   */
+  private currentUserData: BehaviorSubject<AppUser>;
+
+  /**
+   * Abonnement au donnée utilisateur (les listes partagées avec lui)
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof TodoServiceProvider
+   */
+  private userDataSub: Subscription;
 
   /**************************************************************************/
   /************************** TODO LISTS PARTAGEES **************************/
@@ -108,16 +126,16 @@ export class TodoServiceProvider {
    * @type {BehaviorSubject<TodoList[]>[]}
    * @memberof TodoServiceProvider
    */
-  private sharedTodoLists: BehaviorSubject<TodoList[]>[];
+  private sharedTodoLists: BehaviorSubject<TodoList[]>;
 
   /**
    *
    *
    * @private
-   * @type {Subscription[]}
+   * @type {Subscription}
    * @memberof TodoServiceProvider
    */
-  private sharedListSubs: Subscription[];
+  private sharedListSub: Subscription;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -137,6 +155,10 @@ export class TodoServiceProvider {
   ) {
     this.todoLists = new BehaviorSubject<TodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<TodoList[]>([]);
+    this.sharedTodoLists = new BehaviorSubject<TodoList[]>([]);
+    this.currentUserData = new BehaviorSubject<AppUser>({
+      todoListSharedWithMe: []
+    });
     this.updateDBLink();
     this.updateLocalDBLink();
   }
@@ -145,6 +167,67 @@ export class TodoServiceProvider {
   /**************************** PRIVATE METHODS *****************************/
   /**************************************************************************/
 
+  private tryUnsub(sub: Subscription) {
+    if (sub != null) {
+      sub.unsubscribe();
+    }
+  }
+
+  /****************************** USER METHODS ******************************/
+
+  /**
+   * Initialise le document firestore contenant les listes partagée avec l'utilisateur courant
+   *
+   * @private
+   * @memberof TodoServiceProvider
+   */
+  private initUserDataDocument(): void {
+    this.currentUserDataDoc = this.firestoreCtrl.doc<AppUser>(
+      'user/' + this.authCtrl.getUserId() + ''
+    );
+    this.userPublisher();
+  }
+
+  /**
+   * Permet de mettre à jour les données utilisateur en fonction des connexion/déconnexion
+   *
+   * @private
+   * @memberof TodoServiceProvider
+   */
+  private userPublisher(): void {
+    this.userDataSub = this.currentUserDataDoc
+      .valueChanges()
+      .subscribe((data: AppUser) => {
+        this.currentUserData.next(data);
+      });
+  }
+
+  /**
+   * Génère un snapshot de l'état actuel des listes partagées avec l'utilisateur et le retourne
+   *
+   * @private
+   * @returns {TodoListPath[]}
+   * @memberof TodoServiceProvider
+   */
+  private getSharedListPathSnapchot(): TodoListPath[] {
+    if (this.currentUserData.getValue() == null) {
+      return [];
+    }
+    if (this.currentUserData.getValue().todoListSharedWithMe == null) {
+      return [];
+    }
+    return this.currentUserData.getValue().todoListSharedWithMe;
+  }
+
+  /******************************* DB METHODS *******************************/
+
+  /**
+   * Initialise la collection firestore pour l'ensemble des liste privée de l'utilisateur courant
+   * Ne peut être réalisé que si l'utilisateur est connecté obviously
+   *
+   * @private
+   * @memberof TodoServiceProvider
+   */
   private initPrivateListCollection(): void {
     this.todoListCollection = this.firestoreCtrl.collection<TodoList>(
       'user/' + this.authCtrl.getUserId() + '/list'
@@ -152,26 +235,42 @@ export class TodoServiceProvider {
     this.listsPublisher();
   }
 
+  private listenForSharedUpdate(): void {
+    const obsArray: Observable<TodoList>[] = [];
+    for (let doc of this.sharedTodoCollection) {
+      obsArray.push(doc.valueChanges());
+    }
+
+    this.sharedListSub = Observable.combineLatest(obsArray).subscribe(
+      (lists: TodoList[]) => {
+        this.sharedTodoLists.next(lists);
+      }
+    );
+  }
+
   /**
-   * Synchronise la liste des listes de todo privée de l'utilisateur avec la base
-   * Firestore et abandonne la synchro en cas de déconnexion
+   * Redéfini l'ensemble des listes partagée avec l'utilisateur
+   * connecté à chaque update de la liste des listes partagée (userData)
    *
    * @private
    * @memberof TodoServiceProvider
    */
-  private updateDBLink(): void {
-    if (this.authCtrl.isConnected()) {
-      this.initPrivateListCollection();
-    }
+  private defSharedTodoCollection(): void {
+    this.currentUserData.subscribe((data: AppUser) => {
+      if (data != null && data.todoListSharedWithMe != null) {
+        this.tryUnsub(this.sharedListSub);
+        this.sharedTodoCollection = [];
+        this.sharedTodoLists.next([]);
 
-    this.authCtrl.getConnexionSubject().subscribe((user: User) => {
-      if (this.privateListSub != null) {
-        this.privateListSub.unsubscribe();
-      }
-      if (user != null) {
-        this.initPrivateListCollection();
-      } else {
-        this.todoLists.next([]);
+        for (let path of data.todoListSharedWithMe) {
+          this.sharedTodoCollection.push(
+            this.firestoreCtrl.doc<TodoList>(
+              'user/' + path.userUUID + '/list/' + path.listUUID
+            )
+          );
+        }
+
+        this.listenForSharedUpdate();
       }
     });
   }
@@ -189,6 +288,37 @@ export class TodoServiceProvider {
       .subscribe((lists: TodoList[]) => {
         this.todoLists.next(lists);
       });
+  }
+
+  /**
+   * Synchronise la liste des listes de todo privée et partagée de l'utilisateur avec la base
+   * Firestore et abandonne la synchro en cas de déconnexion
+   *
+   * @private
+   * @memberof TodoServiceProvider
+   */
+  private updateDBLink(): void {
+    if (this.authCtrl.isConnected()) {
+      this.initPrivateListCollection();
+      this.initUserDataDocument();
+      this.defSharedTodoCollection();
+    }
+
+    this.authCtrl.getConnexionSubject().subscribe((user: User) => {
+      if (this.privateListSub != null) {
+        this.tryUnsub(this.privateListSub);
+        this.tryUnsub(this.userDataSub);
+        this.tryUnsub(this.sharedListSub);
+      }
+      if (user != null) {
+        this.initPrivateListCollection();
+        this.initUserDataDocument();
+        this.defSharedTodoCollection();
+      } else {
+        this.currentUserData.next({ todoListSharedWithMe: [] });
+        this.todoLists.next([]);
+      }
+    });
   }
 
   /**
@@ -210,6 +340,63 @@ export class TodoServiceProvider {
       });
   }
 
+  /**
+   * retourne la collection firestore qui contient la liste ayant l'id passé en paramètre
+   *
+   * @private
+   * @param {ListType} type
+   * @param {string} [listUUID]
+   * @returns {AngularFirestoreCollection<TodoList>}
+   * @memberof TodoServiceProvider
+   */
+  private getFirestoreCollection(
+    type: ListType,
+    listUUID?: string
+  ): AngularFirestoreCollection<TodoList> {
+    switch (type) {
+      case ListType.LOCAL:
+        return this.localTodoListCollection;
+      default:
+        return this.todoListCollection;
+    }
+  }
+
+  /**************************************************************************/
+  /************************* PUBLIC USERS INTERFACE *************************/
+  /**************************************************************************/
+
+  public addListLink(path: TodoListPath): void {
+    const listsPathTab = this.getSharedListPathSnapchot();
+    listsPathTab.push(path);
+    this.currentUserDataDoc
+      .update({ todoListSharedWithMe: listsPathTab })
+      .catch(() => {
+        this.currentUserDataDoc.set({ todoListSharedWithMe: [path] });
+      });
+  }
+
+  public removeListLink(listUUID: string): void {
+    const listsPathTab = this.getSharedListPathSnapchot();
+
+    let toDelete: number = -1;
+    for (let i = 0; i < listsPathTab.length; i++) {
+      if (listsPathTab[i].listUUID === listUUID) {
+        toDelete = i;
+      }
+    }
+    if (toDelete !== -1) {
+      listsPathTab.splice(toDelete);
+      this.currentUserDataDoc
+        .update({ todoListSharedWithMe: listsPathTab })
+        .catch(() => {
+          // not really reachable...
+          this.currentUserDataDoc.set({
+            todoListSharedWithMe: listsPathTab
+          });
+        });
+    }
+  }
+
   /**************************************************************************/
   /************************* PUBLIC LISTS INTERFACE *************************/
   /**************************************************************************/
@@ -223,10 +410,14 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public getListLink(listUUID: string): TodoListPath {
-    return {
-      userUUID: this.authCtrl.getUserId(),
-      listUUID: listUUID
-    };
+    if (this.getListType(listUUID) !== ListType.SHARED) {
+      return { userUUID: this.authCtrl.getUserId(), listUUID: listUUID };
+    } else {
+    }
+  }
+
+  public getSharedTodoList(): Observable<TodoList[]> {
+    return this.sharedTodoLists.asObservable();
   }
 
   /**
@@ -313,18 +504,14 @@ export class TodoServiceProvider {
     });
   }
 
-  private getFirestoreCollection(
-    type: ListType,
-    listUUID?: string
-  ): AngularFirestoreCollection<TodoList> {
-    switch (type) {
-      case ListType.LOCAL:
-        return this.localTodoListCollection;
-      default:
-        return this.todoListCollection;
-    }
-  }
-
+  /**
+   * Permet de mettre à jour une liste et/ou de la transférer des liste locales aux liste privée et inversement
+   *
+   * @param {TodoList} data
+   * @param {ListType} [destType]
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
   public async updateList(data: TodoList, destType?: ListType): Promise<void> {
     const curListType = this.getListType(data.uuid);
 
@@ -346,11 +533,20 @@ export class TodoServiceProvider {
     }
   }
 
+  /**
+   * Supprime une liste ou la délie si il s'ait d'une liste partagée
+   *
+   * @param {string} uuid l'identifiant de la liste
+   * @memberof TodoServiceProvider
+   */
   public deleteList(uuid: string): void {
-    this.todoListCollection
-      .doc(uuid)
-      .delete()
-      .catch(() => this.localTodoListCollection.doc(uuid).delete());
+    const type = this.getListType(uuid);
+    if (type !== ListType.SHARED) {
+      this.getFirestoreCollection(type)
+        .doc(uuid)
+        .delete()
+        .catch(() => this.localTodoListCollection.doc(uuid).delete());
+    }
   }
 
   /**************************************************************************/
