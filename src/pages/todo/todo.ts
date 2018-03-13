@@ -6,13 +6,6 @@ import { TodoItem } from '../../model/todo-item';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { TodoEditPage } from './../todo-edit/todo-edit';
 
-/**
- * Generated class for the TodoPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
-
 @IonicPage()
 @Component({
   selector: 'page-todo',

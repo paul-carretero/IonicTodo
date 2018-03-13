@@ -4,6 +4,7 @@ import { IonicPage } from 'ionic-angular';
 
 import { Settings } from '../../model/settings';
 import { SettingServiceProvider } from './../../providers/setting/setting-service';
+import { GenericPage } from '../../shared/generic-page';
 
 @IonicPage()
 @Component({
@@ -63,10 +64,7 @@ export class SettingsPage {
   }
 
   public defSettingNotif(): void {
-    this.settingCtrl.setSetting(
-      Settings.NOTIF_DELAY,
-      this.notifWhen.toString()
-    );
+    this.settingCtrl.setSetting(Settings.NOTIF_DELAY, this.notifWhen.toString());
   }
 
   public reset(): void {

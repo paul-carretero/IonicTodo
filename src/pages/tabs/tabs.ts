@@ -1,4 +1,3 @@
-import { BtSenderPage } from './../list-sender/bt-sender/bt-sender';
 import { QrReaderPage } from './../list-receiver/qr-reader/qr-reader';
 import { SettingsPage } from './../settings/settings';
 import { Component, ViewChild } from '@angular/core';
@@ -10,6 +9,7 @@ import { AuthServiceProvider } from './../../providers/auth-service/auth-service
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { AuthentificationPage } from './../authentification/authentification';
 import { HomePage } from './../home/home';
+import { NfcProvider } from '../../providers/nfc/nfc';
 
 @Component({
   templateUrl: 'tabs.html'
@@ -26,7 +26,8 @@ export class TabsPage {
     private flashlight: Flashlight,
     private alertCtrl: AlertController,
     private authCtrl: AuthServiceProvider,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private nfc: NfcProvider
   ) {}
 
   get allowNavigate(): boolean {
@@ -81,10 +82,16 @@ export class TabsPage {
     this.evtCtrl.getNavRequestSubject().next({ page: QrReaderPage });
   }
 
-  public showBTPage(): void {
-    this.evtCtrl.getNavRequestSubject().next({ page: BtSenderPage });
+  public showCloudPage(): void {
+    //todo
   }
 
+  /**
+   * Permet de mieux voir en allumant la lampe torche
+   * Si on voit déjà mieux
+   *
+   * @memberof TabsPage
+   */
   public voirMieux(): void {
     this.JeVoisBien = !this.JeVoisBien;
     if (this.JeVoisBien) {
@@ -100,6 +107,11 @@ export class TabsPage {
     }
   }
 
+  /**
+   * Log-In si pas loggué, logout sinon
+   *
+   * @memberof TabsPage
+   */
   public logInOut(): void {
     if (this.authCtrl.isConnected()) {
       this.authCtrl.logout();
@@ -107,7 +119,16 @@ export class TabsPage {
     this.setRoot(Global.AUTHPAGE);
   }
 
+  /**
+   * Redirige vers la page d'accueil
+   *
+   * @memberof TabsPage
+   */
   public home(): void {
     this.setRoot(Global.HOMEPAGE);
+  }
+
+  public writenfc(): void {
+    this.nfc.write('nfc write hello world');
   }
 }

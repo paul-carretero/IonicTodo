@@ -1,3 +1,4 @@
+import { TodoList } from './../model/todo-list';
 import { Settings } from './../model/settings';
 import { PageData } from './../model/page-data';
 
@@ -116,5 +117,12 @@ export class Global {
     shareable: false,
     editable: true,
     validable: false
+  };
+
+  public static readonly BLANK_LIST: TodoList = {
+    uuid: null,
+    name: null,
+    items: [],
+    icon: null
   };
 }

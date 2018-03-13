@@ -12,6 +12,7 @@ import { MenuRequest } from '../model/menu-request';
 import { EventServiceProvider } from '../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { NavRequest } from './../model/nav-request';
+import { User } from '@firebase/auth-types';
 
 export abstract class GenericPage {
   public loading: Loading;
@@ -27,6 +28,8 @@ export abstract class GenericPage {
    */
   private menuEvtSub: Subscription;
 
+  private secrureAuthSub: Subscription;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -37,12 +40,21 @@ export abstract class GenericPage {
     public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController
+    public toastCtrl: ToastController,
+    public authCtrl: AuthServiceProvider
   ) {}
 
   /**************************************************************************/
   /**************************** LIFECYCLE EVENTS ****************************/
   /**************************************************************************/
+
+  ionViewDidLoad(): void {
+    this.securePage();
+  }
+
+  ionViewWillUnload(): void {
+    this.tryUnSub(this.secrureAuthSub);
+  }
 
   /**
    * utiliser super.ionViewWillEnter() si besoin dans les classe filles.
@@ -58,10 +70,13 @@ export abstract class GenericPage {
     this.menuEvtSub = this.evtCtrl
       .getMenuRequestSubject()
       .subscribe((req: MenuRequest) => {
-        if (req == MenuRequest.SPEECH_SYNTH) {
-          this.ttsCtrl.synthText(this.generateDescription());
-        } else if (req == MenuRequest.HELP) {
-          this.alert('Aide sur la page', this.generateHelp());
+        switch (req) {
+          case MenuRequest.SPEECH_SYNTH:
+            this.ttsCtrl.synthText(this.generateDescription());
+            break;
+          case MenuRequest.HELP:
+            this.alert('Aide sur la page', this.generateHelp());
+            break;
         }
         this.menuEventHandler(req);
       });
@@ -77,12 +92,19 @@ export abstract class GenericPage {
   }
 
   private clear() {
-    if (this.navSub != null) {
-      this.navSub.unsubscribe();
-    }
-    if (this.menuEvtSub != null) {
-      this.menuEvtSub.unsubscribe();
-    }
+    this.tryUnSub(this.navSub);
+    this.tryUnSub(this.menuEvtSub);
+  }
+
+  private securePage(): void {
+    this.secrureAuthSub = this.authCtrl.getConnexionSubject().subscribe((user: User) => {
+      if (this.basicAuthRequired() && !this.authCtrl.navAllowed()) {
+        this.navCtrl.popToRoot();
+      }
+      if (this.loginAuthRequired() && !this.authCtrl.isConnected()) {
+        this.navCtrl.popToRoot();
+      }
+    });
   }
 
   /**************************************************************************/
@@ -135,6 +157,12 @@ export abstract class GenericPage {
     this.toastCtrl
       .create({ message: message, duration: duration, position: 'bottom' })
       .present();
+  }
+
+  public tryUnSub(sub: Subscription) {
+    if (sub != null) {
+      sub.unsubscribe();
+    }
   }
 
   public confirm(title: string, message: string): Promise<boolean> {
@@ -195,4 +223,22 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   public abstract generateDescription(): string;
+
+  /**
+   * Permet de gérer la confidentialités des pages
+   *
+   * @abstract
+   * @returns {boolean} true si la page ne doit être accéssible qu'une fois loggué avec un compte, false sinon
+   * @memberof GenericPage
+   */
+  public abstract loginAuthRequired(): boolean;
+
+  /**
+   * Permet de gérer l'accéssibilité des pages
+   *
+   * @abstract
+   * @returns {boolean} true si il faux naviguer en mode hors connexion ou connecté, false sinon
+   * @memberof GenericPage
+   */
+  public abstract basicAuthRequired(): boolean;
 }

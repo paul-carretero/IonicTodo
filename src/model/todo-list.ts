@@ -49,12 +49,12 @@ export interface TodoList {
   icon: string;
 
   /**
-   * Défini si la liste est privée (permet d'annuler un partage)
+   * Ordre de la liste par rapport aux autre liste (fonctionement similaire à un z-index)
    *
-   * @type {boolean}
+   * @type {number}
    * @memberof TodoList
    */
-  isPrivate: boolean;
+  order?: number;
 }
 
 /**

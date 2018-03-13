@@ -1,8 +1,7 @@
 {
-    "rules": {
-        "no-duplicate-variable": true,
-        "no-unused-variable": [true]
-    },
-    "triple-equals": true,
+  "rules": {
+    "no-duplicate-variable": true,
+    "triple-equals": [true, "allow-null-check"],
     "rulesDirectory": ["node_modules/tslint-eslint-rules/dist/rules"]
+  }
 }

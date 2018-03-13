@@ -19,7 +19,7 @@ import { GenericPage } from '../../shared/generic-page';
 import { ListEditPage } from '../list-edit/list-edit';
 import { PageData } from './../../model/page-data';
 import { TodoItem } from './../../model/todo-item';
-import { TodoList } from './../../model/todo-list';
+import { TodoList, ListType } from './../../model/todo-list';
 import { Global } from './../../shared/global';
 import { QrcodeGeneratePage } from './../list-sender/qrcode-generate/qrcode-generate';
 import { TodoEditPage } from './../todo-edit/todo-edit';
@@ -50,20 +50,14 @@ export class TodoListPage extends GenericPage {
   private listeSub: Subscription;
 
   /**
-   * La liste de todo en observable
-   *
-   * @type {Observable<TodoList>}
-   * @memberof TodoListPage
-   */
-  public todoList: Observable<TodoList>;
-
-  /**
    * Les todo de cette liste en observable
    *
    * @type {Observable<TodoItem[]>}
    * @memberof TodoListPage
    */
   public todoItems: Observable<TodoItem[]>;
+
+  private listType: ListType;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -76,13 +70,14 @@ export class TodoListPage extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
-    private authCtrl: AuthServiceProvider,
+    public authCtrl: AuthServiceProvider,
     private todoService: TodoServiceProvider,
     private navParams: NavParams
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.todoItems = Observable.of([]);
+    this.listType = this.todoService.getListType(this.listUUID);
   }
 
   /**************************************************************************/
@@ -95,19 +90,25 @@ export class TodoListPage extends GenericPage {
   }
 
   ionViewWillLeave() {
-    if (this.listeSub != null) {
-      this.listeSub.unsubscribe();
-    }
+    this.tryUnSub(this.listeSub);
   }
 
   /**************************************************************************/
   /************************ METHODE INTERNES/PRIVATE ************************/
   /**************************************************************************/
 
-  private initDataList(pageData: PageData): void {
-    const listType = this.todoService.getListType(this.listUUID);
-    this.todoList = this.todoService.getAList(this.listUUID, listType);
-    this.listeSub = this.todoList.subscribe(res => {
+  private async initDataList(pageData: PageData): Promise<void> {
+    let todoList: Observable<TodoList>;
+    try {
+      todoList = await this.todoService.getAList(this.listUUID);
+    } catch (e) {
+      console.log(
+        '[TodoListPage] list not found, assuming logout & redirect, ignoring... '
+      );
+      todoList = Observable.of(Global.BLANK_LIST);
+    }
+
+    this.listeSub = todoList.subscribe((res: TodoList) => {
       pageData.title = 'Liste "' + res.name + '"';
       this.evtCtrl.getHeadeSubject().next(pageData);
     });
@@ -161,6 +162,14 @@ export class TodoListPage extends GenericPage {
 
   public generateDescription(): string {
     throw new Error('Method not implemented.');
+  }
+
+  public loginAuthRequired(): boolean {
+    return this.listType === ListType.PRIVATE || this.listType === ListType.SHARED;
+  }
+
+  public basicAuthRequired(): boolean {
+    return true;
   }
 
   /**************************************************************************/

@@ -1,3 +1,4 @@
+import { NfcProvider } from './../../providers/nfc/nfc';
 import { Component } from '@angular/core';
 import {
   AlertController,
@@ -74,10 +75,10 @@ export class HomePage extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
-    private authCtrl: AuthServiceProvider,
+    public authCtrl: AuthServiceProvider,
     private todoService: TodoServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
   }
 
   /**************************************************************************/
@@ -97,7 +98,7 @@ export class HomePage extends GenericPage {
 
     this.todoList = this.todoService.getTodoList(ListType.PRIVATE);
     this.localTodoList = this.todoService.getTodoList(ListType.LOCAL);
-    this.sharedTodoList = this.todoService.getSharedTodoList();
+    this.sharedTodoList = this.todoService.getTodoList(ListType.SHARED);
   }
 
   /**************************************************************************/
@@ -122,6 +123,14 @@ export class HomePage extends GenericPage {
     let description = 'Voici vos liste de tâches en cours:';
     description += 'Voici vos liste de tâches terminé:';
     return description;
+  }
+
+  public loginAuthRequired(): boolean {
+    return false;
+  }
+
+  public basicAuthRequired(): boolean {
+    return true;
   }
 
   /**************************************************************************/

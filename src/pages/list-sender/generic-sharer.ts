@@ -36,9 +36,10 @@ export class GenericSharer extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public todoCtrl: TodoServiceProvider,
-    public toastCtrl: ToastController
+    public toastCtrl: ToastController,
+    public authCtrl: AuthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.listUUID = navParams.get('uuid');
     this.request = navParams.get('request');
   }
@@ -58,15 +59,14 @@ export class GenericSharer extends GenericPage {
     }
   }
 
-  private sendListHandler(): void {
-    const sub = this.todoCtrl
-      .getAList(this.listUUID)
-      .subscribe((list: TodoList) => {
-        sub.unsubscribe();
-        list.magic = Global.TODO_LIST_MAGIC;
-        list.uuid = null;
-        this.json = JSON.stringify(list);
-      });
+  private async sendListHandler(): Promise<void> {
+    const todoList = await this.todoCtrl.getAList(this.listUUID);
+    const sub = todoList.subscribe((list: TodoList) => {
+      sub.unsubscribe();
+      list.magic = Global.TODO_LIST_MAGIC;
+      list.uuid = null;
+      this.json = JSON.stringify(list);
+    });
   }
 
   public menuEventHandler(req: MenuRequest): void {
@@ -74,5 +74,13 @@ export class GenericSharer extends GenericPage {
   }
   public generateDescription(): string {
     throw new Error('Method not implemented.');
+  }
+
+  public loginAuthRequired(): boolean {
+    return true;
+  }
+
+  public basicAuthRequired(): boolean {
+    return true;
   }
 }

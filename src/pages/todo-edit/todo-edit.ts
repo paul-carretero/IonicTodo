@@ -49,13 +49,14 @@ export class TodoEditPage extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
+    public authCtrl: AuthServiceProvider,
     private navParams: NavParams,
     private todoService: TodoServiceProvider,
     private formBuilder: FormBuilder,
     private MapService: MapServiceProvider,
     private synthService: SpeechSynthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.todoUUID = navParams.get('todoUUID');
     this.listUUID = navParams.get('listUUID');
     this.todo = { name: '', complete: false, desc: '', uuid: this.todoUUID };
@@ -158,5 +159,13 @@ export class TodoEditPage extends GenericPage {
           .catch(err => {});
       })
       .catch(err => {});
+  }
+
+  public loginAuthRequired(): boolean {
+    return false;
+  }
+
+  public basicAuthRequired(): boolean {
+    return true;
   }
 }

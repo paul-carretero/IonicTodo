@@ -1,4 +1,3 @@
-import { BtSenderPage } from './../pages/list-sender/bt-sender/bt-sender';
 import { SQLite } from '@ionic-native/sqlite';
 import { SettingsPage } from './../pages/settings/settings';
 import { QrcodeGeneratePage } from './../pages/list-sender/qrcode-generate/qrcode-generate';
@@ -18,12 +17,7 @@ import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
-import {
-  AlertController,
-  IonicApp,
-  IonicErrorHandler,
-  IonicModule
-} from 'ionic-angular';
+import { AlertController, IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 
 import { AuthentificationPage } from '../pages/authentification/authentification';
 import { HomePage } from '../pages/home/home';
@@ -47,10 +41,8 @@ import { FirebaseCredentials } from './firebase.credentials';
 import { NgxQRCodeModule } from 'ngx-qrcode2';
 import { CameraPreview } from '@ionic-native/camera-preview';
 import { QrReaderPage } from '../pages/list-receiver/qr-reader/qr-reader';
-import { BtServiceProvider } from '../providers/bt-service/bt-service';
-import { BluetoothSerial } from '@ionic-native/bluetooth-serial';
 import { NfcProvider } from '../providers/nfc/nfc';
-import { NFC } from '@ionic-native/nfc';
+import { NFC, Ndef } from '@ionic-native/nfc';
 
 @NgModule({
   declarations: [
@@ -66,8 +58,7 @@ import { NFC } from '@ionic-native/nfc';
     PopoverOptionsPage,
     QrReaderPage,
     QrcodeGeneratePage,
-    SettingsPage,
-    BtSenderPage
+    SettingsPage
   ],
   imports: [
     BrowserModule,
@@ -91,8 +82,7 @@ import { NFC } from '@ionic-native/nfc';
     PopoverOptionsPage,
     QrReaderPage,
     QrcodeGeneratePage,
-    SettingsPage,
-    BtSenderPage
+    SettingsPage
   ],
   providers: [
     StatusBar,
@@ -119,10 +109,9 @@ import { NFC } from '@ionic-native/nfc';
     CameraPreview,
     ScreenOrientation,
     SQLite,
-    BtServiceProvider,
-    BluetoothSerial,
     NfcProvider,
-    NFC
+    NFC,
+    Ndef
   ]
 })
 export class AppModule {}

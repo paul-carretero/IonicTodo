@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@firebase/auth-types';
 import { GooglePlus } from '@ionic-native/google-plus';
@@ -10,7 +10,8 @@ import {
   NavController,
   ToastController,
   App,
-  NavControllerBase
+  NavControllerBase,
+  Tabs
 } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Rx';
@@ -32,7 +33,6 @@ import { Settings } from '../../model/settings';
 })
 export class AuthentificationPage extends GenericPage {
   private connSub: Subscription;
-  public isConnected: Observable<boolean>;
   public authForm: FormGroup;
   public userProfile: User;
   public offlineDisabled = true;
@@ -44,13 +44,13 @@ export class AuthentificationPage extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
-    private authCtrl: AuthServiceProvider,
+    public authCtrl: AuthServiceProvider,
     private googlePlus: GooglePlus,
     private formBuilder: FormBuilder,
     private settingCtrl: SettingServiceProvider,
     private app: App
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.authForm = this.formBuilder.group({
       email: ['', Validators.email],
       password: ['', Validators.required]
@@ -64,20 +64,16 @@ export class AuthentificationPage extends GenericPage {
    */
   ionViewDidEnter(): void {
     let notLogged = this.authCtrl.getConnexionSubject().getValue() == null;
-    this.connSub = this.authCtrl
-      .getConnexionSubject()
-      .subscribe((user: User) => {
-        this.userProfile = user;
-        if (notLogged && user != null) {
-          this.navCtrl.parent.select(Global.HOMEPAGE);
-        }
-        notLogged = user == null;
-      });
-    this.settingCtrl
-      .getSetting(Settings.DISABLE_OFFLINE)
-      .then((res: string) => {
-        this.offlineDisabled = res === 'true';
-      });
+    this.connSub = this.authCtrl.getConnexionSubject().subscribe((user: User) => {
+      this.userProfile = user;
+      if (notLogged && user != null) {
+        this.navCtrl.parent.select(Global.HOMEPAGE);
+      }
+      notLogged = user == null;
+    });
+    this.settingCtrl.getSetting(Settings.DISABLE_OFFLINE).then((res: string) => {
+      this.offlineDisabled = res === 'true';
+    });
   }
 
   ionViewWillLeave(): void {
@@ -94,13 +90,23 @@ export class AuthentificationPage extends GenericPage {
     return this.authCtrl.isOffline();
   }
 
-  public menuEventHandler(req: MenuRequest): void {}
+  public menuEventHandler(req: MenuRequest): void {
+    // nothing special to do
+  }
+
+  public loginAuthRequired(): boolean {
+    return false;
+  }
+
+  public basicAuthRequired(): boolean {
+    return false;
+  }
 
   public generateDescription(): string {
     throw new Error('Method not implemented.');
   }
 
-  async loginGooglePlus(): Promise<void> {
+  public async loginGooglePlus(): Promise<void> {
     try {
       this.showLoading('tentative de login...');
       const result = await this.googlePlus.login({
@@ -129,15 +135,13 @@ export class AuthentificationPage extends GenericPage {
     }
   }
 
-  async firebaseLogin(): Promise<void> {
+  public async firebaseLogin(): Promise<void> {
     const email: string = this.authForm.get('email').value;
     const password: string = this.authForm.get('password').value;
 
     try {
       this.showLoading('tentative de login...');
-      const result = await firebase
-        .auth()
-        .signInWithEmailAndPassword(email, password);
+      const result = await firebase.auth().signInWithEmailAndPassword(email, password);
       if (result) {
         this.displayToast('Connexion avec votre compte effectuée avec succès!');
       }
@@ -150,15 +154,15 @@ export class AuthentificationPage extends GenericPage {
     }
   }
 
-  async logout(): Promise<void> {
-    this.showLoading('Déconnexion en cours');
-    await this.authCtrl.logout();
-    this.navCtrl.parent.select(Global.HOMEPAGE);
-    this.navCtrl.parent.popToRoot();
-    this.loading.dismiss();
+  public async logout(): Promise<void> {
+    if (this.authCtrl.isConnected()) {
+      this.showLoading('Déconnexion en cours');
+      await this.authCtrl.logout();
+      this.loading.dismiss();
+    }
   }
 
-  async createCount(): Promise<void> {
+  public async createCount(): Promise<void> {
     const email: string = this.authForm.get('email').value;
     const password: string = this.authForm.get('password').value;
 
@@ -168,10 +172,8 @@ export class AuthentificationPage extends GenericPage {
         .auth()
         .createUserWithEmailAndPassword(email, password);
       if (result) {
-        this.displayToast(
-          'Création de votre compte effectuée avec succès!',
-          1000
-        );
+        this.displayToast('Création de votre compte effectuée avec succès!', 1000);
+        //firebase.auth().currentUser.updateProfile();
         this.loading.dismiss();
         this.firebaseLogin();
       }
@@ -184,7 +186,14 @@ export class AuthentificationPage extends GenericPage {
     }
   }
 
-  async offlineMode(): Promise<void> {
+  /**
+   * Permet d'utiliser le programme avec certaines fonctionalités désactivée
+   * Active la navigation hors connexion
+   *
+   * @returns {Promise<void>}
+   * @memberof AuthentificationPage
+   */
+  public async offlineMode(): Promise<void> {
     await this.logout();
     this.authCtrl.allowOffline();
     this.displayToast(

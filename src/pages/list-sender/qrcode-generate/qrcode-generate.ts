@@ -28,7 +28,8 @@ export class QrcodeGeneratePage extends GenericSharer {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public todoCtrl: TodoServiceProvider,
-    public toastCtrl: ToastController
+    public toastCtrl: ToastController,
+    public authCtrl: AuthServiceProvider
   ) {
     super(
       navParams,
@@ -38,7 +39,8 @@ export class QrcodeGeneratePage extends GenericSharer {
       evtCtrl,
       ttsCtrl,
       todoCtrl,
-      toastCtrl
+      toastCtrl,
+      authCtrl
     );
   }
 }

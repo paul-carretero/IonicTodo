@@ -13,6 +13,7 @@ import { ListType, TodoList } from './../../model/todo-list';
 import { TodoListPath } from './../../model/todo-list-path';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { Global } from './../../shared/global';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 export abstract class GenericReceiver extends GenericPage {
   constructor(
@@ -22,9 +23,10 @@ export abstract class GenericReceiver extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
-    public todoCtrl: TodoServiceProvider
+    public todoCtrl: TodoServiceProvider,
+    public authCtrl: AuthServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
   }
 
   private async listPathHandler(data: TodoListPath): Promise<boolean> {
@@ -82,5 +84,13 @@ export abstract class GenericReceiver extends GenericPage {
   }
   public generateDescription(): string {
     throw new Error('Method not implemented.');
+  }
+
+  public loginAuthRequired(): boolean {
+    return true;
+  }
+
+  public basicAuthRequired(): boolean {
+    return true;
   }
 }

@@ -1,9 +1,6 @@
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { Component } from '@angular/core';
-import {
-  CameraPreview,
-  CameraPreviewOptions
-} from '@ionic-native/camera-preview';
+import { CameraPreview, CameraPreviewOptions } from '@ionic-native/camera-preview';
 import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
 import {
   AlertController,
@@ -55,7 +52,8 @@ export class QrReaderPage extends GenericReceiver {
     public todoCtrl: TodoServiceProvider,
     private qrScanner: QRScanner,
     private cameraPreview: CameraPreview,
-    private screenCtrl: ScreenOrientation
+    private screenCtrl: ScreenOrientation,
+    public authCtrl: AuthServiceProvider
   ) {
     super(
       navCtrl,
@@ -64,7 +62,8 @@ export class QrReaderPage extends GenericReceiver {
       evtCtrl,
       ttsCtrl,
       toastCtrl,
-      todoCtrl
+      todoCtrl,
+      authCtrl
     );
   }
 

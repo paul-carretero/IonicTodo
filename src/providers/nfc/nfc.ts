@@ -1,12 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { NFC, Ndef, NdefEvent } from '@ionic-native/nfc';
+import { NFC, Ndef, NdefEvent, NdefRecord } from '@ionic-native/nfc';
+import { Subscription } from 'rxjs';
 
 @Injectable()
 export class NfcProvider {
-  constructor(private nfc: NFC, private ndef: Ndef) {}
+  constructor(private nfc: NFC, private ndef: Ndef) {
+    this.listenToTag();
+  }
 
-  private doStuff() {
+  private listenToTag(): void {
     this.nfc
       .addNdefListener(
         () => {
@@ -16,38 +19,19 @@ export class NfcProvider {
           console.log('error attaching ndef listener', err);
         }
       )
-      .subscribe((event: NdefEvent) => {
+      .subscribe(event => {
         console.log('received ndef message. the tag contains: ', event.tag);
         console.log('decoded tag id', this.nfc.bytesToHexString(event.tag.id));
-
-        let message = this.ndef.textRecord('Hello world', 'FR-fr', '0');
-        this.nfc
-          .share([message])
-          .then(() => {
-            console.log('send OK');
-          })
-          .catch(() => {
-            console.log('send FAIL');
-          });
       });
   }
 
-  addListenNFC() {
+  public write(data: any): void {
+    const message = this.ndef.textRecord(JSON.stringify(data), 'English', '42');
     this.nfc
-      .addTagDiscoveredListener(nfcEvent => this.sesReadNFC(nfcEvent.tag))
-      .subscribe(data => {
-        if (data && data.tag && data.tag.id) {
-          let tagId = this.nfc.bytesToHexString(data.tag.id);
-          if (tagId) {
-            console.log(tagId);
-          } else {
-            console.log('NFC_NOT_DETECTED');
-          }
-        }
-      });
-  }
-
-  sesReadNFC(data): void {
-    console.log('NFC_WORKING');
+      .share([message])
+      .then((res: any) =>
+        console.log('share success => ' + JSON.stringify(res))
+      )
+      .catch((res: any) => console.log('share fail => ' + JSON.stringify(res)));
   }
 }

@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
@@ -53,6 +54,17 @@ export class ListEditPage extends GenericPage {
 
   private authSub: Subscription;
 
+  private listSub: Subscription;
+
+  /**
+   * Type de la liste en cours d'édition
+   *
+   * @private
+   * @type {ListType}
+   * @memberof ListEditPage
+   */
+  private listType: ListType;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -78,12 +90,12 @@ export class ListEditPage extends GenericPage {
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
-    private authCtrl: AuthServiceProvider,
+    public authCtrl: AuthServiceProvider,
     private formBuilder: FormBuilder,
     private todoService: TodoServiceProvider,
     private navParams: NavParams
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl);
+    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.defineNewList();
   }
@@ -106,25 +118,18 @@ export class ListEditPage extends GenericPage {
       header.title = 'Nouvelle Liste';
       this.evtCtrl.getHeadeSubject().next(header);
     }
+
+    this.authSub = this.authCtrl.getConnexionSubject().subscribe((user: User) => {
+      if (user != null) {
+        this.newList.get('local').enable();
+      } else {
+        this.newList.get('local').disable();
+      }
+    });
   }
 
-  ionViewDidLoad() {
-    this.authSub = this.authCtrl
-      .getConnexionSubject()
-      .subscribe((user: User) => {
-        if (user != null) {
-          this.newList.get('local').enable();
-          this.newList.get('isPrivate').enable();
-        } else {
-          if (this.authSub != null) {
-            this.navCtrl.popToRoot();
-          }
-        }
-      });
-  }
-
-  ionViewWillUnload() {
-    this.authSub.unsubscribe();
+  ionViewWillExit() {
+    this.tryUnSub(this.listSub);
   }
 
   /**************************************************************************/
@@ -132,19 +137,12 @@ export class ListEditPage extends GenericPage {
   /**************************************************************************/
 
   /**
-   *
    * @override
    * @param {MenuRequest} req
    * @memberof ListEditPage
    */
   public menuEventHandler(req: MenuRequest): void {
     switch (req) {
-      case MenuRequest.HELP:
-        this.alert(
-          'Aide sur la page',
-          "TODO: ecrire de l'aide<br/>nouvelle ligne !"
-        );
-        break;
       case MenuRequest.VALIDATE:
         this.defList();
         break;
@@ -152,13 +150,34 @@ export class ListEditPage extends GenericPage {
   }
 
   /**
-   *
    * @override
    * @returns {string}
    * @memberof ListEditPage
    */
   public generateDescription(): string {
     throw new Error('Method not implemented.');
+  }
+
+  /**
+   * Authentification si liste partagée ou privée, sinon ok
+   *
+   * @override
+   * @returns {boolean}
+   * @memberof ListEditPage
+   */
+  public loginAuthRequired(): boolean {
+    return this.listType === ListType.PRIVATE || this.listType === ListType.SHARED;
+  }
+
+  /**
+   * Nécessaire d'être en mode navigation (offline ou connecté)
+   *
+   * @override
+   * @returns {boolean} true
+   * @memberof ListEditPage
+   */
+  public basicAuthRequired(): boolean {
+    return true;
   }
 
   /**************************************************************************/
@@ -174,13 +193,11 @@ export class ListEditPage extends GenericPage {
     this.newList = this.formBuilder.group({
       name: ['', Validators.required],
       icon: ['list-box', Validators.required],
-      isPrivate: [false, Validators.required],
       local: [local, Validators.required]
     });
 
     if (!this.authCtrl.isConnected()) {
       this.newList.get('local').disable();
-      this.newList.get('isPrivate').disable();
     }
   }
 
@@ -192,38 +209,53 @@ export class ListEditPage extends GenericPage {
    * @returns {Promise<void>}
    * @memberof ListEditPage
    */
-  private defineEditList(header: PageData): void {
-    const listType = this.todoService.getListType(this.listUUID);
+  private async defineEditList(header: PageData): Promise<void> {
+    this.listType = this.todoService.getListType(this.listUUID);
 
     let local = false;
-    if (listType == ListType.LOCAL) {
+    if (this.listType == ListType.LOCAL) {
       local = true;
     }
 
-    const todoList = this.todoService
-      .getAList(this.listUUID, listType)
-      .subscribe(list => {
-        header.title = 'Editer "' + list.name + '" ';
-        this.evtCtrl.getHeadeSubject().next(header);
-        this.newList = this.formBuilder.group({
-          name: [list.name, Validators.required],
-          icon: [list.icon, Validators.required],
-          isPrivate: [list.isPrivate, Validators.required],
-          local: [local, Validators.required]
-        });
+    let todoList = await this.todoService.getAList(this.listUUID);
 
-        if (listType == ListType.SHARED) {
-          this.newList.get('local').disable();
-        }
+    try {
+      todoList = await this.todoService.getAList(this.listUUID);
+    } catch (error) {
+      console.log(
+        '[ListEditPage] list not found, assuming logout & redirect, ignoring... '
+      );
+      todoList = Observable.of(Global.BLANK_LIST);
+    }
 
-        todoList.unsubscribe();
+    this.listSub = todoList.subscribe(list => {
+      header.title = 'Editer "' + list.name + '" ';
+      this.evtCtrl.getHeadeSubject().next(header);
+      this.newList = this.formBuilder.group({
+        name: [list.name, Validators.required],
+        icon: [list.icon, Validators.required],
+        local: [local, Validators.required]
       });
+
+      if (this.listType == ListType.SHARED) {
+        this.newList.get('local').disable();
+      }
+    });
   }
 
   private async updateList(): Promise<void> {
-    let destType: ListType = ListType.PRIVATE;
-    if (this.newList.get('local').value) {
-      destType = ListType.LOCAL;
+    let destType: ListType = this.listType;
+
+    if (
+      this.authCtrl.isConnected() &&
+      this.newList.get('local') != null &&
+      this.listType != ListType.SHARED
+    ) {
+      if (this.newList.get('local').value == true) {
+        destType = ListType.LOCAL;
+      } else {
+        destType = ListType.PRIVATE;
+      }
     }
 
     this.showLoading('Mise à jour de la liste...');
@@ -233,27 +265,40 @@ export class ListEditPage extends GenericPage {
         uuid: this.listUUID,
         name: this.newList.value.name,
         items: [],
-        icon: this.newList.value.icon,
-        isPrivate: this.newList.get('isPrivate').value
+        icon: this.newList.value.icon
       },
       destType
     );
     this.navCtrl.pop();
   }
 
+  /**
+   * Permet de créer une nouvelle liste
+   * et de l'associer au compte courrant (si spécifié et si possible)
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof ListEditPage
+   */
   private async defineList(): Promise<void> {
-    let destType: ListType = ListType.PRIVATE;
-    if (this.newList.get('local').value) {
-      destType = ListType.LOCAL;
+    let destType: ListType = ListType.LOCAL;
+
+    if (
+      this.authCtrl.isConnected() &&
+      this.newList.get('local') != null &&
+      this.newList.get('local').value == false
+    ) {
+      destType = ListType.PRIVATE;
     }
+
     this.showLoading('Création de la liste...');
+
     const nextUuid = await this.todoService.addList(
       {
         uuid: null,
         name: this.newList.value.name,
         items: [],
-        icon: this.newList.value.icon,
-        isPrivate: this.newList.get('isPrivate').value
+        icon: this.newList.value.icon
       },
       destType
     );
@@ -277,6 +322,10 @@ export class ListEditPage extends GenericPage {
       return 'Créer une nouvelle liste';
     }
     return 'Mettre à jour cette liste';
+  }
+
+  get localChoice(): boolean {
+    return this.authCtrl.isConnected() && this.listType != ListType.SHARED;
   }
 
   /**************************************************************************/

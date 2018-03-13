@@ -25,9 +25,9 @@
                 <ion-icon small name="phone-portrait"></ion-icon>
                 Recevoir une liste (NFC)
             </button>
-            <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showBTPage()" icon-start>
-                <ion-icon small name="bluetooth"></ion-icon>
-                Recevoir une liste (Bluetooth)
+            <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showCloudPage()" icon-start>
+                <ion-icon small name="cloud-download"></ion-icon>
+                Récupérer une liste
             </button>
             <button *ngIf="!JeVoisBien" ion-item detail-none (click)="voirMieux()" icon-start>
                 <ion-icon small name="ios-sunny"></ion-icon>
@@ -52,6 +52,12 @@
             <button ion-item menuClose="menu-left" detail-none icon-start>
                 <ion-icon small name="close"></ion-icon>
                 Fermer
+            </button>
+            <button ion-item menuClose="menu-left" (click)="readnfc()" detail-none icon-start>
+                read NFC
+            </button>
+            <button ion-item menuClose="menu-left" (click)="writenfc()" detail-none icon-start>
+                Write hello NFC
             </button>
         </ion-list>
     </ion-content>

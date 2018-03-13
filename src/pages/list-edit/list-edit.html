@@ -18,12 +18,8 @@
         <ion-option value="briefcase">Travail</ion-option>
       </ion-select>
     </ion-item>
-    <ion-item>
-      <ion-label>Liste Privée (annule les partages):</ion-label>
-      <ion-toggle formControlName="isPrivate"></ion-toggle>
-    </ion-item>
-    <ion-item>
-      <ion-label>Liste Locale (non associé à votre compte):</ion-label>
+    <ion-item *ngIf="localChoice">
+      <ion-label>Liste Locale:</ion-label>
       <ion-toggle formControlName="local"></ion-toggle>
     </ion-item>
     <button full ion-button type="submit" [disabled]="!newList.valid">{{submitText}}</button>

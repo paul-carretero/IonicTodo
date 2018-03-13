@@ -1,9 +1,5 @@
 import { Component } from '@angular/core';
-import {
-  ActionSheetController,
-  IonicPage,
-  ViewController
-} from 'ionic-angular';
+import { ActionSheetController, IonicPage, ViewController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
 import { MenuRequest } from '../../model/menu-request';
@@ -35,12 +31,10 @@ export class PopoverOptionsPage {
   ) {}
 
   ionViewDidLoad() {
-    this.updateSub = this.evtCtrl
-      .getHeadeSubject()
-      .subscribe((newData: PageData) => {
-        this.editable = newData.editable;
-        this.shareable = newData.shareable;
-      });
+    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe((newData: PageData) => {
+      this.editable = newData.editable;
+      this.shareable = newData.shareable;
+    });
   }
 
   ionViewWillUnload() {
@@ -54,19 +48,19 @@ export class PopoverOptionsPage {
         'Vos destinataires recevront une copie de cette liste. Les listes seront complètement indépendante',
       buttons: [
         {
-          text: 'Envoyer par Bluetooth',
-          icon: 'bluetooth',
+          text: 'Envoyer sur le cloud',
+          icon: 'cloud-upload',
           handler: () => {
+            this.evtCtrl.defMedia(Media.CLOUD);
             this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
-            this.evtCtrl.defMedia(Media.BLUETOOTH);
           }
         },
         {
           text: 'Envoyer par NFC',
           icon: 'phone-portrait',
           handler: () => {
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
             this.evtCtrl.defMedia(Media.NFC);
+            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
           }
         },
         {
@@ -94,19 +88,19 @@ export class PopoverOptionsPage {
         'Vos destinataires recevront un lien de cette liste. Les listes seront complètement synchronisée',
       buttons: [
         {
-          text: 'Partager par Bluetooth',
-          icon: 'bluetooth',
+          text: 'Partager sur le cloud',
+          icon: 'cloud-upload',
           handler: () => {
+            this.evtCtrl.defMedia(Media.CLOUD);
             this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
-            this.evtCtrl.defMedia(Media.BLUETOOTH);
           }
         },
         {
           text: 'Partager par NFC',
           icon: 'logo-rss',
           handler: () => {
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
             this.evtCtrl.defMedia(Media.NFC);
+            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
           }
         },
         {

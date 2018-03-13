@@ -1,5 +1,5 @@
 export enum Media {
-  BLUETOOTH,
+  CLOUD,
   NFC,
   QR_CODE
 }
