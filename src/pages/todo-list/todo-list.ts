@@ -17,9 +17,9 @@ import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { ListEditPage } from '../list-edit/list-edit';
-import { PageData } from './../../model/page-data';
-import { TodoItem } from './../../model/todo-item';
-import { TodoList, ListType } from './../../model/todo-list';
+import { IPageData } from './../../model/page-data';
+import { ITodoItem } from './../../model/todo-item';
+import { ITodoList, ListType } from './../../model/todo-list';
 import { Global } from './../../shared/global';
 import { QrcodeGeneratePage } from './../list-sender/qrcode-generate/qrcode-generate';
 import { TodoEditPage } from './../todo-edit/todo-edit';
@@ -38,7 +38,7 @@ export class TodoListPage extends GenericPage {
    * @type {string}
    * @memberof TodoListPage
    */
-  private listUUID: string;
+  private readonly listUUID: string;
 
   /**
    * Subscription pour update sur cette liste
@@ -55,24 +55,24 @@ export class TodoListPage extends GenericPage {
    * @type {Observable<TodoItem[]>}
    * @memberof TodoListPage
    */
-  public todoItems: Observable<TodoItem[]>;
+  public readonly todoItems: Observable<ITodoItem[]>;
 
-  private listType: ListType;
+  private readonly listType: ListType;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
   constructor(
-    public navCtrl: NavController,
-    public loadingCtrl: LoadingController,
-    public alertCtrl: AlertController,
-    public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController,
-    public authCtrl: AuthServiceProvider,
-    private todoService: TodoServiceProvider,
-    private navParams: NavParams
+    public readonly navCtrl: NavController,
+    public readonly loadingCtrl: LoadingController,
+    public readonly alertCtrl: AlertController,
+    public readonly evtCtrl: EventServiceProvider,
+    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    public readonly toastCtrl: ToastController,
+    public readonly authCtrl: AuthServiceProvider,
+    private readonly todoService: TodoServiceProvider,
+    private readonly navParams: NavParams
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -97,8 +97,8 @@ export class TodoListPage extends GenericPage {
   /************************ METHODE INTERNES/PRIVATE ************************/
   /**************************************************************************/
 
-  private async initDataList(pageData: PageData): Promise<void> {
-    let todoList: Observable<TodoList>;
+  private async initDataList(pageData: IPageData): Promise<void> {
+    let todoList: Observable<ITodoList>;
     try {
       todoList = await this.todoService.getAList(this.listUUID);
     } catch (e) {
@@ -108,7 +108,7 @@ export class TodoListPage extends GenericPage {
       todoList = Observable.of(Global.BLANK_LIST);
     }
 
-    this.listeSub = todoList.subscribe((res: TodoList) => {
+    this.listeSub = todoList.subscribe((res: ITodoList) => {
       pageData.title = 'Liste "' + res.name + '"';
       this.evtCtrl.getHeadeSubject().next(pageData);
     });
@@ -187,8 +187,8 @@ export class TodoListPage extends GenericPage {
     });
   }
 
-  public completeCheck(todo: TodoItem): void {
-    if (todo.complete == false) {
+  public completeCheck(todo: ITodoItem): void {
+    if (todo.complete === false) {
       this.todoService.complete(this.listUUID, todo.uuid, true);
     } else {
       this.todoService.complete(this.listUUID, todo.uuid, false);

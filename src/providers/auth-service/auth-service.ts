@@ -10,21 +10,19 @@ import { SettingServiceProvider } from './../setting/setting-service';
 @Injectable()
 export class AuthServiceProvider {
   private useHorsConnexion = false;
-  private connexionSubject: BehaviorSubject<User>;
+  private readonly connexionSubject: BehaviorSubject<User>;
 
   constructor(
-    private firebaseAuth: AngularFireAuth,
-    private devideIdCtrl: UniqueDeviceID,
-    private settingCtrl: SettingServiceProvider
+    private readonly firebaseAuth: AngularFireAuth,
+    private readonly devideIdCtrl: UniqueDeviceID,
+    private readonly settingCtrl: SettingServiceProvider
   ) {
     this.connexionSubject = new BehaviorSubject<User>(null);
     this.applyAutoLoginSetting();
   }
 
   private async applyAutoLoginSetting(): Promise<void> {
-    const autoLogin: string = await this.settingCtrl.getSetting(
-      Settings.AUTO_LOG_IN
-    );
+    const autoLogin: string = await this.settingCtrl.getSetting(Settings.AUTO_LOG_IN);
     if (autoLogin === 'true') {
       this.listenForUpdate();
     } else {

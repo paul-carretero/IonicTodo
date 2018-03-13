@@ -21,15 +21,15 @@ import { AuthServiceProvider } from '../../../providers/auth-service/auth-servic
 })
 export class QrcodeGeneratePage extends GenericSharer {
   constructor(
-    public navParams: NavParams,
-    public navCtrl: NavController,
-    public loadingCtrl: LoadingController,
-    public alertCtrl: AlertController,
-    public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider,
-    public todoCtrl: TodoServiceProvider,
-    public toastCtrl: ToastController,
-    public authCtrl: AuthServiceProvider
+    public readonly navParams: NavParams,
+    public readonly navCtrl: NavController,
+    public readonly loadingCtrl: LoadingController,
+    public readonly alertCtrl: AlertController,
+    public readonly evtCtrl: EventServiceProvider,
+    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    public readonly todoCtrl: TodoServiceProvider,
+    public readonly toastCtrl: ToastController,
+    public readonly authCtrl: AuthServiceProvider
   ) {
     super(
       navParams,

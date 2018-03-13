@@ -7,15 +7,15 @@ import { LoadingController, Loading, AlertController } from 'ionic-angular';
 
 @Injectable()
 export class SpeechRecServiceProvider {
-  private userInputSubject: Subject<any>;
+  private readonly userInputSubject: Subject<any>;
   private loading: Loading;
   private allOK = false;
 
   constructor(
-    private speechRecognition: SpeechRecognition,
-    private loadCtrl: LoadingController,
-    private evtCtrl: EventServiceProvider,
-    private alertCtrl: AlertController
+    private readonly speechRecognition: SpeechRecognition,
+    private readonly loadCtrl: LoadingController,
+    private readonly evtCtrl: EventServiceProvider,
+    private readonly alertCtrl: AlertController
   ) {
     this.userInputSubject = new Subject();
     this.listenForSpeechRequest();
@@ -23,7 +23,7 @@ export class SpeechRecServiceProvider {
 
   private listenForSpeechRequest(): void {
     this.evtCtrl.getMenuRequestSubject().subscribe(req => {
-      if (req == MenuRequest.SPEECH_REC) {
+      if (req === MenuRequest.SPEECH_REC) {
         if (this.allOK) {
           this.startListening();
         } else {
@@ -35,11 +35,11 @@ export class SpeechRecServiceProvider {
 
   private startListening(): void {
     this.speechRecognition.startListening().subscribe(
-      (matches: Array<string>) => {
+      (matches: string[]) => {
         this.loading.dismiss();
         console.log(matches);
       },
-      onerror => {
+      () => {
         this.alert('Erreur', 'une erreur inattendue est survenue');
         this.loading.dismiss();
       }
@@ -48,36 +48,36 @@ export class SpeechRecServiceProvider {
 
   private speechWrapper(): void {
     this.showLoading();
-    this.speechRecognition
-      .isRecognitionAvailable()
-      .then((available: boolean) => {
-        if (available) {
-          this.speechRecognition
-            .hasPermission()
-            .then((hasPermission: boolean) => {
-              if (hasPermission) {
+    this.speechRecognition.isRecognitionAvailable().then((available: boolean) => {
+      if (available) {
+        this.speechRecognition.hasPermission().then((hasPermission: boolean) => {
+          if (hasPermission) {
+            this.allOK = true;
+            this.startListening();
+          } else {
+            this.speechRecognition.requestPermission().then(
+              () => {
+                this.allOK = true;
                 this.startListening();
-              } else {
-                this.speechRecognition.requestPermission().then(
-                  () => this.startListening(),
-                  () => {
-                    this.loading.dismiss();
-                    this.alert(
-                      'Erreur',
-                      "Vous devez autoriser l'application à utiliser votre microphone"
-                    );
-                  }
+              },
+              () => {
+                this.loading.dismiss();
+                this.alert(
+                  'Erreur',
+                  "Vous devez autoriser l'application à utiliser votre microphone"
                 );
               }
-            });
-        } else {
-          this.loading.dismiss();
-          this.alert(
-            'Erreur',
-            'Fonctinalité de reconnaissance vocale indisponible sur votre terminal'
-          );
-        }
-      });
+            );
+          }
+        });
+      } else {
+        this.loading.dismiss();
+        this.alert(
+          'Erreur',
+          'Fonctinalité de reconnaissance vocale indisponible sur votre terminal'
+        );
+      }
+    });
   }
 
   /**

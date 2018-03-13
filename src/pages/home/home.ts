@@ -1,4 +1,3 @@
-import { NfcProvider } from './../../providers/nfc/nfc';
 import { Component } from '@angular/core';
 import {
   AlertController,
@@ -8,12 +7,12 @@ import {
 } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 
-import { ListType, TodoList } from '../../model/todo-list';
+import { ListType, ITodoList } from '../../model/todo-list';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { MenuRequest } from './../../model/menu-request';
-import { TodoItem } from './../../model/todo-item';
+import { ITodoItem } from './../../model/todo-item';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { Global } from './../../shared/global';
 import { ListEditPage } from './../list-edit/list-edit';
@@ -35,26 +34,26 @@ export class HomePage extends GenericPage {
   /**
    * Observable des liste privée de l'utilisateur connecté
    *
-   * @type {Observable<TodoList[]>}
+   * @type {Observable<ITodoList[]>}
    * @memberof HomePage
    */
-  public todoList: Observable<TodoList[]>;
+  public todoList: Observable<ITodoList[]>;
 
   /**
    * Liste partagé sur la machine courrante
    *
-   * @type {Observable<TodoList[]>}
+   * @type {Observable<ITodoList[]>}
    * @memberof HomePage
    */
-  public localTodoList: Observable<TodoList[]>;
+  public localTodoList: Observable<ITodoList[]>;
 
   /**
    * Liste des listes partagés avec cet utilisateur
    *
-   * @type {Observable<TodoList[]>}
+   * @type {Observable<ITodoList[]>}
    * @memberof HomePage
    */
-  public sharedTodoList: Observable<TodoList[]>;
+  public sharedTodoList: Observable<ITodoList[]>;
 
   /**
    * Creates an instance of HomePage.
@@ -69,14 +68,14 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   constructor(
-    public navCtrl: NavController,
-    public alertCtrl: AlertController,
-    public loadingCtrl: LoadingController,
-    public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController,
-    public authCtrl: AuthServiceProvider,
-    private todoService: TodoServiceProvider
+    public readonly navCtrl: NavController,
+    public readonly alertCtrl: AlertController,
+    public readonly loadingCtrl: LoadingController,
+    public readonly evtCtrl: EventServiceProvider,
+    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    public readonly toastCtrl: ToastController,
+    public readonly authCtrl: AuthServiceProvider,
+    private readonly todoService: TodoServiceProvider
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
   }
@@ -111,7 +110,10 @@ export class HomePage extends GenericPage {
    * @param {MenuRequest} req
    * @memberof HomePage
    */
-  public menuEventHandler(req: MenuRequest): void {}
+  public menuEventHandler(req: MenuRequest): void {
+    switch (req) {
+    }
+  }
 
   /**
    *
@@ -149,11 +151,11 @@ export class HomePage extends GenericPage {
    * Dans une liste de todo, recherche si au moins un todo est en retard par rapport à la deadline
    * Un todo est en retard si la date courrante est superieure à sa deadline
    *
-   * @param {TodoList} list une liste de todo
+   * @param {ITodoList} list une liste de todo
    * @returns {boolean} true si au moins un todo est en retard
    * @memberof HomePage
    */
-  public isOneTodoLate(list: TodoList): boolean {
+  public isOneTodoLate(): boolean {
     return true;
     //TODO
   }
@@ -161,11 +163,11 @@ export class HomePage extends GenericPage {
   /**
    * Calcul le nombre de todo complété dans un tableau de todo
    *
-   * @param {TodoItem[]} list un tableaud de todo
+   * @param {ITodoItem[]} list un tableaud de todo
    * @returns {Number} le nombre de todo complété dans un tableaud do todo
    * @memberof HomePage
    */
-  public getCompleted(list: TodoItem[]): Number {
+  public getCompleted(list: ITodoItem[]): Number {
     let res = 0;
     for (const item of list) {
       if (item.complete) {

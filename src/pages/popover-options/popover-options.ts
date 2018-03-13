@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 
 import { MenuRequest } from '../../model/menu-request';
 import { Media } from './../../model/media';
-import { PageData } from './../../model/page-data';
+import { IPageData } from './../../model/page-data';
 import { EventServiceProvider } from './../../providers/event/event-service';
 
 @IonicPage()
@@ -14,8 +14,9 @@ import { EventServiceProvider } from './../../providers/event/event-service';
 })
 export class PopoverOptionsPage {
   private updateSub: Subscription;
-  private editable: boolean;
-  private shareable: boolean;
+  public editable: boolean;
+  public shareable: boolean;
+  public importable: boolean;
 
   /**
    * Creates an instance of PopoverOptionsPage.
@@ -25,15 +26,16 @@ export class PopoverOptionsPage {
    * @memberof PopoverOptionsPage
    */
   constructor(
-    private viewCtrl: ViewController,
-    private evtCtrl: EventServiceProvider,
-    public actionSheetCtrl: ActionSheetController
+    private readonly viewCtrl: ViewController,
+    private readonly evtCtrl: EventServiceProvider,
+    public readonly actionSheetCtrl: ActionSheetController
   ) {}
 
   ionViewDidLoad() {
-    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe((newData: PageData) => {
+    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe((newData: IPageData) => {
       this.editable = newData.editable;
       this.shareable = newData.shareable;
+      this.importable = newData.importable;
     });
   }
 

@@ -1,5 +1,5 @@
-import { TodoListPath } from './todo-list-path';
-import { TodoList } from './todo-list';
+import { ITodoListPath } from './todo-list-path';
+import { ITodoList } from './todo-list';
 
 /**
  * Permet d'exporter une liste sur le cloud et de la récupérer avec un mot de passe
@@ -7,8 +7,8 @@ import { TodoList } from './todo-list';
  * @export
  * @interface CloudSharedList
  */
-export interface CloudSharedList {
-  list: TodoList | TodoListPath;
+export interface ICloudSharedList {
+  list: ITodoList | ITodoListPath;
   password: string;
   email: string;
   userUUID: string;

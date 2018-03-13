@@ -1,4 +1,4 @@
-import { TodoListPath } from './todo-list-path';
+import { ITodoListPath } from './todo-list-path';
 
 /**
  * Représente les donnée stockée pour un utilisateur, principalement les liste qui sont lié avec son compte
@@ -6,12 +6,12 @@ import { TodoListPath } from './todo-list-path';
  * @export
  * @interface AppUser
  */
-export interface AppUser {
+export interface IAppUser {
   /**
    * Ensemble des UUID des listes partagés par d'autre utilisateur avec cet utilisateur
    *
-   * @type {TodoListPath[]}
+   * @type {ITodoListPath[]}
    * @memberof AppUser
    */
-  todoListSharedWithMe: TodoListPath[];
+  todoListSharedWithMe: ITodoListPath[];
 }

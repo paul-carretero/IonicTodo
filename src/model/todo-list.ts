@@ -1,18 +1,17 @@
-import { Global } from './../shared/global';
-import { TodoItem } from './todo-item';
+import { ITodoItem } from './todo-item';
 
 /**
  * Représente une liste de tâches
  *
  * @export
- * @interface TodoList
+ * @interface ITodoList
  */
-export interface TodoList {
+export interface ITodoList {
   /**
    * Magic string pour identifier cette classe comme une liste de todo
    *
    * @type {string}
-   * @memberof TodoList
+   * @memberof ITodoList
    */
   magic?: string;
 
@@ -20,7 +19,7 @@ export interface TodoList {
    * Identifieur unique de la liste
    *
    * @type {string}
-   * @memberof TodoList
+   * @memberof ITodoList
    */
   uuid: string;
 
@@ -28,23 +27,23 @@ export interface TodoList {
    * Nom de la liste
    *
    * @type {string}
-   * @memberof TodoList
+   * @memberof ITodoList
    */
   name: string;
 
   /**
    * Ensemble des Todo de cette liste
    *
-   * @type {TodoItem[]}
-   * @memberof TodoList
+   * @type {ITodoItem[]}
+   * @memberof ITodoList
    */
-  items: TodoItem[];
+  items: ITodoItem[];
 
   /**
    * Icone (Cordova) de cette liste
    *
    * @type {string}
-   * @memberof TodoList
+   * @memberof ITodoList
    */
   icon: string;
 
@@ -52,7 +51,7 @@ export interface TodoList {
    * Ordre de la liste par rapport aux autre liste (fonctionement similaire à un z-index)
    *
    * @type {number}
-   * @memberof TodoList
+   * @memberof ITodoList
    */
   order?: number;
 }

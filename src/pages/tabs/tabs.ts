@@ -11,23 +11,29 @@ import { AuthentificationPage } from './../authentification/authentification';
 import { HomePage } from './../home/home';
 import { NfcProvider } from '../../providers/nfc/nfc';
 
+/**
+ * Page de nav de base de l'application
+ *
+ * @export
+ * @class TabsPage
+ */
 @Component({
   templateUrl: 'tabs.html'
 })
 export class TabsPage {
-  public tab1Root = HomePage;
-  public tab2Root = AuthentificationPage;
-  public tab3Root = SettingsPage;
+  public readonly tab1Root = HomePage;
+  public readonly tab2Root = AuthentificationPage;
+  public readonly tab3Root = SettingsPage;
   public JeVoisBien = false;
   @ViewChild('navTabs') tabRef: Tabs;
 
   constructor(
-    private evtCtrl: EventServiceProvider,
-    private flashlight: Flashlight,
-    private alertCtrl: AlertController,
-    private authCtrl: AuthServiceProvider,
-    private toastCtrl: ToastController,
-    private nfc: NfcProvider
+    private readonly evtCtrl: EventServiceProvider,
+    private readonly flashlight: Flashlight,
+    private readonly alertCtrl: AlertController,
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly toastCtrl: ToastController,
+    private readonly nfc: NfcProvider
   ) {}
 
   get allowNavigate(): boolean {

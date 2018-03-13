@@ -1,11 +1,9 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { NFC, Ndef, NdefEvent, NdefRecord } from '@ionic-native/nfc';
-import { Subscription } from 'rxjs';
+import { NFC, Ndef } from '@ionic-native/nfc';
 
 @Injectable()
 export class NfcProvider {
-  constructor(private nfc: NFC, private ndef: Ndef) {
+  constructor(private readonly nfc: NFC, private readonly ndef: Ndef) {
     this.listenToTag();
   }
 
@@ -29,9 +27,7 @@ export class NfcProvider {
     const message = this.ndef.textRecord(JSON.stringify(data), 'English', '42');
     this.nfc
       .share([message])
-      .then((res: any) =>
-        console.log('share success => ' + JSON.stringify(res))
-      )
+      .then((res: any) => console.log('share success => ' + JSON.stringify(res)))
       .catch((res: any) => console.log('share fail => ' + JSON.stringify(res)));
   }
 }

@@ -4,7 +4,7 @@ import { MenuController, PopoverController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
 import { EventServiceProvider } from '../../providers/event/event-service';
-import { PageData } from './../../model/page-data';
+import { IPageData } from './../../model/page-data';
 import { MenuRequest } from '../../model/menu-request';
 
 @Component({
@@ -12,13 +12,13 @@ import { MenuRequest } from '../../model/menu-request';
   templateUrl: 'header.html'
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  public data: PageData;
+  public data: IPageData;
   private updateSub: Subscription;
 
   constructor(
-    private popoverCtrl: PopoverController,
-    private menuCtrl: MenuController,
-    private evtCtrl: EventServiceProvider
+    private readonly popoverCtrl: PopoverController,
+    private readonly menuCtrl: MenuController,
+    private readonly evtCtrl: EventServiceProvider
   ) {
     this.data = this.evtCtrl.getHeadeSubject().getValue();
   }

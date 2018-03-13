@@ -1,6 +1,5 @@
-import { TodoList } from './../model/todo-list';
-import { Settings } from './../model/settings';
-import { PageData } from './../model/page-data';
+import { ITodoList } from './../model/todo-list';
+import { IPageData } from './../model/page-data';
 
 /**
  * Contient des structure de données constante (ou semi constante)
@@ -67,7 +66,7 @@ export class Global {
    * @type {PageData}
    * @memberof Global
    */
-  public static readonly DEFAULT_PAGE_DATA: PageData = {
+  public static readonly DEFAULT_PAGE_DATA: IPageData = {
     title: 'Edit me!',
     shareable: false,
     editable: false,
@@ -82,7 +81,7 @@ export class Global {
    * @type {PageData}
    * @memberof Global
    */
-  public static readonly VALIDABLE_PAGE_DATA: PageData = {
+  public static readonly VALIDABLE_PAGE_DATA: IPageData = {
     title: 'Edit me',
     shareable: false,
     editable: false,
@@ -97,7 +96,7 @@ export class Global {
    * @type {PageData}
    * @memberof Global
    */
-  public static readonly SHARE_EDIT_PAGE_DATA: PageData = {
+  public static readonly SHARE_EDIT_PAGE_DATA: IPageData = {
     title: 'Edit me',
     shareable: true,
     editable: true,
@@ -112,14 +111,14 @@ export class Global {
    * @type {PageData}
    * @memberof Global
    */
-  public static readonly ONLY_EDIT_PAGE_DATA: PageData = {
+  public static readonly ONLY_EDIT_PAGE_DATA: IPageData = {
     title: 'Edit me',
     shareable: false,
     editable: true,
     validable: false
   };
 
-  public static readonly BLANK_LIST: TodoList = {
+  public static readonly BLANK_LIST: ITodoList = {
     uuid: null,
     name: null,
     items: [],

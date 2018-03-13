@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
 import { ListType } from './../../model/todo-list';
-import { PageData } from './../../model/page-data';
+import { IPageData } from './../../model/page-data';
 import { Global } from './../../shared/global';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
@@ -20,7 +20,6 @@ import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-servic
 import { GenericPage } from '../../shared/generic-page';
 import { TodoListPage } from '../todo-list/todo-list';
 import { MenuRequest } from '../../model/menu-request';
-import { User } from 'firebase/app';
 
 /**
  * Présente la listes des todo d'une liste de todo.
@@ -47,12 +46,11 @@ export class ListEditPage extends GenericPage {
   /**
    * Identifiant unique de la liste déjà existante, null si la liste est à créer
    *
+   * @readonly
    * @type {string}
    * @memberof ListEditPage
    */
-  public listUUID: string;
-
-  private authSub: Subscription;
+  public readonly listUUID: string;
 
   private listSub: Subscription;
 
@@ -84,16 +82,16 @@ export class ListEditPage extends GenericPage {
    * @memberof ListEditPage
    */
   constructor(
-    public navCtrl: NavController,
-    public alertCtrl: AlertController,
-    public loadingCtrl: LoadingController,
-    public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController,
-    public authCtrl: AuthServiceProvider,
-    private formBuilder: FormBuilder,
-    private todoService: TodoServiceProvider,
-    private navParams: NavParams
+    public readonly navCtrl: NavController,
+    public readonly alertCtrl: AlertController,
+    public readonly loadingCtrl: LoadingController,
+    public readonly evtCtrl: EventServiceProvider,
+    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    public readonly toastCtrl: ToastController,
+    public readonly authCtrl: AuthServiceProvider,
+    private readonly formBuilder: FormBuilder,
+    private readonly todoService: TodoServiceProvider,
+    private readonly navParams: NavParams
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -118,14 +116,6 @@ export class ListEditPage extends GenericPage {
       header.title = 'Nouvelle Liste';
       this.evtCtrl.getHeadeSubject().next(header);
     }
-
-    this.authSub = this.authCtrl.getConnexionSubject().subscribe((user: User) => {
-      if (user != null) {
-        this.newList.get('local').enable();
-      } else {
-        this.newList.get('local').disable();
-      }
-    });
   }
 
   ionViewWillExit() {
@@ -205,15 +195,15 @@ export class ListEditPage extends GenericPage {
    * Permet d'initialiser le formulaire dans le cas d'une mise à jour de liste
    *
    * @private
-   * @param {PageData} header
+   * @param {IPageData} header
    * @returns {Promise<void>}
    * @memberof ListEditPage
    */
-  private async defineEditList(header: PageData): Promise<void> {
+  private async defineEditList(header: IPageData): Promise<void> {
     this.listType = this.todoService.getListType(this.listUUID);
 
     let local = false;
-    if (this.listType == ListType.LOCAL) {
+    if (this.listType === ListType.LOCAL) {
       local = true;
     }
 
@@ -237,28 +227,28 @@ export class ListEditPage extends GenericPage {
         local: [local, Validators.required]
       });
 
-      if (this.listType == ListType.SHARED) {
+      if (this.listType === ListType.SHARED) {
         this.newList.get('local').disable();
       }
     });
   }
 
   private async updateList(): Promise<void> {
+    this.showLoading('Mise à jour de la liste...');
+
     let destType: ListType = this.listType;
 
     if (
       this.authCtrl.isConnected() &&
       this.newList.get('local') != null &&
-      this.listType != ListType.SHARED
+      this.listType !== ListType.SHARED
     ) {
-      if (this.newList.get('local').value == true) {
+      if (this.newList.get('local').value === true) {
         destType = ListType.LOCAL;
       } else {
         destType = ListType.PRIVATE;
       }
     }
-
-    this.showLoading('Mise à jour de la liste...');
 
     await this.todoService.updateList(
       {
@@ -270,6 +260,8 @@ export class ListEditPage extends GenericPage {
       destType
     );
     this.navCtrl.pop();
+    this.navCtrl.pop();
+    this.navCtrl.push(TodoListPage, { uuid: this.listUUID });
   }
 
   /**
@@ -281,17 +273,17 @@ export class ListEditPage extends GenericPage {
    * @memberof ListEditPage
    */
   private async defineList(): Promise<void> {
+    this.showLoading('Création de la liste...');
+
     let destType: ListType = ListType.LOCAL;
 
     if (
       this.authCtrl.isConnected() &&
       this.newList.get('local') != null &&
-      this.newList.get('local').value == false
+      this.newList.get('local').value === false
     ) {
       destType = ListType.PRIVATE;
     }
-
-    this.showLoading('Création de la liste...');
 
     const nextUuid = await this.todoService.addList(
       {
@@ -325,7 +317,7 @@ export class ListEditPage extends GenericPage {
   }
 
   get localChoice(): boolean {
-    return this.authCtrl.isConnected() && this.listType != ListType.SHARED;
+    return this.authCtrl.isConnected() && this.listType !== ListType.SHARED;
   }
 
   /**************************************************************************/

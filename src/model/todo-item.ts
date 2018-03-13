@@ -1,5 +1,5 @@
 import { ILatLng } from '@ionic-native/google-maps';
-export interface TodoItem {
+export interface ITodoItem {
   /**
    * Identifieur unique du todo
    *

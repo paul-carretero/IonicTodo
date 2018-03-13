@@ -5,7 +5,7 @@ import { Settings } from '../../model/settings';
 
 @Injectable()
 export class SettingServiceProvider {
-  private ready: Promise<void>;
+  private readonly ready: Promise<void>;
   private dbObject: Promise<SQLiteObject>;
 
   private static readonly SQL_CONFIG = {
@@ -13,8 +13,8 @@ export class SettingServiceProvider {
     location: 'default'
   };
 
-  constructor(private sqlite: SQLite) {
-    this.ready = new Promise<void>((resolve, reject) => {
+  constructor(private readonly sqlite: SQLite) {
+    this.ready = new Promise<void>(resolve => {
       this.initDatabase().then(() => resolve());
     });
   }
@@ -25,15 +25,14 @@ export class SettingServiceProvider {
     await this.ready;
     const db = await this.dbObject;
     const result = await db.executeSql(sql, {});
-    if (result.rows.length == 0) {
+    if (result.rows.length === 0) {
       return '';
     }
     return String(result.rows.item(0).value);
   }
 
   public async setSetting(name: Settings, value: any): Promise<void> {
-    const sql_insert =
-      'INSERT OR IGNORE INTO setting VALUES ( ' + name + ' , "" )';
+    const sql_insert = 'INSERT OR IGNORE INTO setting VALUES ( ' + name + ' , "" )';
     const sql_update =
       'UPDATE setting SET value = "' + value + '" WHERE id = ' + name + '';
 

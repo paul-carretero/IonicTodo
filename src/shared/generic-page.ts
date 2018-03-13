@@ -11,8 +11,7 @@ import { Subscription } from 'rxjs';
 import { MenuRequest } from '../model/menu-request';
 import { EventServiceProvider } from '../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
-import { NavRequest } from './../model/nav-request';
-import { User } from '@firebase/auth-types';
+import { INavRequest } from './../model/nav-request';
 
 export abstract class GenericPage {
   public loading: Loading;
@@ -65,7 +64,7 @@ export abstract class GenericPage {
   ionViewWillEnter() {
     this.navSub = this.evtCtrl
       .getNavRequestSubject()
-      .subscribe((navReq: NavRequest) => this.navCtrl.push(navReq.page));
+      .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page));
 
     this.menuEvtSub = this.evtCtrl
       .getMenuRequestSubject()
@@ -97,7 +96,7 @@ export abstract class GenericPage {
   }
 
   private securePage(): void {
-    this.secrureAuthSub = this.authCtrl.getConnexionSubject().subscribe((user: User) => {
+    this.secrureAuthSub = this.authCtrl.getConnexionSubject().subscribe(() => {
       if (this.basicAuthRequired() && !this.authCtrl.navAllowed()) {
         this.navCtrl.popToRoot();
       }
@@ -166,7 +165,7 @@ export abstract class GenericPage {
   }
 
   public confirm(title: string, message: string): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
+    return new Promise<boolean>(resolve => {
       this.alertCtrl
         .create({
           title: title,

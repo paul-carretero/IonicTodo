@@ -1,5 +1,6 @@
-import { TodoListPath } from './../../model/todo-list-path';
-import { AppUser } from './../../model/user';
+import { ITodoItem } from './../../model/todo-item';
+import { ITodoListPath } from './../../model/todo-list-path';
+import { IAppUser } from './../../model/user';
 import 'rxjs/Rx';
 
 import { Injectable } from '@angular/core';
@@ -12,15 +13,14 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { v4 as uuid } from 'uuid';
 
-import { TodoItem } from '../../model/todo-item';
-import { TodoList, ListType } from '../../model/todo-list';
+import { ITodoList, ListType } from '../../model/todo-list';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Subscription } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
 
 @Injectable()
 export class TodoServiceProvider {
-  private data = [];
+  private readonly data: ITodoList[] = [];
 
   /**************************************************************************/
   /**************************** TODO UTILISATEUR ****************************/
@@ -32,7 +32,7 @@ export class TodoServiceProvider {
    * @type {AngularFirestoreCollection<TodoList>}
    * @memberof TodoServiceProvider
    */
-  private todoListCollection: AngularFirestoreCollection<TodoList>;
+  private todoListCollection: AngularFirestoreCollection<ITodoList>;
 
   /**
    * Liste des listes privée de todo, synchronisé avec la base de donnée
@@ -41,7 +41,7 @@ export class TodoServiceProvider {
    * @type {BehaviorSubject<TodoList[]>}
    * @memberof TodoServiceProvider
    */
-  private todoLists: BehaviorSubject<TodoList[]>;
+  private readonly todoLists: BehaviorSubject<ITodoList[]>;
 
   /**
    * Abonnement au liste privée de l'utilisateur
@@ -63,7 +63,7 @@ export class TodoServiceProvider {
    * @type {AngularFirestoreCollection<TodoList>}
    * @memberof TodoServiceProvider
    */
-  private localTodoListCollection: AngularFirestoreCollection<TodoList>;
+  private localTodoListCollection: AngularFirestoreCollection<ITodoList>;
 
   /**
    * Liste des listes de todo hors connexion, synchronisé avec la base de donnée
@@ -72,7 +72,7 @@ export class TodoServiceProvider {
    * @type {BehaviorSubject<TodoList[]>}
    * @memberof TodoServiceProvider
    */
-  private localTodoLists: BehaviorSubject<TodoList[]>;
+  private readonly localTodoLists: BehaviorSubject<ITodoList[]>;
 
   /**************************************************************************/
   /******************************* USER DATA ********************************/
@@ -86,7 +86,7 @@ export class TodoServiceProvider {
    * @type {AngularFirestoreDocument<User>}
    * @memberof TodoServiceProvider
    */
-  private currentUserDataDoc: AngularFirestoreDocument<AppUser>;
+  private currentUserDataDoc: AngularFirestoreDocument<IAppUser>;
 
   /**
    * Représente notament les listes partagée avec l'utilisateur courant, mise à jour en temps réel
@@ -95,7 +95,7 @@ export class TodoServiceProvider {
    * @type {Observable<AppUser>}
    * @memberof TodoServiceProvider
    */
-  private currentUserData: BehaviorSubject<AppUser>;
+  private readonly currentUserData: BehaviorSubject<IAppUser>;
 
   /**
    * Abonnement aux données utilisateur (les listes partagées avec lui)
@@ -126,7 +126,7 @@ export class TodoServiceProvider {
    * @type {AngularFirestoreDocument<TodoList>[]}
    * @memberof TodoServiceProvider
    */
-  private sharedTodoCollection: AngularFirestoreDocument<TodoList>[];
+  private sharedTodoCollection: AngularFirestoreDocument<ITodoList>[];
 
   /**
    * Ensemble des listes de todo partagé avec cet utilisateur
@@ -135,7 +135,7 @@ export class TodoServiceProvider {
    * @type {BehaviorSubject<TodoList[]>[]}
    * @memberof TodoServiceProvider
    */
-  private sharedTodoLists: BehaviorSubject<TodoList[]>;
+  private readonly sharedTodoLists: BehaviorSubject<ITodoList[]>;
 
   /**
    *
@@ -169,13 +169,13 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   constructor(
-    private firestoreCtrl: AngularFirestore,
-    private authCtrl: AuthServiceProvider
+    private readonly firestoreCtrl: AngularFirestore,
+    private readonly authCtrl: AuthServiceProvider
   ) {
-    this.todoLists = new BehaviorSubject<TodoList[]>([]);
-    this.localTodoLists = new BehaviorSubject<TodoList[]>([]);
-    this.sharedTodoLists = new BehaviorSubject<TodoList[]>([]);
-    this.currentUserData = new BehaviorSubject<AppUser>({
+    this.todoLists = new BehaviorSubject<ITodoList[]>([]);
+    this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
+    this.sharedTodoLists = new BehaviorSubject<ITodoList[]>([]);
+    this.currentUserData = new BehaviorSubject<IAppUser>({
       todoListSharedWithMe: []
     });
     this.updateDBLink();
@@ -201,7 +201,7 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   private initUserDataDocument(): void {
-    this.currentUserDataDoc = this.firestoreCtrl.doc<AppUser>(
+    this.currentUserDataDoc = this.firestoreCtrl.doc<IAppUser>(
       'user/' + this.authCtrl.getUserId() + ''
     );
     this.userPublisher();
@@ -216,7 +216,7 @@ export class TodoServiceProvider {
   private userPublisher(): void {
     this.userDataSub = this.currentUserDataDoc
       .valueChanges()
-      .subscribe((data: AppUser) => {
+      .subscribe((data: IAppUser) => {
         this.currentUserData.next(data);
       });
   }
@@ -228,7 +228,7 @@ export class TodoServiceProvider {
    * @returns {TodoListPath[]}
    * @memberof TodoServiceProvider
    */
-  private getSharedListPathSnapchot(): TodoListPath[] {
+  private getSharedListPathSnapchot(): ITodoListPath[] {
     if (this.currentUserData.getValue() == null) {
       return [];
     }
@@ -248,7 +248,7 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   private initPrivateListCollection(): void {
-    this.todoListCollection = this.firestoreCtrl.collection<TodoList>(
+    this.todoListCollection = this.firestoreCtrl.collection<ITodoList>(
       'user/' + this.authCtrl.getUserId() + '/list'
     );
     this.listsPublisher();
@@ -263,13 +263,13 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   private listenForSharedUpdate(): void {
-    const obsArray: Observable<TodoList>[] = [];
+    const obsArray: Observable<ITodoList>[] = [];
     for (const doc of this.sharedTodoCollection) {
       obsArray.push(doc.valueChanges());
     }
 
     this.sharedListSub = Observable.combineLatest(obsArray).subscribe(
-      (lists: TodoList[]) => {
+      (lists: ITodoList[]) => {
         if (lists != null) {
           this.sharedTodoLists.next(lists);
         }
@@ -285,7 +285,7 @@ export class TodoServiceProvider {
    * @returns {Promise<boolean>}
    * @memberof TodoServiceProvider
    */
-  private checkIfExist(doc: AngularFirestoreDocument<TodoList>): Promise<boolean> {
+  private checkIfExist(doc: AngularFirestoreDocument<ITodoList>): Promise<boolean> {
     return new Promise<boolean>(resolve => {
       doc
         .update({})
@@ -307,13 +307,13 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  private updateSharedListCollection(data: AppUser): void {
+  private updateSharedListCollection(data: IAppUser): void {
     const pathToDelete: string[] = [];
     const promises: Promise<void>[] = [];
     this.sharedTodoCollection = [];
 
     for (const path of data.todoListSharedWithMe) {
-      const docToAdd = this.firestoreCtrl.doc<TodoList>(
+      const docToAdd = this.firestoreCtrl.doc<ITodoList>(
         'user/' + path.userUUID + '/list/' + path.listUUID
       );
 
@@ -348,7 +348,7 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   private defSharedTodoCollection(): void {
-    this.appUserDataSub = this.currentUserData.subscribe((data: AppUser) => {
+    this.appUserDataSub = this.currentUserData.subscribe((data: IAppUser) => {
       if (data != null && data.todoListSharedWithMe != null) {
         this.updateSharedListCollection(data);
       } else {
@@ -367,7 +367,7 @@ export class TodoServiceProvider {
   private listsPublisher(): void {
     this.privateListSub = this.todoListCollection
       .valueChanges()
-      .subscribe((lists: TodoList[]) => {
+      .subscribe((lists: ITodoList[]) => {
         this.todoLists.next(lists);
       });
   }
@@ -414,10 +414,10 @@ export class TodoServiceProvider {
    */
   private async updateLocalDBLink(): Promise<void> {
     const machineId: string = await this.authCtrl.getMachineId();
-    this.localTodoListCollection = this.firestoreCtrl.collection<TodoList>(
+    this.localTodoListCollection = this.firestoreCtrl.collection<ITodoList>(
       'machine/' + machineId + '/list'
     );
-    this.localTodoListCollection.valueChanges().subscribe((lists: TodoList[]) => {
+    this.localTodoListCollection.valueChanges().subscribe((lists: ITodoList[]) => {
       this.localTodoLists.next(lists);
     });
   }
@@ -429,30 +429,30 @@ export class TodoServiceProvider {
    * @private
    * @param {string} listeUUID
    * @param {ListType} [type]
-   * @returns {Promise<AngularFirestoreDocument<TodoList>>}
+   * @returns {Promise<AngularFirestoreDocument<ITodoList>>}
    * @memberof TodoServiceProvider
    */
   private getFirestoreDocument(
     listeUUID: string,
     type?: ListType
-  ): Promise<AngularFirestoreDocument<TodoList>> {
+  ): Promise<AngularFirestoreDocument<ITodoList>> {
     if (type == null) {
       type = this.getListType(listeUUID);
     }
 
     switch (type) {
       case ListType.LOCAL:
-        return new Promise((resolve, reject) =>
-          resolve(this.localTodoListCollection.doc<TodoList>(listeUUID))
+        return new Promise(resolve =>
+          resolve(this.localTodoListCollection.doc<ITodoList>(listeUUID))
         );
       case ListType.PRIVATE:
-        return new Promise((resolve, reject) =>
-          resolve(this.todoListCollection.doc<TodoList>(listeUUID))
+        return new Promise(resolve =>
+          resolve(this.todoListCollection.doc<ITodoList>(listeUUID))
         );
       case ListType.SHARED:
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
           for (const doc of this.sharedTodoCollection) {
-            const sub = doc.valueChanges().subscribe((val: TodoList) => {
+            const sub = doc.valueChanges().subscribe((val: ITodoList) => {
               if (val.uuid === listeUUID) {
                 sub.unsubscribe();
                 resolve(doc);
@@ -478,12 +478,14 @@ export class TodoServiceProvider {
    * @param {TodoListPath} path
    * @memberof TodoServiceProvider
    */
-  public addListLink(path: TodoListPath): void {
+  public async addListLink(path: ITodoListPath): Promise<void> {
     const listsPathTab = this.getSharedListPathSnapchot();
     listsPathTab.push(path);
-    this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab }).catch(() => {
-      this.currentUserDataDoc.set({ todoListSharedWithMe: [path] });
-    });
+    await this.currentUserDataDoc
+      .update({ todoListSharedWithMe: listsPathTab })
+      .catch(() => {
+        this.currentUserDataDoc.set({ todoListSharedWithMe: [path] });
+      });
   }
 
   /**
@@ -528,7 +530,7 @@ export class TodoServiceProvider {
    * @returns {TodoListPath}
    * @memberof TodoServiceProvider
    */
-  public getListLink(listUUID: string): TodoListPath {
+  public getListLink(listUUID: string): ITodoListPath {
     if (this.getListType(listUUID) !== ListType.SHARED) {
       return { userUUID: this.authCtrl.getUserId(), listUUID: listUUID };
     } else {
@@ -546,22 +548,22 @@ export class TodoServiceProvider {
   /**
    * Permet de récupérer le type d'une liste
    *
-   * @param {string} uuid l'identifiant d'une liste
+   * @param {string} ListUuid l'identifiant d'une liste
    * @returns {ListType} le type de la liste, local, private ou shared
    * @memberof TodoServiceProvider
    */
-  public getListType(uuid: string): ListType {
-    const localLists: TodoList[] = this.localTodoLists.getValue();
-    const sharedLists: TodoList[] = this.sharedTodoLists.getValue();
-    const privateLists: TodoList[] = this.todoLists.getValue();
+  public getListType(ListUuid: string): ListType {
+    const localLists: ITodoList[] = this.localTodoLists.getValue();
+    const sharedLists: ITodoList[] = this.sharedTodoLists.getValue();
+    const privateLists: ITodoList[] = this.todoLists.getValue();
 
-    if (localLists.find(d => d.uuid === uuid) != null) {
+    if (localLists.find(d => d.uuid === ListUuid) != null) {
       return ListType.LOCAL;
     }
-    if (sharedLists.find(d => d.uuid === uuid) != null) {
+    if (sharedLists.find(d => d.uuid === ListUuid) != null) {
       return ListType.SHARED;
     }
-    if (privateLists.find(d => d.uuid === uuid) != null) {
+    if (privateLists.find(d => d.uuid === ListUuid) != null) {
       return ListType.PRIVATE;
     }
 
@@ -572,10 +574,10 @@ export class TodoServiceProvider {
    * Permet de récupérer un Observable de tableau de liste de todo
    *
    * @param {ListType} [type] Permet de préciser le type de liste que l'on souhaite récupérer
-   * @returns {Observable<TodoList[]>}
+   * @returns {Observable<ITodoList[]>}
    * @memberof TodoServiceProvider
    */
-  public getTodoList(type?: ListType): Observable<TodoList[]> {
+  public getTodoList(type?: ListType): Observable<ITodoList[]> {
     switch (type) {
       case ListType.LOCAL:
         return this.localTodoLists.asObservable();
@@ -590,29 +592,28 @@ export class TodoServiceProvider {
   /**
    * Permet de récupérer une liste représenté par son identifiant unique
    *
-   * @param {string} uuid l'identifiant unique de la liste
-   * @returns {Observable<TodoList>}
+   * @param {string} ListUuid l'identifiant unique de la liste
+   * @returns {Observable<ITodoList>}
    * @memberof TodoServiceProvider
    */
-  public async getAList(uuid: string): Promise<Observable<TodoList>> {
-    const doc = await this.getFirestoreDocument(uuid);
+  public async getAList(ListUuid: string): Promise<Observable<ITodoList>> {
+    const doc = await this.getFirestoreDocument(ListUuid);
     return doc.valueChanges();
   }
 
   /**
    * Permet de créer une liste. La liste sera créer localement si hors ligne ou non authentifié
    *
-   * @param {string} name le nom de la liste à créer
-   * @param {string} icon un type de liste (associé à une icone ionic)
-   * @param {boolean} [local] vrai si la liste doit être stocker localement, faus sinon (par défault)
-   * @returns {Promise<string>} l'uuid de la liste nouvellement créée
+   * @param {ITodoList} data la liste
+   * @param {ListType} [type]
+   * @returns {Promise<string>}
    * @memberof TodoServiceProvider
    */
-  public addList(data: TodoList, type?: ListType): Promise<string> {
+  public addList(data: ITodoList, type?: ListType): Promise<string> {
     const newUuid: string = uuid();
 
     let dbCollection = this.todoListCollection;
-    if (type === ListType.LOCAL || !this.authCtrl.getConnexionSubject().getValue()) {
+    if (type === ListType.LOCAL || !this.authCtrl.isConnected()) {
       dbCollection = this.localTodoListCollection;
     }
 
@@ -622,7 +623,7 @@ export class TodoServiceProvider {
 
     return new Promise(resolve => {
       dbCollection
-        .doc<TodoList>(newUuid)
+        .doc<ITodoList>(newUuid)
         .set({
           uuid: newUuid,
           name: data.name,
@@ -642,7 +643,7 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async updateList(data: TodoList, destType?: ListType): Promise<void> {
+  public async updateList(data: ITodoList, destType?: ListType): Promise<void> {
     const curListType = this.getListType(data.uuid);
     const fireDoc = await this.getFirestoreDocument(data.uuid, curListType);
 
@@ -663,18 +664,18 @@ export class TodoServiceProvider {
   /**
    * Supprime une liste ou la délie si il s'ait d'une liste partagée
    *
-   * @param {string} uuid l'identifiant de la liste
+   * @param {string} ListUuid l'identifiant de la liste
    * @memberof TodoServiceProvider
    */
-  public async deleteList(uuid: string, type?: ListType): Promise<void> {
+  public async deleteList(ListUuid: string, type?: ListType): Promise<void> {
     if (type == null) {
-      type = this.getListType(uuid);
+      type = this.getListType(ListUuid);
     }
 
     if (type === ListType.SHARED) {
-      this.removeListLink(uuid);
+      this.removeListLink(ListUuid);
     } else {
-      const doc = await this.getFirestoreDocument(uuid, type);
+      const doc = await this.getFirestoreDocument(ListUuid, type);
       doc.delete();
     }
   }
@@ -691,13 +692,13 @@ export class TodoServiceProvider {
    * gestions des todos          *
    *******************************/
 
-  public getTodos(uuid: String): Observable<TodoItem[]> {
-    return Observable.of(this.data.find(d => d.uuid === uuid).items);
+  public getTodos(ListUuid: String): Observable<ITodoItem[]> {
+    return Observable.of(this.data.find(d => d.uuid === ListUuid).items);
   }
 
-  public getTodo(listUUID: string, uuid: string): Observable<TodoItem> {
+  public getTodo(listUUID: string, TodoUuid: string): Observable<ITodoItem> {
     return Observable.of(
-      this.data.find(d => d.uuid === listUUID).items.find(d => d.uuid === uuid)
+      this.data.find(d => d.uuid === listUUID).items.find(d => d.uuid === TodoUuid)
     );
   }
 
@@ -715,21 +716,21 @@ export class TodoServiceProvider {
     }
   }
 
-  public editTodo(listUuid: String, editedItem: TodoItem) {
+  public editTodo(listUuid: String, editedItem: ITodoItem) {
     const items = this.data.find(d => d.uuid === listUuid).items;
     const index = items.findIndex(value => value.uuid === editedItem.uuid);
     items[index] = editedItem;
   }
 
-  public addTodo(listUuid: String, newItem: TodoItem): void {
+  public addTodo(listUuid: String, newItem: ITodoItem): void {
     const items = this.data.find(d => d.uuid === listUuid).items;
     newItem.uuid = uuid();
     items.push(newItem);
   }
 
-  public deleteTodo(listUuid: String, uuid: String) {
+  public deleteTodo(listUuid: String, TodoUuid: String) {
     const items = this.data.find(d => d.uuid === listUuid).items;
-    const index = items.findIndex(value => value.uuid === uuid);
+    const index = items.findIndex(value => value.uuid === TodoUuid);
     if (index !== -1) {
       items.splice(index, 1);
     }

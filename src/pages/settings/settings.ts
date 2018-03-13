@@ -4,7 +4,6 @@ import { IonicPage } from 'ionic-angular';
 
 import { Settings } from '../../model/settings';
 import { SettingServiceProvider } from './../../providers/setting/setting-service';
-import { GenericPage } from '../../shared/generic-page';
 
 @IonicPage()
 @Component({
@@ -21,8 +20,8 @@ export class SettingsPage {
   public setting = Settings;
 
   constructor(
-    private settingCtrl: SettingServiceProvider,
-    private authCtrl: AuthServiceProvider
+    private readonly settingCtrl: SettingServiceProvider,
+    private readonly authCtrl: AuthServiceProvider
   ) {}
 
   ionViewDidLoad() {

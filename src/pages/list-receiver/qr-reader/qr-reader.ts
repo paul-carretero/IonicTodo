@@ -43,17 +43,17 @@ export class QrReaderPage extends GenericReceiver {
   private scanSub: Subscription;
 
   constructor(
-    public navCtrl: NavController,
-    public alertCtrl: AlertController,
-    public loadingCtrl: LoadingController,
-    public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController,
-    public todoCtrl: TodoServiceProvider,
-    private qrScanner: QRScanner,
-    private cameraPreview: CameraPreview,
-    private screenCtrl: ScreenOrientation,
-    public authCtrl: AuthServiceProvider
+    public readonly navCtrl: NavController,
+    public readonly alertCtrl: AlertController,
+    public readonly loadingCtrl: LoadingController,
+    public readonly evtCtrl: EventServiceProvider,
+    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    public readonly toastCtrl: ToastController,
+    public readonly todoCtrl: TodoServiceProvider,
+    private readonly qrScanner: QRScanner,
+    private readonly cameraPreview: CameraPreview,
+    private readonly screenCtrl: ScreenOrientation,
+    public readonly authCtrl: AuthServiceProvider
   ) {
     super(
       navCtrl,
@@ -90,7 +90,7 @@ export class QrReaderPage extends GenericReceiver {
   }
 
   private async startPreview(): Promise<void> {
-    if (this.cameraOn == false) {
+    if (this.cameraOn === false) {
       this.qrScanner.destroy();
       await this.cameraPreview.startCamera(QrReaderPage.cameraPreviewOpts);
       this.cameraOn = true;
@@ -98,7 +98,7 @@ export class QrReaderPage extends GenericReceiver {
   }
 
   private async stopPreview(): Promise<void> {
-    if (this.cameraOn == true) {
+    if (this.cameraOn === true) {
       await this.cameraPreview.stopCamera();
       this.cameraOn = false;
     }
@@ -142,6 +142,7 @@ export class QrReaderPage extends GenericReceiver {
   }
 
   public menuEventHandler(req: MenuRequest): void {
-    throw new Error('Method not implemented.');
+    switch (req) {
+    }
   }
 }

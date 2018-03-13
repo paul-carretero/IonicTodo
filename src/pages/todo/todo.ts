@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 
-import { TodoItem } from '../../model/todo-item';
+import { ITodoItem } from '../../model/todo-item';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { TodoEditPage } from './../todo-edit/todo-edit';
 
@@ -12,11 +12,11 @@ import { TodoEditPage } from './../todo-edit/todo-edit';
   templateUrl: 'todo.html'
 })
 export class TodoPage implements OnInit {
-  private todoUUID: string;
+  private readonly todoUUID: string;
 
-  private listUUID: string;
+  private readonly listUUID: string;
 
-  private todo: Observable<TodoItem>;
+  private todo: Observable<ITodoItem>;
 
   constructor(
     public navCtrl: NavController,

@@ -1,17 +1,15 @@
-import { Global } from '../shared/global';
-
 /**
  * Représente un chemin vers une liste de todo, notament pour partager des listes par référence
  *
  * @export
- * @interface TodoListPath
+ * @interface ITodoListPath
  */
-export interface TodoListPath {
+export interface ITodoListPath {
   /**
    * Magic string pour identifier cette classe comme un lien vers une liste
    *
    * @type {string}
-   * @memberof TodoListPath
+   * @memberof ITodoListPath
    */
   magic?: string;
 
@@ -19,7 +17,7 @@ export interface TodoListPath {
    * Identifiant unique de l'utilisateur ayant créer le todo
    *
    * @type {string}
-   * @memberof TodoListPath
+   * @memberof ITodoListPath
    */
   userUUID: string;
 
@@ -27,7 +25,7 @@ export interface TodoListPath {
    * Identifiant unique de la liste
    *
    * @type {string}
-   * @memberof TodoListPath
+   * @memberof ITodoListPath
    */
   listUUID: string;
 }

@@ -9,8 +9,8 @@ export class SpeechSynthServiceProvider {
   private synthQueue: string[];
 
   constructor(
-    private tts: TextToSpeech,
-    private evtCtrl: EventServiceProvider
+    private readonly tts: TextToSpeech,
+    private readonly evtCtrl: EventServiceProvider
   ) {
     this.synthQueue = [];
     this.listenForStop();
@@ -28,7 +28,7 @@ export class SpeechSynthServiceProvider {
 
   private listenForStop(): void {
     this.evtCtrl.getMenuRequestSubject().subscribe((req: MenuRequest) => {
-      if (req == MenuRequest.SPEECH_REC) {
+      if (req === MenuRequest.SPEECH_REC) {
         this.synthQueue = [];
         this.stop();
       }
@@ -36,7 +36,7 @@ export class SpeechSynthServiceProvider {
   }
 
   public synthText(text: string) {
-    if (this.synthQueue.push(text) == 1) {
+    if (this.synthQueue.push(text) === 1) {
       this.play();
     }
   }

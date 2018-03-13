@@ -7,22 +7,18 @@ import {
   IonicPage,
   LoadingController,
   NavController,
-  NavParams,
   ToastController
 } from 'ionic-angular';
 import {
   GoogleMaps,
   GoogleMap,
   GoogleMapsEvent,
-  GoogleMapOptions,
-  CameraPosition,
-  MarkerOptions,
-  Marker
+  GoogleMapOptions
 } from '@ionic-native/google-maps';
 import { Subscription } from 'rxjs';
 
 import { GenericPage } from '../../shared/generic-page';
-import { TodoItem } from './../../model/todo-item';
+import { ITodoItem } from './../../model/todo-item';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { MenuRequest } from '../../model/menu-request';
@@ -34,31 +30,29 @@ import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
   templateUrl: 'todo-edit.html'
 })
 export class TodoEditPage extends GenericPage {
-  private todoUUID: string;
-  private listUUID: string;
+  private readonly todoUUID: string;
+  private readonly listUUID: string;
   private todoSub: Subscription;
   private map: GoogleMap;
 
-  public todo: TodoItem;
+  public todo: ITodoItem;
   public todoForm: FormGroup;
 
   constructor(
-    public navCtrl: NavController,
-    public alertCtrl: AlertController,
-    public loadingCtrl: LoadingController,
-    public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController,
-    public authCtrl: AuthServiceProvider,
-    private navParams: NavParams,
-    private todoService: TodoServiceProvider,
-    private formBuilder: FormBuilder,
-    private MapService: MapServiceProvider,
-    private synthService: SpeechSynthServiceProvider
+    public readonly navCtrl: NavController,
+    public readonly alertCtrl: AlertController,
+    public readonly loadingCtrl: LoadingController,
+    public readonly evtCtrl: EventServiceProvider,
+    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    public readonly toastCtrl: ToastController,
+    public readonly authCtrl: AuthServiceProvider,
+    private readonly todoService: TodoServiceProvider,
+    private readonly formBuilder: FormBuilder,
+    private readonly MapService: MapServiceProvider
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
-    this.todoUUID = navParams.get('todoUUID');
-    this.listUUID = navParams.get('listUUID');
+    //this.todoUUID = navParams.get('todoUUID');
+    //this.listUUID = navParams.get('listUUID');
     this.todo = { name: '', complete: false, desc: '', uuid: this.todoUUID };
     this.todoForm = this.formBuilder.group({});
     this.MapService.lol();
@@ -85,7 +79,8 @@ export class TodoEditPage extends GenericPage {
   }
 
   public menuEventHandler(req: MenuRequest): void {
-    throw new Error('Method not implemented.');
+    switch (req) {
+    }
   }
 
   get isInCreation(): boolean {
@@ -99,7 +94,7 @@ export class TodoEditPage extends GenericPage {
     return 'Mettre à jour cette tâche';
   }
 
-  private initForm(todo: TodoItem): void {
+  private initForm(todo: ITodoItem): void {
     this.todoForm = this.formBuilder.group({
       name: [todo.name, Validators.required],
       desc: [todo.desc],
@@ -125,7 +120,7 @@ export class TodoEditPage extends GenericPage {
   }
 
   private loadMap() {
-    let mapOptions: GoogleMapOptions = {
+    const mapOptions: GoogleMapOptions = {
       camera: {
         target: {
           lat: 43.0741904,
@@ -156,9 +151,9 @@ export class TodoEditPage extends GenericPage {
               alert('clicked');
             });
           })
-          .catch(err => {});
+          .catch(() => {});
       })
-      .catch(err => {});
+      .catch(() => {});
   }
 
   public loginAuthRequired(): boolean {

@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@firebase/auth-types';
 import { GooglePlus } from '@ionic-native/google-plus';
@@ -8,16 +8,11 @@ import {
   IonicPage,
   LoadingController,
   NavController,
-  ToastController,
-  App,
-  NavControllerBase,
-  Tabs
+  ToastController
 } from 'ionic-angular';
-import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Rx';
 
 import { FirebaseCredentials } from '../../app/firebase.credentials';
-import { MenuRequest } from '../../model/menu-request';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
@@ -38,17 +33,16 @@ export class AuthentificationPage extends GenericPage {
   public offlineDisabled = true;
 
   constructor(
-    public navCtrl: NavController,
-    public alertCtrl: AlertController,
-    public loadingCtrl: LoadingController,
-    public evtCtrl: EventServiceProvider,
-    public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController,
-    public authCtrl: AuthServiceProvider,
-    private googlePlus: GooglePlus,
-    private formBuilder: FormBuilder,
-    private settingCtrl: SettingServiceProvider,
-    private app: App
+    public readonly navCtrl: NavController,
+    public readonly alertCtrl: AlertController,
+    public readonly loadingCtrl: LoadingController,
+    public readonly evtCtrl: EventServiceProvider,
+    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    public readonly toastCtrl: ToastController,
+    public readonly authCtrl: AuthServiceProvider,
+    private readonly googlePlus: GooglePlus,
+    private readonly formBuilder: FormBuilder,
+    private readonly settingCtrl: SettingServiceProvider
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.authForm = this.formBuilder.group({
@@ -90,7 +84,7 @@ export class AuthentificationPage extends GenericPage {
     return this.authCtrl.isOffline();
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(): void {
     // nothing special to do
   }
 
@@ -120,7 +114,7 @@ export class AuthentificationPage extends GenericPage {
         firebase
           .auth()
           .signInWithCredential(googleCredential)
-          .then((res: any) => {
+          .then(() => {
             this.displayToast(
               'Connexion avec votre compte Google effectuée avec succès!'
             );

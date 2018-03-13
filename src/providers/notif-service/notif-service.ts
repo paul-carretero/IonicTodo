@@ -5,19 +5,21 @@ import { LocalNotifications } from '@ionic-native/local-notifications';
 @Injectable()
 export class NotifServiceProvider {
   constructor(
-    private plt: Platform,
-    private localNotifications: LocalNotifications,
-    private alertCtrl: AlertController
+    private readonly plt: Platform,
+    private readonly localNotifications: LocalNotifications,
+    private readonly alertCtrl: AlertController
   ) {
     this.plt.ready().then(readySource => {
       this.localNotifications.on('click', (notification, state) => {
-        let json = JSON.parse(notification.data);
-        let alert = alertCtrl.create({
+        const json = JSON.parse(notification.data);
+        const alert = this.alertCtrl.create({
           title: notification.title,
           subTitle: json.mydata
         });
         alert.present();
+        console.log('state = ' + state);
       });
+      console.log('ready = ' + readySource);
     });
   }
 
