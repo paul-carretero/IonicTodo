@@ -2,11 +2,11 @@ import {
   AlertController,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 
-import { MenuRequest } from '../../model/menu-request';
-import { EventServiceProvider } from '../../providers/event/event-service';
+import { IMenuRequest } from '../../model/menu-request';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ListType, ITodoList } from './../../model/todo-list';
@@ -20,7 +20,7 @@ export abstract class GenericReceiver extends GenericPage {
     public readonly navCtrl: NavController,
     public readonly alertCtrl: AlertController,
     public readonly loadingCtrl: LoadingController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly toastCtrl: ToastController,
     public readonly todoCtrl: TodoServiceProvider,
@@ -79,7 +79,7 @@ export abstract class GenericReceiver extends GenericPage {
     return false;
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

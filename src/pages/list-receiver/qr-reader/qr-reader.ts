@@ -7,12 +7,12 @@ import {
   IonicPage,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { MenuRequest } from '../../../model/menu-request';
-import { EventServiceProvider } from '../../../providers/event/event-service';
+import { IMenuRequest } from '../../../model/menu-request';
 import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
 import { GenericReceiver } from '../generic-receiver';
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
@@ -46,7 +46,7 @@ export class QrReaderPage extends GenericReceiver {
     public readonly navCtrl: NavController,
     public readonly alertCtrl: AlertController,
     public readonly loadingCtrl: LoadingController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly toastCtrl: ToastController,
     public readonly todoCtrl: TodoServiceProvider,
@@ -141,7 +141,7 @@ export class QrReaderPage extends GenericReceiver {
     throw new Error('Method not implemented.');
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

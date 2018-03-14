@@ -5,10 +5,10 @@ import {
   LoadingController,
   NavController,
   NavParams,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 
-import { EventServiceProvider } from '../../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { GenericSharer } from './../generic-sharer';
@@ -25,7 +25,7 @@ export class QrcodeGeneratePage extends GenericSharer {
     public readonly navCtrl: NavController,
     public readonly loadingCtrl: LoadingController,
     public readonly alertCtrl: AlertController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
     public readonly toastCtrl: ToastController,

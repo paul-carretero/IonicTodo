@@ -1,11 +1,7 @@
-export enum MenuRequest {
-  DELETE,
-  EDIT,
-  SHARE,
-  SEND,
-  HELP,
-  IMPORT,
-  SPEECH_REC,
-  SPEECH_SYNTH,
-  VALIDATE
+import { Media } from './media';
+import { MenuRequestType } from './menu-request-type';
+
+export interface IMenuRequest {
+  request: MenuRequestType;
+  media?: Media;
 }

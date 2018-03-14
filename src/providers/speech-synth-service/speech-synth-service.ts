@@ -1,19 +1,18 @@
 import { Injectable } from '@angular/core';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
 
-import { EventServiceProvider } from '../event/event-service';
-import { MenuRequest } from './../../model/menu-request';
+import { IMenuRequest } from './../../model/menu-request';
+import { Events } from 'ionic-angular';
+import { MenuRequestType } from '../../model/menu-request-type';
+import { Global } from '../../shared/global';
 
 @Injectable()
 export class SpeechSynthServiceProvider {
   private synthQueue: string[];
 
-  constructor(
-    private readonly tts: TextToSpeech,
-    private readonly evtCtrl: EventServiceProvider
-  ) {
+  constructor(private readonly tts: TextToSpeech, private readonly evtCtrl: Events) {
     this.synthQueue = [];
-    this.listenForStop();
+    this.evtCtrl.subscribe(Global.MENU_REQ_TOPIC, this.menuReqHandler);
   }
 
   /**
@@ -26,13 +25,19 @@ export class SpeechSynthServiceProvider {
     this.tts.speak('');
   }
 
-  private listenForStop(): void {
-    this.evtCtrl.getMenuRequestSubject().subscribe((req: MenuRequest) => {
-      if (req === MenuRequest.SPEECH_REC) {
-        this.synthQueue = [];
-        this.stop();
-      }
-    });
+  /**
+   * Empêche la reconnaissance vocal d'être active en même temps que la synthèse vocal
+   * Stop immédiatement la synthèse vocal si la reconnaissance est activée
+   *
+   * @private
+   * @param {IMenuRequest} req
+   * @memberof SpeechSynthServiceProvider
+   */
+  private menuReqHandler(req: IMenuRequest): void {
+    if (req.request === MenuRequestType.SPEECH_REC) {
+      this.synthQueue = [];
+      this.stop();
+    }
   }
 
   public synthText(text: string) {

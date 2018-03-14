@@ -5,7 +5,6 @@ import { SpeechSynthServiceProvider } from './../../providers/speech-synth-servi
 import { ListType } from './../../model/todo-list';
 import { IPageData } from './../../model/page-data';
 import { Global } from './../../shared/global';
-import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
 import {
   IonicPage,
@@ -13,13 +12,15 @@ import {
   NavParams,
   AlertController,
   LoadingController,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { TodoListPage } from '../todo-list/todo-list';
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 /**
  * Présente la listes des todo d'une liste de todo.
@@ -72,7 +73,7 @@ export class ListEditPage extends GenericPage {
    * @param {NavController} navCtrl
    * @param {AlertController} alertCtrl
    * @param {LoadingController} loadingCtrl
-   * @param {EventServiceProvider} evtCtrl
+   * @param {Events} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
    * @param {ToastController} toastCtrl
    * @param {FormBuilder} formBuilder
@@ -85,7 +86,7 @@ export class ListEditPage extends GenericPage {
     public readonly navCtrl: NavController,
     public readonly alertCtrl: AlertController,
     public readonly loadingCtrl: LoadingController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
@@ -114,7 +115,7 @@ export class ListEditPage extends GenericPage {
       this.defineEditList(header);
     } else {
       header.title = 'Nouvelle Liste';
-      this.evtCtrl.getHeadeSubject().next(header);
+      Global.HEADER = header;
     }
   }
 
@@ -131,9 +132,9 @@ export class ListEditPage extends GenericPage {
    * @param {MenuRequest} req
    * @memberof ListEditPage
    */
-  public menuEventHandler(req: MenuRequest): void {
-    switch (req) {
-      case MenuRequest.VALIDATE:
+  public menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
+      case MenuRequestType.VALIDATE:
         this.defList();
         break;
     }
@@ -220,7 +221,7 @@ export class ListEditPage extends GenericPage {
 
     this.listSub = todoList.subscribe(list => {
       header.title = 'Editer "' + list.name + '" ';
-      this.evtCtrl.getHeadeSubject().next(header);
+      Global.HEADER = header;
       this.newList = this.formBuilder.group({
         name: [list.name, Validators.required],
         icon: [list.icon, Validators.required],

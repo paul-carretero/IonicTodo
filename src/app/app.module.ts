@@ -35,7 +35,6 @@ import { PopoverOptionsPage } from './../pages/popover-options/popover-options';
 import { TodoEditPage } from './../pages/todo-edit/todo-edit';
 import { TodoListPage } from './../pages/todo-list/todo-list';
 import { TodoPage } from './../pages/todo/todo';
-import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
 import { NgxQRCodeModule } from 'ngx-qrcode2';
@@ -99,7 +98,6 @@ import { NFC, Ndef } from '@ionic-native/nfc';
     SpeechRecognition,
     SpeechSynthServiceProvider,
     TextToSpeech,
-    EventServiceProvider,
     Flashlight,
     NativeGeocoder,
     QRScanner,

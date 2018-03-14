@@ -1,4 +1,3 @@
-import { EventServiceProvider } from './../../providers/event/event-service';
 import { MapServiceProvider } from './../../providers/map-service/map-service';
 import { Component } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
@@ -7,7 +6,8 @@ import {
   IonicPage,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 import {
   GoogleMaps,
@@ -21,7 +21,7 @@ import { GenericPage } from '../../shared/generic-page';
 import { ITodoItem } from './../../model/todo-item';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 @IonicPage()
@@ -42,7 +42,7 @@ export class TodoEditPage extends GenericPage {
     public readonly navCtrl: NavController,
     public readonly alertCtrl: AlertController,
     public readonly loadingCtrl: LoadingController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
@@ -78,8 +78,8 @@ export class TodoEditPage extends GenericPage {
     this.todoSub.unsubscribe();
   }
 
-  public menuEventHandler(req: MenuRequest): void {
-    switch (req) {
+  public menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
     }
   }
 

@@ -1,36 +1,24 @@
+import { Global } from './../../shared/global';
 import { PopoverOptionsPage } from './../../pages/popover-options/popover-options';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { MenuController, PopoverController } from 'ionic-angular';
-import { Subscription } from 'rxjs';
+import { Component } from '@angular/core';
+import { MenuController, PopoverController, Events } from 'ionic-angular';
 
-import { EventServiceProvider } from '../../providers/event/event-service';
 import { IPageData } from './../../model/page-data';
-import { MenuRequest } from '../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @Component({
   selector: 'HeaderComponent',
   templateUrl: 'header.html'
 })
-export class HeaderComponent implements OnInit, OnDestroy {
-  public data: IPageData;
-  private updateSub: Subscription;
-
+export class HeaderComponent {
   constructor(
     private readonly popoverCtrl: PopoverController,
     private readonly menuCtrl: MenuController,
-    private readonly evtCtrl: EventServiceProvider
-  ) {
-    this.data = this.evtCtrl.getHeadeSubject().getValue();
-  }
+    private readonly evtCtrl: Events
+  ) {}
 
-  ngOnDestroy(): void {
-    this.updateSub.unsubscribe();
-  }
-
-  ngOnInit(): void {
-    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe(newData => {
-      this.data = newData;
-    });
+  get data(): IPageData {
+    return Global.HEADER;
   }
 
   public openMenu(): void {
@@ -46,14 +34,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   public valid(): void {
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.VALIDATE);
+    this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+      request: MenuRequestType.VALIDATE
+    });
   }
 
   public startSpeechRec() {
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SPEECH_REC);
+    this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+      request: MenuRequestType.SPEECH_REC
+    });
   }
 
   public startTTS() {
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SPEECH_SYNTH);
+    this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+      request: MenuRequestType.SPEECH_SYNTH
+    });
   }
 }

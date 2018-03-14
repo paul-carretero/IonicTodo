@@ -9,6 +9,10 @@ import { IPageData } from './../model/page-data';
  * @class Global
  */
 export class Global {
+  /**************************************************************************/
+  /******************************* ROOT PAGES *******************************/
+  /**************************************************************************/
+
   /**
    * Index de la page d'accueil
    *
@@ -38,6 +42,10 @@ export class Global {
    */
   public static readonly OPTSPAGE: number = 2;
 
+  /**************************************************************************/
+  /********************************* MAGIC **********************************/
+  /**************************************************************************/
+
   /**
    * Identifie une liste de todo, pour deserialization
    *
@@ -57,6 +65,10 @@ export class Global {
    * @memberof Global
    */
   public static readonly LIST_PATH_MAGIC: string = '┬─┬ノ( º _ ºノ)';
+
+  /**************************************************************************/
+  /*********************** DEFAULT PAGE DATA (HEADER) ***********************/
+  /**************************************************************************/
 
   /**
    * Page non éditable, non partageable et non validable
@@ -118,10 +130,44 @@ export class Global {
     validable: false
   };
 
+  /**
+   * donnée du header global (unique et global...)
+   *
+   * @static
+   * @type {IPageData}
+   * @memberof Global
+   */
+  public static HEADER: IPageData = Global.DEFAULT_PAGE_DATA;
+
+  /**************************************************************************/
+  /**************************** DEFAULT TODOLIST ****************************/
+  /**************************************************************************/
+
   public static readonly BLANK_LIST: ITodoList = {
     uuid: null,
     name: null,
     items: [],
     icon: null
   };
+
+  /**************************************************************************/
+  /********************************* TOPICS *********************************/
+  /**************************************************************************/
+
+  /**
+   * Flux des commandes menu de l'utilisateur pour les pages intéressées (enrichie éventuelement)
+   *
+   * @static
+   * @readonly
+   * @memberof Global
+   */
+  public static readonly MENU_REQ_TOPIC = 'menu:request';
+
+  /**
+   * Permet d'envoyer/recevoir des demande de navigation simple de la part de composant
+   *
+   * @static
+   * @memberof Global
+   */
+  public static readonly BASIC_NAVIGATION_TOPIC = 'nav:request';
 }

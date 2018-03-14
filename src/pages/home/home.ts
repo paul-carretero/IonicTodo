@@ -3,7 +3,8 @@ import {
   AlertController,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 
@@ -11,13 +12,12 @@ import { ListType, ITodoList } from '../../model/todo-list';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
-import { MenuRequest } from './../../model/menu-request';
 import { ITodoItem } from './../../model/todo-item';
-import { EventServiceProvider } from './../../providers/event/event-service';
 import { Global } from './../../shared/global';
 import { ListEditPage } from './../list-edit/list-edit';
 import { TodoListPage } from './../todo-list/todo-list';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
+import { IMenuRequest } from '../../model/menu-request';
 
 /**
  * Page principale de l'application.
@@ -60,7 +60,7 @@ export class HomePage extends GenericPage {
    * @param {NavController} navCtrl
    * @param {AlertController} alertCtrl
    * @param {LoadingController} loadingCtrl
-   * @param {EventServiceProvider} evtCtrl
+   * @param {Events} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
    * @param {ToastController} toastCtrl
    * @param {AuthServiceProvider} authCtrl
@@ -71,7 +71,7 @@ export class HomePage extends GenericPage {
     public readonly navCtrl: NavController,
     public readonly alertCtrl: AlertController,
     public readonly loadingCtrl: LoadingController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
@@ -91,9 +91,9 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   ionViewDidEnter() {
-    const pageData = Global.DEFAULT_PAGE_DATA;
-    pageData.title = 'Listes de Tâches';
-    this.evtCtrl.getHeadeSubject().next(pageData);
+    const header = Global.DEFAULT_PAGE_DATA;
+    header.title = 'Listes de Tâches';
+    Global.HEADER = header;
 
     this.todoList = this.todoService.getTodoList(ListType.PRIVATE);
     this.localTodoList = this.todoService.getTodoList(ListType.LOCAL);
@@ -110,8 +110,8 @@ export class HomePage extends GenericPage {
    * @param {MenuRequest} req
    * @memberof HomePage
    */
-  public menuEventHandler(req: MenuRequest): void {
-    switch (req) {
+  public menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
     }
   }
 

@@ -8,12 +8,12 @@ import {
   IonicPage,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 import { Subscription } from 'rxjs/Rx';
 
 import { FirebaseCredentials } from '../../app/firebase.credentials';
-import { EventServiceProvider } from '../../providers/event/event-service';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
 import { GenericPage } from './../../shared/generic-page';
@@ -36,7 +36,7 @@ export class AuthentificationPage extends GenericPage {
     public readonly navCtrl: NavController,
     public readonly alertCtrl: AlertController,
     public readonly loadingCtrl: LoadingController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,

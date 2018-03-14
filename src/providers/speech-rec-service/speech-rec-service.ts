@@ -1,9 +1,10 @@
-import { MenuRequest } from './../../model/menu-request';
-import { EventServiceProvider } from './../event/event-service';
+import { IMenuRequest } from './../../model/menu-request';
 import { Injectable } from '@angular/core';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { Subject } from 'rxjs';
-import { LoadingController, Loading, AlertController } from 'ionic-angular';
+import { LoadingController, Loading, AlertController, Events } from 'ionic-angular';
+import { Global } from '../../shared/global';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @Injectable()
 export class SpeechRecServiceProvider {
@@ -14,23 +15,29 @@ export class SpeechRecServiceProvider {
   constructor(
     private readonly speechRecognition: SpeechRecognition,
     private readonly loadCtrl: LoadingController,
-    private readonly evtCtrl: EventServiceProvider,
+    private readonly evtCtrl: Events,
     private readonly alertCtrl: AlertController
   ) {
     this.userInputSubject = new Subject();
-    this.listenForSpeechRequest();
+    this.evtCtrl.subscribe(Global.MENU_REQ_TOPIC, this.menuReqHandler);
   }
 
-  private listenForSpeechRequest(): void {
-    this.evtCtrl.getMenuRequestSubject().subscribe(req => {
-      if (req === MenuRequest.SPEECH_REC) {
-        if (this.allOK) {
-          this.startListening();
-        } else {
-          this.speechWrapper();
-        }
+  /**
+   * Démarre immadiatement la reconnaissance vocale si la recherche le demande
+   * ou lance le wrapper si des paramètres ne sont pas OK (ou première utilisation)
+   *
+   * @private
+   * @param {IMenuRequest} req
+   * @memberof SpeechRecServiceProvider
+   */
+  private menuReqHandler(req: IMenuRequest): void {
+    if (req.request === MenuRequestType.SPEECH_REC) {
+      if (this.allOK) {
+        this.startListening();
+      } else {
+        this.speechWrapper();
       }
-    });
+    }
   }
 
   private startListening(): void {

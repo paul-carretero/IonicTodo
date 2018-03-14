@@ -5,14 +5,14 @@ import {
   LoadingController,
   NavController,
   NavParams,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
 import { Media } from '../../model/media';
-import { MenuRequest } from '../../model/menu-request';
-import { EventServiceProvider } from '../../providers/event/event-service';
+import { IMenuRequest } from '../../model/menu-request';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
@@ -24,6 +24,7 @@ import { Global } from './../../shared/global';
 import { QrcodeGeneratePage } from './../list-sender/qrcode-generate/qrcode-generate';
 import { TodoEditPage } from './../todo-edit/todo-edit';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @IonicPage()
 @Component({
@@ -67,7 +68,7 @@ export class TodoListPage extends GenericPage {
     public readonly navCtrl: NavController,
     public readonly loadingCtrl: LoadingController,
     public readonly alertCtrl: AlertController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
@@ -97,7 +98,7 @@ export class TodoListPage extends GenericPage {
   /************************ METHODE INTERNES/PRIVATE ************************/
   /**************************************************************************/
 
-  private async initDataList(pageData: IPageData): Promise<void> {
+  private async initDataList(header: IPageData): Promise<void> {
     let todoList: Observable<ITodoList>;
     try {
       todoList = await this.todoService.getAList(this.listUUID);
@@ -109,8 +110,8 @@ export class TodoListPage extends GenericPage {
     }
 
     this.listeSub = todoList.subscribe((res: ITodoList) => {
-      pageData.title = 'Liste "' + res.name + '"';
-      this.evtCtrl.getHeadeSubject().next(pageData);
+      header.title = 'Liste "' + res.name + '"';
+      Global.HEADER = header;
     });
   }
 
@@ -121,37 +122,37 @@ export class TodoListPage extends GenericPage {
   /**
    *
    * @override
-   * @param {MenuRequest} req
+   * @param {IMenuRequest} req
    * @memberof TodoListPage
    */
-  public menuEventHandler(req: MenuRequest): void {
-    switch (req) {
-      case MenuRequest.DELETE: {
+  public menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
+      case MenuRequestType.DELETE: {
         this.todoService.deleteList(this.listUUID);
         this.navCtrl.popToRoot();
         break;
       }
-      case MenuRequest.EDIT: {
+      case MenuRequestType.EDIT: {
         this.navCtrl.push(ListEditPage, { uuid: this.listUUID });
         break;
       }
-      case MenuRequest.SEND: {
-        switch (this.evtCtrl.getMedia()) {
+      case MenuRequestType.SEND: {
+        switch (req.media) {
           case Media.QR_CODE:
             this.navCtrl.push(QrcodeGeneratePage, {
               uuid: this.listUUID,
-              request: MenuRequest.SEND
+              request: MenuRequestType.SEND
             });
             break;
         }
         break;
       }
-      case MenuRequest.SHARE: {
-        switch (this.evtCtrl.getMedia()) {
+      case MenuRequestType.SHARE: {
+        switch (req.media) {
           case Media.QR_CODE:
             this.navCtrl.push(QrcodeGeneratePage, {
               uuid: this.listUUID,
-              request: MenuRequest.SHARE
+              request: MenuRequestType.SHARE
             });
             break;
         }

@@ -4,16 +4,17 @@ import {
   LoadingController,
   NavController,
   NavParams,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
 import { ITodoList } from '../../model/todo-list';
-import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 export class GenericSharer extends GenericPage {
   /**
@@ -25,7 +26,7 @@ export class GenericSharer extends GenericPage {
    */
   public readonly listUUID: string;
 
-  public readonly request: MenuRequest.SHARE | MenuRequest.SEND;
+  public readonly request: IMenuRequest;
 
   public json: string;
 
@@ -34,7 +35,7 @@ export class GenericSharer extends GenericPage {
     public readonly navCtrl: NavController,
     public readonly loadingCtrl: LoadingController,
     public readonly alertCtrl: AlertController,
-    public readonly evtCtrl: EventServiceProvider,
+    public readonly evtCtrl: Events,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
     public readonly toastCtrl: ToastController,
@@ -51,7 +52,7 @@ export class GenericSharer extends GenericPage {
    * @memberof QrcodeGeneratePage
    */
   ionViewDidEnter() {
-    if (this.request === MenuRequest.SEND) {
+    if (this.request.request === MenuRequestType.SEND) {
       this.sendListHandler();
     } else {
       const link = this.todoCtrl.getListLink(this.listUUID);
@@ -70,7 +71,7 @@ export class GenericSharer extends GenericPage {
     });
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

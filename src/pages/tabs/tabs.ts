@@ -1,15 +1,14 @@
-import { QrReaderPage } from './../list-receiver/qr-reader/qr-reader';
-import { SettingsPage } from './../settings/settings';
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
-import { AlertController, Tabs, ToastController } from 'ionic-angular';
+import { AlertController, Events, Tabs, ToastController } from 'ionic-angular';
 
+import { NfcProvider } from '../../providers/nfc/nfc';
 import { Global } from '../../shared/global';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
-import { EventServiceProvider } from './../../providers/event/event-service';
 import { AuthentificationPage } from './../authentification/authentification';
 import { HomePage } from './../home/home';
-import { NfcProvider } from '../../providers/nfc/nfc';
+import { QrReaderPage } from './../list-receiver/qr-reader/qr-reader';
+import { SettingsPage } from './../settings/settings';
 
 /**
  * Page de nav de base de l'application
@@ -28,7 +27,7 @@ export class TabsPage {
   @ViewChild('navTabs') tabRef: Tabs;
 
   constructor(
-    private readonly evtCtrl: EventServiceProvider,
+    private readonly evtCtrl: Events,
     private readonly flashlight: Flashlight,
     private readonly alertCtrl: AlertController,
     private readonly authCtrl: AuthServiceProvider,
@@ -85,7 +84,7 @@ export class TabsPage {
   }
 
   public showQrPage(): void {
-    this.evtCtrl.getNavRequestSubject().next({ page: QrReaderPage });
+    this.evtCtrl.publish(Global.BASIC_NAVIGATION_TOPIC, { page: QrReaderPage });
   }
 
   public showCloudPage(): void {

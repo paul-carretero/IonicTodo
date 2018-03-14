@@ -4,28 +4,19 @@ import {
   Loading,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  Events
 } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { MenuRequest } from '../model/menu-request';
-import { EventServiceProvider } from '../providers/event/event-service';
+import { IMenuRequest } from '../model/menu-request';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { INavRequest } from './../model/nav-request';
+import { Global } from './global';
+import { MenuRequestType } from '../model/menu-request-type';
 
 export abstract class GenericPage {
   public loading: Loading;
-
-  private navSub: Subscription;
-
-  /**
-   * Subscription au evenement utilisateur sur le menu
-   *
-   * @private
-   * @type {Subscription}
-   * @memberof GenericPage
-   */
-  private menuEvtSub: Subscription;
 
   private secrureAuthSub: Subscription;
 
@@ -37,7 +28,7 @@ export abstract class GenericPage {
     public navCtrl: NavController,
     public alertCtrl: AlertController,
     public loadingCtrl: LoadingController,
-    public evtCtrl: EventServiceProvider,
+    public evtCtrl: Events,
     public ttsCtrl: SpeechSynthServiceProvider,
     public toastCtrl: ToastController,
     public authCtrl: AuthServiceProvider
@@ -62,23 +53,8 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   ionViewWillEnter() {
-    this.navSub = this.evtCtrl
-      .getNavRequestSubject()
-      .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page));
-
-    this.menuEvtSub = this.evtCtrl
-      .getMenuRequestSubject()
-      .subscribe((req: MenuRequest) => {
-        switch (req) {
-          case MenuRequest.SPEECH_SYNTH:
-            this.ttsCtrl.synthText(this.generateDescription());
-            break;
-          case MenuRequest.HELP:
-            this.alert('Aide sur la page', this.generateHelp());
-            break;
-        }
-        this.menuEventHandler(req);
-      });
+    this.evtCtrl.subscribe(Global.BASIC_NAVIGATION_TOPIC, this._navReqHandler);
+    this.evtCtrl.subscribe(Global.MENU_REQ_TOPIC, this._menuReqHandler);
   }
 
   /**
@@ -87,13 +63,31 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   ionViewDidLeave() {
-    this.clear();
+    this.evtCtrl.unsubscribe(Global.BASIC_NAVIGATION_TOPIC, this._navReqHandler);
+    this.evtCtrl.unsubscribe(Global.MENU_REQ_TOPIC, this._menuReqHandler);
   }
 
-  private clear() {
-    this.tryUnSub(this.navSub);
-    this.tryUnSub(this.menuEvtSub);
+  /******************************** HANDLER *********************************/
+
+  private _navReqHandler(navReq: INavRequest): void {
+    this.navCtrl.push(navReq.page);
   }
+
+  private _menuReqHandler(req: IMenuRequest): void {
+    switch (req.request) {
+      case MenuRequestType.SPEECH_SYNTH:
+        this.ttsCtrl.synthText(this.generateDescription());
+        break;
+      case MenuRequestType.HELP:
+        this.alert('Aide sur la page', this.generateHelp());
+        break;
+    }
+    this.menuEventHandler(req);
+  }
+
+  /**************************************************************************/
+  /******************************** HELPER **********************************/
+  /**************************************************************************/
 
   private securePage(): void {
     this.secrureAuthSub = this.authCtrl.getConnexionSubject().subscribe(() => {
@@ -105,10 +99,6 @@ export abstract class GenericPage {
       }
     });
   }
-
-  /**************************************************************************/
-  /******************************** HELPER **********************************/
-  /**************************************************************************/
 
   /**
    * affiche un élément modal de chargement
@@ -212,7 +202,7 @@ export abstract class GenericPage {
    * @param {MenuRequest} req
    * @memberof GenericPage
    */
-  public abstract menuEventHandler(req: MenuRequest): void;
+  public abstract menuEventHandler(req: IMenuRequest): void;
 
   /**
    * Permet de générer une description de la page, notament pour la synthèse vocale

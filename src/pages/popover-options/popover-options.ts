@@ -1,11 +1,9 @@
 import { Component } from '@angular/core';
-import { ActionSheetController, IonicPage, ViewController } from 'ionic-angular';
-import { Subscription } from 'rxjs';
+import { ActionSheetController, IonicPage, ViewController, Events } from 'ionic-angular';
 
-import { MenuRequest } from '../../model/menu-request';
 import { Media } from './../../model/media';
-import { IPageData } from './../../model/page-data';
-import { EventServiceProvider } from './../../providers/event/event-service';
+import { Global } from '../../shared/global';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @IonicPage()
 @Component({
@@ -13,34 +11,29 @@ import { EventServiceProvider } from './../../providers/event/event-service';
   templateUrl: 'popover-options.html'
 })
 export class PopoverOptionsPage {
-  private updateSub: Subscription;
-  public editable: boolean;
-  public shareable: boolean;
-  public importable: boolean;
-
   /**
    * Creates an instance of PopoverOptionsPage.
    * @param {ViewController} viewCtrl
-   * @param {EventServiceProvider} evtCtrl
+   * @param {Events} evtCtrl
    * @param {ActionSheetController} actionSheetCtrl
    * @memberof PopoverOptionsPage
    */
   constructor(
     private readonly viewCtrl: ViewController,
-    private readonly evtCtrl: EventServiceProvider,
-    public readonly actionSheetCtrl: ActionSheetController
+    private readonly evtCtrl: Events,
+    private readonly actionSheetCtrl: ActionSheetController
   ) {}
 
-  ionViewDidLoad() {
-    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe((newData: IPageData) => {
-      this.editable = newData.editable;
-      this.shareable = newData.shareable;
-      this.importable = newData.importable;
-    });
+  get editable(): boolean {
+    return Global.HEADER.editable;
   }
 
-  ionViewWillUnload() {
-    this.updateSub.unsubscribe();
+  get shareable(): boolean {
+    return Global.HEADER.shareable;
+  }
+
+  get importable(): boolean {
+    return Global.HEADER.importable;
   }
 
   private openSendMenu(): void {
@@ -53,24 +46,30 @@ export class PopoverOptionsPage {
           text: 'Envoyer sur le cloud',
           icon: 'cloud-upload',
           handler: () => {
-            this.evtCtrl.defMedia(Media.CLOUD);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
+            this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+              request: MenuRequestType.SEND,
+              media: Media.CLOUD
+            });
           }
         },
         {
           text: 'Envoyer par NFC',
           icon: 'phone-portrait',
           handler: () => {
-            this.evtCtrl.defMedia(Media.NFC);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
+            this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+              request: MenuRequestType.SEND,
+              media: Media.NFC
+            });
           }
         },
         {
           text: 'Afficher un QRCode à flasher',
           icon: 'qr-scanner',
           handler: () => {
-            this.evtCtrl.defMedia(Media.QR_CODE);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
+            this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+              request: MenuRequestType.SEND,
+              media: Media.QR_CODE
+            });
           }
         },
         {
@@ -93,24 +92,30 @@ export class PopoverOptionsPage {
           text: 'Partager sur le cloud',
           icon: 'cloud-upload',
           handler: () => {
-            this.evtCtrl.defMedia(Media.CLOUD);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
+            this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+              request: MenuRequestType.SHARE,
+              media: Media.CLOUD
+            });
           }
         },
         {
           text: 'Partager par NFC',
           icon: 'logo-rss',
           handler: () => {
-            this.evtCtrl.defMedia(Media.NFC);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
+            this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+              request: MenuRequestType.SHARE,
+              media: Media.NFC
+            });
           }
         },
         {
           text: 'Afficher un QRCode à flasher',
           icon: 'qr-scanner',
           handler: () => {
-            this.evtCtrl.defMedia(Media.QR_CODE);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
+            this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+              request: MenuRequestType.SHARE,
+              media: Media.QR_CODE
+            });
           }
         },
         {
@@ -129,12 +134,16 @@ export class PopoverOptionsPage {
 
   public delete() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.DELETE);
+    this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+      request: MenuRequestType.DELETE
+    });
   }
 
   public edit() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.EDIT);
+    this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+      request: MenuRequestType.EDIT
+    });
   }
 
   /**
@@ -159,11 +168,15 @@ export class PopoverOptionsPage {
 
   public help() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.HELP);
+    this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+      request: MenuRequestType.HELP
+    });
   }
 
   public import() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.IMPORT);
+    this.evtCtrl.publish(Global.MENU_REQ_TOPIC, {
+      request: MenuRequestType.IMPORT
+    });
   }
 }
