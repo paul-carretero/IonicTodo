@@ -19,7 +19,8 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { TodoListPage } from '../todo-list/todo-list';
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 /**
  * Présente la listes des todo d'une liste de todo.
@@ -128,12 +129,12 @@ export class ListEditPage extends GenericPage {
 
   /**
    * @override
-   * @param {MenuRequest} req
+   * @param {IMenuRequest} req
    * @memberof ListEditPage
    */
-  public menuEventHandler(req: MenuRequest): void {
-    switch (req) {
-      case MenuRequest.VALIDATE:
+  public menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
+      case MenuRequestType.VALIDATE:
         this.defList();
         break;
     }

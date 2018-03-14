@@ -1,11 +1,17 @@
-import { Media } from './../../model/media';
 import { INavRequest } from './../../model/nav-request';
 import { Global } from './../../shared/global';
 import { Injectable } from '@angular/core';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { IPageData } from '../../model/page-data';
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
 
+/**
+ * Après analyse, il a été préférer d'implémenter une classe d'Event plutôt que d'utiliser le service Ionic native Events
+ * Pro : typé, plus modulable
+ *
+ * @export
+ * @class EventServiceProvider
+ */
 @Injectable()
 export class EventServiceProvider {
   /**
@@ -23,10 +29,10 @@ export class EventServiceProvider {
    *
    * @readonly
    * @private
-   * @type {Subject<MenuRequest>}
+   * @type {Subject<IMenuRequest>}
    * @memberof EventServiceProvider
    */
-  private readonly menuRequestSubject: Subject<MenuRequest>;
+  private readonly menuRequestSubject: Subject<IMenuRequest>;
 
   /**
    * Flux de commande de navigation, typiquement du menu de gauche
@@ -38,11 +44,9 @@ export class EventServiceProvider {
    */
   private readonly navRequestSubject: Subject<INavRequest>;
 
-  private media: Media;
-
   constructor() {
     this.headerData = new BehaviorSubject<IPageData>(Global.DEFAULT_PAGE_DATA);
-    this.menuRequestSubject = new Subject<MenuRequest>();
+    this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
   }
 
@@ -50,19 +54,11 @@ export class EventServiceProvider {
     return this.headerData;
   }
 
-  public getMenuRequestSubject(): Subject<MenuRequest> {
+  public getMenuRequestSubject(): Subject<IMenuRequest> {
     return this.menuRequestSubject;
   }
 
   public getNavRequestSubject(): Subject<INavRequest> {
     return this.navRequestSubject;
-  }
-
-  public defMedia(media: Media): void {
-    this.media = media;
-  }
-
-  public getMedia(): Media {
-    return this.media;
   }
 }

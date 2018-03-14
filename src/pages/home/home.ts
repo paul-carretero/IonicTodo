@@ -11,7 +11,7 @@ import { ListType, ITodoList } from '../../model/todo-list';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
-import { MenuRequest } from './../../model/menu-request';
+import { IMenuRequest } from './../../model/menu-request';
 import { ITodoItem } from './../../model/todo-item';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { Global } from './../../shared/global';
@@ -107,10 +107,10 @@ export class HomePage extends GenericPage {
   /**
    *
    * @override
-   * @param {MenuRequest} req
+   * @param {IMenuRequest} req
    * @memberof HomePage
    */
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

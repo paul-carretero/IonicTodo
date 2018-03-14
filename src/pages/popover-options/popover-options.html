@@ -1,10 +1,22 @@
 <ion-list>
   <ion-list-header>Options</ion-list-header>
-  <button *ngIf="editable" ion-item (click)="delete()">Supprimer</button>
-  <button *ngIf="editable" ion-item (click)="edit()">Editer</button>
-  <button *ngIf="shareable" ion-item (click)="share()">Partager</button>
-  <button *ngIf="shareable" ion-item (click)="send()">Envoyer</button>
-  <button *ngIf="importable" ion-item (click)="send()">Importer</button>
-  <button ion-item (click)="help()">Aide</button>
-  <button ion-item (click)="close()">Annuler</button>
+  <button *ngIf="editable" ion-item (click)="delete()" icon-start>
+    <ion-icon name="trash"></ion-icon>Supprimer</button>
+  <button *ngIf="editable" ion-item (click)="edit()" icon-start>
+    <ion-icon name="create"></ion-icon>Editer</button>
+  <button *ngIf="shareable" ion-item (click)="share()" icon-start>
+    <ion-icon name="link"></ion-icon>Partager
+  </button>
+  <button *ngIf="shareable" ion-item (click)="send()" icon-start>
+    <ion-icon name="copy"></ion-icon>Envoyer
+  </button>
+  <button *ngIf="importable" ion-item (click)="send()" icon-start>
+    <ion-icon name="cloud-download"></ion-icon>Importer
+  </button>
+  <button ion-item (click)="help()" icon-start>
+    <ion-icon name="help"></ion-icon>Aide
+  </button>
+  <button ion-item (click)="close()" icon-start>
+    <ion-icon name="close"></ion-icon>Annuler
+  </button>
 </ion-list>

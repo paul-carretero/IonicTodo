@@ -524,7 +524,6 @@ export class TodoServiceProvider {
 
   /**
    * Permet de récupérer un objet de chemin pour la liste ayant l'identifiant spécifié
-   * TODO gérer les liste partagé!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    *
    * @param {string} listUUID
    * @returns {TodoListPath}
@@ -577,7 +576,7 @@ export class TodoServiceProvider {
    * @returns {Observable<ITodoList[]>}
    * @memberof TodoServiceProvider
    */
-  public getTodoList(type?: ListType): Observable<ITodoList[]> {
+  public getTodoList(type: ListType): Observable<ITodoList[]> {
     switch (type) {
       case ListType.LOCAL:
         return this.localTodoLists.asObservable();
@@ -599,6 +598,30 @@ export class TodoServiceProvider {
   public async getAList(ListUuid: string): Promise<Observable<ITodoList>> {
     const doc = await this.getFirestoreDocument(ListUuid);
     return doc.valueChanges();
+  }
+
+  /**
+   * A utiliser avec prudence car non synchronisé, retourne une liste telle qu'elle était lors de l'appel
+   *
+   * @param {string} listUuid
+   * @returns {ITodoList}
+   * @memberof TodoServiceProvider
+   */
+  public getAListSnapshot(listUuid: string): ITodoList {
+    const type = this.getListType(listUuid);
+    let lists: ITodoList[] = [];
+    switch (type) {
+      case ListType.LOCAL:
+        lists = this.localTodoLists.getValue();
+        break;
+      case ListType.SHARED:
+        lists = this.sharedTodoLists.getValue();
+        break;
+      case ListType.PRIVATE:
+        lists = this.todoLists.getValue();
+        break;
+    }
+    return lists.find(d => d.uuid === listUuid);
   }
 
   /**

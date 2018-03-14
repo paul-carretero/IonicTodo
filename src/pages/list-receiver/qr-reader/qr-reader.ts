@@ -11,7 +11,7 @@ import {
 } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { MenuRequest } from '../../../model/menu-request';
+import { IMenuRequest } from '../../../model/menu-request';
 import { EventServiceProvider } from '../../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
 import { GenericReceiver } from '../generic-receiver';
@@ -141,7 +141,7 @@ export class QrReaderPage extends GenericReceiver {
     throw new Error('Method not implemented.');
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

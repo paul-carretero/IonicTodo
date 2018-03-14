@@ -1,3 +1,4 @@
+import { ITodoListPath } from './../../model/todo-list-path';
 import { Global } from './../../shared/global';
 import {
   AlertController,
@@ -7,13 +8,14 @@ import {
   ToastController
 } from 'ionic-angular';
 
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
 import { ITodoList } from '../../model/todo-list';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 export class GenericSharer extends GenericPage {
   /**
@@ -25,9 +27,13 @@ export class GenericSharer extends GenericPage {
    */
   public readonly listUUID: string;
 
-  public readonly request: MenuRequest.SHARE | MenuRequest.SEND;
+  public readonly request: IMenuRequest;
 
-  public json: string;
+  public listShare: ITodoListPath;
+
+  public listSend: ITodoList;
+
+  public choice: 'lock' | 'unlock' | 'send';
 
   constructor(
     public readonly navParams: NavParams,
@@ -43,34 +49,52 @@ export class GenericSharer extends GenericPage {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.listUUID = navParams.get('uuid');
     this.request = navParams.get('request');
+    this.sendListHandler();
+    this.shareListHandler();
   }
 
   /**
    * Charge le liste demandé et la stocke dans un json
    *
-   * @memberof QrcodeGeneratePage
+   * @memberof GenericSharer
    */
   ionViewDidEnter() {
-    if (this.request === MenuRequest.SEND) {
-      this.sendListHandler();
+    console.log(JSON.stringify(this.request));
+    if (this.request.request === MenuRequestType.SEND) {
+      this.choice = 'send';
     } else {
-      const link = this.todoCtrl.getListLink(this.listUUID);
-      link.magic = Global.LIST_PATH_MAGIC;
-      this.json = JSON.stringify(link);
+      this.choice = 'unlock';
     }
   }
 
-  private async sendListHandler(): Promise<void> {
-    const todoList = await this.todoCtrl.getAList(this.listUUID);
-    const sub = todoList.subscribe((list: ITodoList) => {
-      sub.unsubscribe();
-      list.magic = Global.TODO_LIST_MAGIC;
-      list.uuid = null;
-      this.json = JSON.stringify(list);
-    });
+  get creatingLink(): boolean {
+    return this.request.request === MenuRequestType.SHARE;
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  get json(): string {
+    if (this.choice === 'send') {
+      return JSON.stringify(this.listSend);
+    }
+    if (this.choice === 'lock') {
+      this.listShare.locked = true;
+    } else {
+      this.listShare.locked = false;
+    }
+    return JSON.stringify(this.listShare);
+  }
+
+  private shareListHandler(): void {
+    this.listShare = this.todoCtrl.getListLink(this.listUUID);
+    this.listShare.magic = Global.LIST_PATH_MAGIC;
+    this.listShare.locked = false;
+  }
+
+  private sendListHandler(): void {
+    this.listSend = this.todoCtrl.getAListSnapshot(this.listUUID);
+    this.listSend.magic = Global.TODO_LIST_MAGIC;
+  }
+
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { ActionSheetController, IonicPage, ViewController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { MenuRequest } from '../../model/menu-request';
 import { Media } from './../../model/media';
 import { IPageData } from './../../model/page-data';
 import { EventServiceProvider } from './../../providers/event/event-service';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @IonicPage()
 @Component({
@@ -53,24 +53,27 @@ export class PopoverOptionsPage {
           text: 'Envoyer sur le cloud',
           icon: 'cloud-upload',
           handler: () => {
-            this.evtCtrl.defMedia(Media.CLOUD);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
+            this.evtCtrl
+              .getMenuRequestSubject()
+              .next({ request: MenuRequestType.SEND, media: Media.CLOUD });
           }
         },
         {
           text: 'Envoyer par NFC',
           icon: 'phone-portrait',
           handler: () => {
-            this.evtCtrl.defMedia(Media.NFC);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
+            this.evtCtrl
+              .getMenuRequestSubject()
+              .next({ request: MenuRequestType.SEND, media: Media.NFC });
           }
         },
         {
           text: 'Afficher un QRCode à flasher',
           icon: 'qr-scanner',
           handler: () => {
-            this.evtCtrl.defMedia(Media.QR_CODE);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SEND);
+            this.evtCtrl
+              .getMenuRequestSubject()
+              .next({ request: MenuRequestType.SEND, media: Media.QR_CODE });
           }
         },
         {
@@ -93,24 +96,27 @@ export class PopoverOptionsPage {
           text: 'Partager sur le cloud',
           icon: 'cloud-upload',
           handler: () => {
-            this.evtCtrl.defMedia(Media.CLOUD);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
+            this.evtCtrl
+              .getMenuRequestSubject()
+              .next({ request: MenuRequestType.SHARE, media: Media.CLOUD });
           }
         },
         {
           text: 'Partager par NFC',
           icon: 'logo-rss',
           handler: () => {
-            this.evtCtrl.defMedia(Media.NFC);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
+            this.evtCtrl
+              .getMenuRequestSubject()
+              .next({ request: MenuRequestType.SHARE, media: Media.NFC });
           }
         },
         {
           text: 'Afficher un QRCode à flasher',
           icon: 'qr-scanner',
           handler: () => {
-            this.evtCtrl.defMedia(Media.QR_CODE);
-            this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SHARE);
+            this.evtCtrl
+              .getMenuRequestSubject()
+              .next({ request: MenuRequestType.SHARE, media: Media.QR_CODE });
           }
         },
         {
@@ -129,12 +135,12 @@ export class PopoverOptionsPage {
 
   public delete() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.DELETE);
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.DELETE });
   }
 
   public edit() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.EDIT);
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.EDIT });
   }
 
   /**
@@ -159,11 +165,11 @@ export class PopoverOptionsPage {
 
   public help() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.HELP);
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.HELP });
   }
 
   public import() {
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.IMPORT);
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.IMPORT });
   }
 }

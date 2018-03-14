@@ -1,9 +1,9 @@
-import { MenuRequest } from './../../model/menu-request';
 import { EventServiceProvider } from './../event/event-service';
 import { Injectable } from '@angular/core';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { Subject } from 'rxjs';
 import { LoadingController, Loading, AlertController } from 'ionic-angular';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @Injectable()
 export class SpeechRecServiceProvider {
@@ -23,7 +23,7 @@ export class SpeechRecServiceProvider {
 
   private listenForSpeechRequest(): void {
     this.evtCtrl.getMenuRequestSubject().subscribe(req => {
-      if (req === MenuRequest.SPEECH_REC) {
+      if (req.request === MenuRequestType.SPEECH_REC) {
         if (this.allOK) {
           this.startListening();
         } else {

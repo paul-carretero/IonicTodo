@@ -8,11 +8,11 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "lib": ["dom", "es2015"],
-    "module": "es2015",
+    "lib": ["dom", "es2017"],
+    "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
-    "target": "es5"
+    "target": "es2017"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "src/**/*.spec.ts", "src/**/__tests__/*.ts"],

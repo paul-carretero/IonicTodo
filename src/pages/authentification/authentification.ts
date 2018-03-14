@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@firebase/auth-types';
 import { GooglePlus } from '@ionic-native/google-plus';
 import * as firebase from 'firebase/app';
+import moment from 'moment';
 import {
   AlertController,
   IonicPage,
@@ -49,6 +50,10 @@ export class AuthentificationPage extends GenericPage {
       email: ['', Validators.email],
       password: ['', Validators.required]
     });
+
+    const data = moment().format('YYYYMMDD');
+    const time = moment().format('HHmmss');
+    console.log('today is: ', data + ' and time: ', time);
   }
 
   /**

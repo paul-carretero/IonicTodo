@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { IPageData } from './../../model/page-data';
-import { MenuRequest } from '../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @Component({
   selector: 'HeaderComponent',
@@ -46,14 +46,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   public valid(): void {
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.VALIDATE);
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.VALIDATE });
   }
 
   public startSpeechRec() {
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SPEECH_REC);
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.SPEECH_REC });
   }
 
   public startTTS() {
-    this.evtCtrl.getMenuRequestSubject().next(MenuRequest.SPEECH_SYNTH);
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.SPEECH_SYNTH });
   }
 }

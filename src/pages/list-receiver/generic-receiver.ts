@@ -5,7 +5,7 @@ import {
   ToastController
 } from 'ionic-angular';
 
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { GenericPage } from '../../shared/generic-page';
@@ -79,7 +79,7 @@ export abstract class GenericReceiver extends GenericPage {
     return false;
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

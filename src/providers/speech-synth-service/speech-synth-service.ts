@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
 
 import { EventServiceProvider } from '../event/event-service';
-import { MenuRequest } from './../../model/menu-request';
+import { IMenuRequest } from './../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @Injectable()
 export class SpeechSynthServiceProvider {
@@ -27,8 +28,8 @@ export class SpeechSynthServiceProvider {
   }
 
   private listenForStop(): void {
-    this.evtCtrl.getMenuRequestSubject().subscribe((req: MenuRequest) => {
-      if (req === MenuRequest.SPEECH_REC) {
+    this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
+      if (req.request === MenuRequestType.SPEECH_REC) {
         this.synthQueue = [];
         this.stop();
       }

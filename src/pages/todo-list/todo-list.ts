@@ -11,7 +11,7 @@ import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
 import { Media } from '../../model/media';
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
@@ -24,6 +24,7 @@ import { Global } from './../../shared/global';
 import { QrcodeGeneratePage } from './../list-sender/qrcode-generate/qrcode-generate';
 import { TodoEditPage } from './../todo-edit/todo-edit';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 @IonicPage()
 @Component({
@@ -121,37 +122,37 @@ export class TodoListPage extends GenericPage {
   /**
    *
    * @override
-   * @param {MenuRequest} req
+   * @param {IMenuRequest} req
    * @memberof TodoListPage
    */
-  public menuEventHandler(req: MenuRequest): void {
-    switch (req) {
-      case MenuRequest.DELETE: {
+  public menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
+      case MenuRequestType.DELETE: {
         this.todoService.deleteList(this.listUUID);
         this.navCtrl.popToRoot();
         break;
       }
-      case MenuRequest.EDIT: {
+      case MenuRequestType.EDIT: {
         this.navCtrl.push(ListEditPage, { uuid: this.listUUID });
         break;
       }
-      case MenuRequest.SEND: {
-        switch (this.evtCtrl.getMedia()) {
+      case MenuRequestType.SEND: {
+        switch (req.media) {
           case Media.QR_CODE:
             this.navCtrl.push(QrcodeGeneratePage, {
               uuid: this.listUUID,
-              request: MenuRequest.SEND
+              request: { request: MenuRequestType.SEND, media: Media.QR_CODE }
             });
             break;
         }
         break;
       }
-      case MenuRequest.SHARE: {
-        switch (this.evtCtrl.getMedia()) {
+      case MenuRequestType.SHARE: {
+        switch (req.media) {
           case Media.QR_CODE:
             this.navCtrl.push(QrcodeGeneratePage, {
               uuid: this.listUUID,
-              request: MenuRequest.SHARE
+              request: { request: MenuRequestType.SHARE, media: Media.QR_CODE }
             });
             break;
         }

@@ -8,10 +8,11 @@ import {
 } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { MenuRequest } from '../model/menu-request';
+import { IMenuRequest } from '../model/menu-request';
 import { EventServiceProvider } from '../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { INavRequest } from './../model/nav-request';
+import { MenuRequestType } from '../model/menu-request-type';
 
 export abstract class GenericPage {
   public loading: Loading;
@@ -68,12 +69,12 @@ export abstract class GenericPage {
 
     this.menuEvtSub = this.evtCtrl
       .getMenuRequestSubject()
-      .subscribe((req: MenuRequest) => {
-        switch (req) {
-          case MenuRequest.SPEECH_SYNTH:
+      .subscribe((req: IMenuRequest) => {
+        switch (req.request) {
+          case MenuRequestType.SPEECH_SYNTH:
             this.ttsCtrl.synthText(this.generateDescription());
             break;
-          case MenuRequest.HELP:
+          case MenuRequestType.HELP:
             this.alert('Aide sur la page', this.generateHelp());
             break;
         }
@@ -209,10 +210,10 @@ export abstract class GenericPage {
    * Permet de gérer les actions a réaliser en fonction de la page et du type de requête menu
    *
    * @abstract
-   * @param {MenuRequest} req
+   * @param {IMenuRequest} req
    * @memberof GenericPage
    */
-  public abstract menuEventHandler(req: MenuRequest): void;
+  public abstract menuEventHandler(req: IMenuRequest): void;
 
   /**
    * Permet de générer une description de la page, notament pour la synthèse vocale

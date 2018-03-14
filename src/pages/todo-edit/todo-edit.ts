@@ -21,7 +21,7 @@ import { GenericPage } from '../../shared/generic-page';
 import { ITodoItem } from './../../model/todo-item';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
-import { MenuRequest } from '../../model/menu-request';
+import { IMenuRequest } from '../../model/menu-request';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 @IonicPage()
@@ -78,7 +78,7 @@ export class TodoEditPage extends GenericPage {
     this.todoSub.unsubscribe();
   }
 
-  public menuEventHandler(req: MenuRequest): void {
+  public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }

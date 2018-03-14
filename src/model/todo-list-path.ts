@@ -28,4 +28,12 @@ export interface ITodoListPath {
    * @memberof ITodoListPath
    */
   listUUID: string;
+
+  /**
+   * Défini si la liste doit être verrouillé en modification (ie insertion/suppression de todo et nom de liste)
+   *
+   * @type {boolean}
+   * @memberof ITodoListPath
+   */
+  locked?: boolean;
 }
