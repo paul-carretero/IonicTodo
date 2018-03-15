@@ -1,3 +1,5 @@
+import { ILatLng } from '@ionic-native/google-maps';
+import { IAuthor } from './../../model/author';
 import { ITodoItem } from './../../model/todo-item';
 import { ITodoListPath } from './../../model/todo-list-path';
 import { IAppUser } from './../../model/user';
@@ -17,6 +19,7 @@ import { ITodoList, ListType } from '../../model/todo-list';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Subscription } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
+import { MapServiceProvider } from '../map-service/map-service';
 
 @Injectable()
 export class TodoServiceProvider {
@@ -170,7 +173,8 @@ export class TodoServiceProvider {
    */
   constructor(
     private readonly firestoreCtrl: AngularFirestore,
-    private readonly authCtrl: AuthServiceProvider
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly mapCtrl: MapServiceProvider
   ) {
     this.todoLists = new BehaviorSubject<ITodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
@@ -494,7 +498,7 @@ export class TodoServiceProvider {
    * @param {string} listUUID
    * @memberof TodoServiceProvider
    */
-  public removeListLink(listUUID: string): void {
+  public async removeListLink(listUUID: string): Promise<void> {
     const listsPathTab = this.getSharedListPathSnapchot();
 
     let toDelete: number = -1;
@@ -506,15 +510,16 @@ export class TodoServiceProvider {
 
     if (toDelete !== -1) {
       listsPathTab.splice(toDelete);
-      this.currentUserDataDoc
-        .update({ todoListSharedWithMe: listsPathTab })
-        .catch(() => {
-          // not really reachable...
-          this.currentUserDataDoc.set({
-            todoListSharedWithMe: listsPathTab
-          });
-        })
-        .then(() => this.refreshShared());
+
+      try {
+        await this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab });
+      } catch (error) {
+        this.currentUserDataDoc.set({
+          todoListSharedWithMe: listsPathTab
+        });
+      }
+
+      this.refreshShared();
     }
   }
 
@@ -544,6 +549,25 @@ export class TodoServiceProvider {
     throw new Error('list UUID not found');
   }
 
+  /**
+   * Permet de vérifier si une liste partagée est verouillé en lecture seule
+   *
+   * @param {string} listUuid
+   * @returns {boolean}
+   * @memberof TodoServiceProvider
+   */
+  public isReadOnly(listUuid: string): boolean {
+    const listShareData = this.currentUserData
+      .getValue()
+      .todoListSharedWithMe.find(d => d.listUUID === listUuid);
+
+    if (listShareData != null) {
+      if (listShareData.locked != null) {
+        return listShareData.locked;
+      }
+    }
+    return false;
+  }
   /**
    * Permet de récupérer le type d'une liste
    *
@@ -632,7 +656,7 @@ export class TodoServiceProvider {
    * @returns {Promise<string>}
    * @memberof TodoServiceProvider
    */
-  public addList(data: ITodoList, type?: ListType): Promise<string> {
+  public async addList(data: ITodoList, type?: ListType): Promise<string> {
     const newUuid: string = uuid();
 
     let dbCollection = this.todoListCollection;
@@ -644,18 +668,35 @@ export class TodoServiceProvider {
       data.order = -1;
     }
 
-    return new Promise(resolve => {
-      dbCollection
-        .doc<ITodoList>(newUuid)
-        .set({
-          uuid: newUuid,
-          name: data.name,
-          items: [],
-          icon: data.icon,
-          order: data.order
-        })
-        .then(() => resolve(newUuid));
+    let author: IAuthor = null;
+
+    if (data.author != null) {
+      author = data.author;
+    }
+
+    if (data.author == null && this.authCtrl.isConnected()) {
+      const myPos: ILatLng = await this.mapCtrl.getMyPosition();
+      const myCity: string = await this.mapCtrl.getCity(myPos);
+
+      author = {
+        displayName: this.authCtrl.getDisplayName(),
+        city: myCity,
+        email: this.authCtrl.getEmail(),
+        date: new Date(),
+        uuid: this.authCtrl.getUserId()
+      };
+    }
+
+    await dbCollection.doc<ITodoList>(newUuid).set({
+      uuid: newUuid,
+      name: data.name,
+      items: [],
+      icon: data.icon,
+      order: data.order,
+      author: author
     });
+
+    return newUuid;
   }
 
   /**

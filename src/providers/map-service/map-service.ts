@@ -5,10 +5,14 @@ import {
   NativeGeocoderForwardResult,
   NativeGeocoderReverseResult
 } from '@ionic-native/native-geocoder';
+import { Geolocation } from '@ionic-native/geolocation';
 
 @Injectable()
 export class MapServiceProvider {
-  constructor(private readonly nativeGeocoder: NativeGeocoder) {}
+  constructor(
+    private readonly nativeGeocoder: NativeGeocoder,
+    private readonly geolocCtrl: Geolocation
+  ) {}
 
   public coordToAddress(lat: number, long: number): Promise<string> {
     const promise: Promise<string> = new Promise<string>((resolve, reject) => {
@@ -59,5 +63,27 @@ export class MapServiceProvider {
         });
       }
     );
+  }
+
+  public async getMyPosition(): Promise<ILatLng> {
+    try {
+      const geoPos = await this.geolocCtrl.getCurrentPosition({ timeout: 5000 });
+      return { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };
+    } catch (error) {
+      console.log();
+      return null;
+    }
+  }
+
+  public async getCity(coord: ILatLng): Promise<string> {
+    try {
+      const res: NativeGeocoderReverseResult = await this.nativeGeocoder.reverseGeocode(
+        coord.lat,
+        coord.lng
+      );
+      return res[0].locality;
+    } catch (error) {
+      return null;
+    }
   }
 }

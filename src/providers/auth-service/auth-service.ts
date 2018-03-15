@@ -86,4 +86,26 @@ export class AuthServiceProvider {
   public navAllowed(): boolean {
     return this.useHorsConnexion || this.isConnected();
   }
+
+  public getUser(): User {
+    return this.connexionSubject.getValue();
+  }
+
+  public getDisplayName(): string {
+    if (!this.isConnected()) {
+      throw new Error('Utilisateur non connecté');
+    }
+
+    if (this.firebaseAuth.auth.currentUser.displayName != null) {
+      return this.firebaseAuth.auth.currentUser.displayName;
+    }
+    return this.firebaseAuth.auth.currentUser.email;
+  }
+
+  public getEmail(): string {
+    if (!this.isConnected()) {
+      throw new Error('Utilisateur non connecté');
+    }
+    return this.firebaseAuth.auth.currentUser.email;
+  }
 }

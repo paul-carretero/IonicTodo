@@ -59,7 +59,6 @@ export class GenericSharer extends GenericPage {
    * @memberof GenericSharer
    */
   ionViewDidEnter() {
-    console.log(JSON.stringify(this.request));
     if (this.request.request === MenuRequestType.SEND) {
       this.choice = 'send';
     } else {
@@ -81,6 +80,19 @@ export class GenericSharer extends GenericPage {
       this.listShare.locked = false;
     }
     return JSON.stringify(this.listShare);
+  }
+
+  get list(): ITodoList | ITodoListPath {
+    if (this.choice === 'send') {
+      return this.listSend;
+    }
+
+    if (this.choice === 'lock') {
+      this.listShare.locked = true;
+    } else {
+      this.listShare.locked = false;
+    }
+    return this.listShare;
   }
 
   private shareListHandler(): void {

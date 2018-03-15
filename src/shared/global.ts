@@ -1,3 +1,4 @@
+import { ICloudSharedList } from './../model/cloud-shared-list';
 import { ITodoList } from './../model/todo-list';
 import { IPageData } from './../model/page-data';
 
@@ -9,6 +10,10 @@ import { IPageData } from './../model/page-data';
  * @class Global
  */
 export class Global {
+  /**************************************************************************/
+  /***************************** PAGES INDEXES ******************************/
+  /**************************************************************************/
+
   /**
    * Index de la page d'accueil
    *
@@ -38,6 +43,10 @@ export class Global {
    */
   public static readonly OPTSPAGE: number = 2;
 
+  /**************************************************************************/
+  /***************************** MAGIC STRING *******************************/
+  /**************************************************************************/
+
   /**
    * Identifie une liste de todo, pour deserialization
    *
@@ -58,65 +67,87 @@ export class Global {
    */
   public static readonly LIST_PATH_MAGIC: string = '┬─┬ノ( º _ ºノ)';
 
+  /**************************************************************************/
+  /**************************** DEFAULT HEADER ******************************/
+  /**************************************************************************/
+
   /**
    * Page non éditable, non partageable et non validable
    *
-   * @readonly
    * @static
-   * @type {PageData}
+   * @returns {IPageData}
    * @memberof Global
    */
-  public static readonly DEFAULT_PAGE_DATA: IPageData = {
-    title: 'Edit me!',
-    shareable: false,
-    editable: false,
-    validable: false
-  };
+  public static getDefaultPageData(): IPageData {
+    return {
+      title: 'Edit me!',
+      shareable: false,
+      editable: false,
+      validable: false
+    };
+  }
 
   /**
    * Page non éditable, non partageable et validable
    *
-   * @readonly
    * @static
-   * @type {PageData}
+   * @returns {IPageData}
    * @memberof Global
    */
-  public static readonly VALIDABLE_PAGE_DATA: IPageData = {
-    title: 'Edit me',
-    shareable: false,
-    editable: false,
-    validable: true
-  };
+  public static getValidablePageData(): IPageData {
+    return {
+      title: 'Edit me',
+      shareable: false,
+      editable: false,
+      validable: true
+    };
+  }
 
   /**
-   *  Page éditable, partageable et non validable
+   * Page éditable, partageable et non validable
    *
-   * @readonly
    * @static
-   * @type {PageData}
+   * @returns {IPageData}
    * @memberof Global
    */
-  public static readonly SHARE_EDIT_PAGE_DATA: IPageData = {
-    title: 'Edit me',
-    shareable: true,
-    editable: true,
-    validable: false
-  };
+  public static getShareEditPageData(): IPageData {
+    return {
+      title: 'Edit me',
+      shareable: true,
+      editable: true,
+      validable: false
+    };
+  }
 
   /**
    * Page éditable, non partageable et non validable
    *
-   * @readonly
    * @static
-   * @type {PageData}
+   * @returns {IPageData}
    * @memberof Global
    */
-  public static readonly ONLY_EDIT_PAGE_DATA: IPageData = {
-    title: 'Edit me',
-    shareable: false,
-    editable: true,
-    validable: false
-  };
+  public static getOnlyEditPageData(): IPageData {
+    return {
+      title: 'Edit me',
+      shareable: false,
+      editable: true,
+      validable: false
+    };
+  }
+
+  /**************************************************************************/
+  /******************************* CLOUD SHARE ******************************/
+  /**************************************************************************/
+
+  public static getDefaultCloudShareData(): ICloudSharedList {
+    return {
+      list: Global.BLANK_LIST
+    };
+  }
+
+  /**************************************************************************/
+  /******************************** FALLBACK ********************************/
+  /**************************************************************************/
 
   public static readonly BLANK_LIST: ITodoList = {
     uuid: null,
@@ -124,4 +155,9 @@ export class Global {
     items: [],
     icon: null
   };
+
+  public static precisionRound(number, precision): number {
+    const factor = Math.pow(10, precision);
+    return Math.round(number * factor) / factor;
+  }
 }

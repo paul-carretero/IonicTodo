@@ -6,6 +6,17 @@
  */
 export enum Settings {
   /**
+   * Active la possibilité de ShakeToShare (agité le téléphone pour partager
+   * une liste avec d'autre téléhone également agité au même moment)
+   */
+  ENABLE_STS,
+
+  /**
+   * Import automatique des listes par NFC ou sur le cloud
+   */
+  AUTO_IMPORT,
+
+  /**
    * Connexion Automatique
    */
   AUTO_LOG_IN,

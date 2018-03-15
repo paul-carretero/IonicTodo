@@ -10,23 +10,44 @@
                 <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                 <h2 (click)="selectTodo(todo.uuid)">{{todo.name}}</h2>
             </ion-item>
-            <ion-item-options side="right">
+            <ion-item-options side="right" *ngIf="editable">
                 <button (click)="deleteTodo(todo.uuid)" ion-button color="danger">
-                    <ion-icon name="trash">
-                        supprimer
-                    </ion-icon>
+                    <ion-icon name="trash">supprimer</ion-icon>
                 </button>
             </ion-item-options>
-            <ion-item-options side="left">
+            <ion-item-options side="left" *ngIf="editable">
                 <button (click)="deleteTodo(todo.uuid)" ion-button color="danger">
-                    <ion-icon name="trash">
-                        supprimer
-                    </ion-icon>
+                    <ion-icon name="trash">supprimer</ion-icon>
                 </button>
             </ion-item-options>
         </ion-item-sliding>
     </ion-list>
-    <button class="bottom-right-button" ion-fab (click)="createTodo()">
+
+    <ion-card *ngIf="listAuthor != null">
+        <ion-list small>
+            <ion-list-header color="light" small icon-end (click)="displayInfo = !displayInfo">
+                <ion-icon *ngIf="!displayInfo" name="arrow-dropdown-circle" item-end></ion-icon>
+                <ion-icon *ngIf="displayInfo" name="arrow-dropup-circle" item-end></ion-icon>
+                Détails sur la liste
+            </ion-list-header>
+            <ng-container *ngIf="displayInfo">
+                <ion-item small *ngIf="listAuthor.displayName != null">
+                    <ion-icon name="person" item-start></ion-icon>
+                    {{listAuthor.displayName}} ({{listAuthor.email}})
+                </ion-item>
+                <ion-item small *ngIf="listAuthor.date != null">
+                    <ion-icon name="calendar" item-start></ion-icon>
+                    Créée le : {{dateToString(listAuthor.date)}}
+                </ion-item>
+                <ion-item small *ngIf="listAuthor.city != null">
+                    <ion-icon name="pin" item-start></ion-icon>
+                    à : {{listAuthor.city}}
+                </ion-item>
+            </ng-container>
+        </ion-list>
+    </ion-card>
+
+    <button *ngIf="editable" class="bottom-right-button" ion-fab (click)="createTodo()">
         <ion-icon name="add"></ion-icon>
     </button>
 </ion-content>

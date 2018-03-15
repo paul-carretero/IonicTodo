@@ -1,0 +1,60 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+
+<ion-content padding *ngIf="json != null">
+
+
+  <ion-card>
+    <ion-segment [(ngModel)]="choice">
+      <ion-segment-button value="send" icon-start>
+        Envoyer
+        <ion-icon name="copy"></ion-icon>
+      </ion-segment-button>
+      <ion-segment-button value="lock" icon-start>
+        Partager
+        <ion-icon name="lock"></ion-icon>
+      </ion-segment-button>
+      <ion-segment-button value="unlock" icon-start>
+        Partager
+        <ion-icon name="unlock"></ion-icon>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header icon-start>
+      <ion-icon name="key"></ion-icon>
+      Sécurisez ce {{sendPartage[2]}}
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label floating>mot de passe</ion-label>
+        <ion-input [(ngModel)]="password" type="password"></ion-input>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <button ion-button full round (click)="openContactPopup()">Associer des contacts</button>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <span [innerHTML]="textContact"></span>
+
+      <ion-item *ngIf="contactList.size > 0">
+        <ion-label>Envoyer un sms à vos contacts:</ion-label>
+        <ion-toggle [(ngModel)]="sendSMS"></ion-toggle>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card padding>
+    <button ion-button full large round (click)="share()">{{sendPartage[0]}} cette liste</button>
+    <span>Le {{sendPartage[2]}} sera disponible 24h</span>
+  </ion-card>
+</ion-content>

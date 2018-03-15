@@ -3,6 +3,12 @@ import { SQLite, SQLiteObject } from '@ionic-native/sqlite';
 
 import { Settings } from '../../model/settings';
 
+/**
+ *
+ * @deprecated
+ * @export
+ * @class SettingServiceProvider
+ */
 @Injectable()
 export class SettingServiceProvider {
   private readonly ready: Promise<void>;

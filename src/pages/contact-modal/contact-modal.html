@@ -1,0 +1,23 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+<ion-content padding>
+  <ion-card>
+    <ion-card-header color="light">
+      Vos Contacts Disponibles
+    </ion-card-header>
+
+    <ion-list>
+      <ng-container *ngFor="let contact of contactList | async">
+        <button ion-item *ngIf="shouldDisplay(contact)" (click)="select(contact)">
+          <ion-icon *ngIf="isSelected(contact)" name="checkmark" item-end></ion-icon>
+          {{contact.displayName}}
+        </button>
+      </ng-container>
+    </ion-list>
+  </ion-card>
+  <ion-card padding>
+    <button ion-button full round (click)="dismiss()">Valider</button>
+  </ion-card>
+</ion-content>

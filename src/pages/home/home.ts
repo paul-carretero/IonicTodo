@@ -55,6 +55,10 @@ export class HomePage extends GenericPage {
    */
   public sharedTodoList: Observable<ITodoList[]>;
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
   /**
    * Creates an instance of HomePage.
    * @param {NavController} navCtrl
@@ -91,7 +95,7 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   ionViewDidEnter() {
-    const pageData = Global.DEFAULT_PAGE_DATA;
+    const pageData = Global.getDefaultPageData();
     pageData.title = 'Listes de Tâches';
     this.evtCtrl.getHeadeSubject().next(pageData);
 

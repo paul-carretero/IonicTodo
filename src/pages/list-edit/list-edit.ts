@@ -109,7 +109,7 @@ export class ListEditPage extends GenericPage {
    * @memberof ListEditPage
    */
   ionViewDidEnter() {
-    const header = Global.VALIDABLE_PAGE_DATA;
+    const header = Global.getValidablePageData();
 
     if (this.listUUID != null) {
       this.defineEditList(header);

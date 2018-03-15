@@ -1,3 +1,4 @@
+import { IAuthor } from './author';
 import { ITodoItem } from './todo-item';
 
 /**
@@ -54,6 +55,14 @@ export interface ITodoList {
    * @memberof ITodoList
    */
   order?: number;
+
+  /**
+   * Autheur de cette liste
+   *
+   * @type {IAuthor}
+   * @memberof ITodoList
+   */
+  author?: IAuthor;
 }
 
 /**

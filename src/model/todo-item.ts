@@ -1,3 +1,4 @@
+import { IAuthor } from './author';
 import { ILatLng } from '@ionic-native/google-maps';
 export interface ITodoItem {
   /**
@@ -23,7 +24,6 @@ export interface ITodoItem {
    * @memberof TodoItem
    */
   desc?: string;
-  userName?: string;
 
   /**
    * Vrai si l'on doit envoyer une notification (native) avant que le todo n'arrive à la deadline
@@ -34,18 +34,32 @@ export interface ITodoItem {
   notif?: boolean;
 
   /**
-   * Vrai si l'on doit envoyer un SMS pour
+   * Vrai si l'on doit envoyer un SMS lorsque la tâche est réalisée
    *
    * @type {boolean}
    * @memberof TodoItem
    */
-  sendSMS?: boolean;
+  SMSOnDone?: boolean;
+
+  /**
+   * Vrai si l'on doit envoyer un SMS en même temps que la notification de deadline
+   *
+   * @type {boolean}
+   * @memberof TodoItem
+   */
+  SMSBeforeDeadline?: boolean;
+
+  /**
+   * SMS auquel envoyer les notifications
+   *
+   * @type {string}
+   * @memberof ITodoItem
+   */
   SMSNumber?: string;
 
   // emplacement du todo
   posCreated?: ILatLng;
   posCompleted?: ILatLng;
-  address?: string;
 
   // image en base64 du todo
   picture?: string;
@@ -56,5 +70,7 @@ export interface ITodoItem {
   // date de complétion
   complete?: boolean;
   dateCompleted?: string;
-  deadline?: string;
+  deadline?: Date;
+
+  author?: IAuthor;
 }

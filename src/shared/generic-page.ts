@@ -124,7 +124,7 @@ export abstract class GenericPage {
     }
 
     if (duration == null) {
-      duration = 60000; // 1min max default
+      duration = 30000; // 30sec max default
     }
 
     this.loading = this.loadingCtrl.create({
@@ -189,6 +189,10 @@ export abstract class GenericPage {
         })
         .present();
     });
+  }
+
+  public dateToString(date: Date): string {
+    return date.toLocaleDateString();
   }
 
   /**************************************************************************/

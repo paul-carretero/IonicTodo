@@ -1,3 +1,5 @@
+import { IAuthor } from './../../model/author';
+import { NfcSenderPage } from './../list-sender/nfc-sender/nfc-sender';
 import { Component } from '@angular/core';
 import {
   AlertController,
@@ -25,6 +27,7 @@ import { QrcodeGeneratePage } from './../list-sender/qrcode-generate/qrcode-gene
 import { TodoEditPage } from './../todo-edit/todo-edit';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { MenuRequestType } from '../../model/menu-request-type';
+import { CloudSenderPage } from '../list-sender/cloud-sender/cloud-sender';
 
 @IonicPage()
 @Component({
@@ -58,7 +61,13 @@ export class TodoListPage extends GenericPage {
    */
   public readonly todoItems: Observable<ITodoItem[]>;
 
+  public listAuthor: IAuthor;
+
   private readonly listType: ListType;
+
+  public editable: boolean = true;
+
+  public displayInfo: boolean = false;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -86,7 +95,7 @@ export class TodoListPage extends GenericPage {
   /**************************************************************************/
 
   ionViewDidEnter() {
-    const pageData = Global.SHARE_EDIT_PAGE_DATA;
+    const pageData = Global.getShareEditPageData();
     this.initDataList(pageData);
   }
 
@@ -100,6 +109,17 @@ export class TodoListPage extends GenericPage {
 
   private async initDataList(pageData: IPageData): Promise<void> {
     let todoList: Observable<ITodoList>;
+
+    if (this.listType === ListType.SHARED) {
+      pageData.importable = true;
+      if (this.todoService.isReadOnly(this.listUUID)) {
+        pageData.editable = false;
+        this.editable = false;
+      }
+    } else {
+      pageData.importable = false;
+    }
+
     try {
       todoList = await this.todoService.getAList(this.listUUID);
     } catch (e) {
@@ -112,7 +132,16 @@ export class TodoListPage extends GenericPage {
     this.listeSub = todoList.subscribe((res: ITodoList) => {
       pageData.title = 'Liste "' + res.name + '"';
       this.evtCtrl.getHeadeSubject().next(pageData);
+      this.listAuthor = res.author;
     });
+  }
+
+  private async importList(): Promise<void> {
+    this.showLoading('Import de la liste en cours');
+    const list: ITodoList = this.todoService.getAListSnapshot(this.listUUID);
+    await this.todoService.addList(list, ListType.PRIVATE);
+    this.todoService.removeListLink(this.listUUID);
+    this.navCtrl.popToRoot();
   }
 
   /**************************************************************************/
@@ -136,12 +165,28 @@ export class TodoListPage extends GenericPage {
         this.navCtrl.push(ListEditPage, { uuid: this.listUUID });
         break;
       }
+      case MenuRequestType.IMPORT: {
+        this.importList();
+        break;
+      }
       case MenuRequestType.SEND: {
         switch (req.media) {
           case Media.QR_CODE:
             this.navCtrl.push(QrcodeGeneratePage, {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SEND, media: Media.QR_CODE }
+            });
+            break;
+          case Media.NFC:
+            this.navCtrl.push(NfcSenderPage, {
+              uuid: this.listUUID,
+              request: { request: MenuRequestType.SEND, media: Media.NFC }
+            });
+            break;
+          case Media.CLOUD:
+            this.navCtrl.push(CloudSenderPage, {
+              uuid: this.listUUID,
+              request: { request: MenuRequestType.SEND, media: Media.CLOUD }
             });
             break;
         }
@@ -153,6 +198,18 @@ export class TodoListPage extends GenericPage {
             this.navCtrl.push(QrcodeGeneratePage, {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SHARE, media: Media.QR_CODE }
+            });
+            break;
+          case Media.NFC:
+            this.navCtrl.push(NfcSenderPage, {
+              uuid: this.listUUID,
+              request: { request: MenuRequestType.SHARE, media: Media.NFC }
+            });
+            break;
+          case Media.CLOUD:
+            this.navCtrl.push(CloudSenderPage, {
+              uuid: this.listUUID,
+              request: { request: MenuRequestType.SHARE, media: Media.CLOUD }
             });
             break;
         }

@@ -12,11 +12,13 @@ import { SettingServiceProvider } from './../../providers/setting/setting-servic
 })
 export class SettingsPage {
   public autoLogIn: boolean = false;
-  public notifWhen: string = '0';
   public disableOffline: boolean = false;
   public disableSMS: boolean = false;
   public disableNotification: boolean = false;
   public autoReadAlert: boolean = false;
+  public autoImport: boolean = false;
+  public enableSTS: boolean = false;
+  public notifWhen: string = '0';
   public setting = Settings;
 
   constructor(
@@ -51,6 +53,14 @@ export class SettingsPage {
 
     this.settingCtrl.getSetting(Settings.DISABLE_SMS).then(res => {
       this.disableSMS = res === 'true';
+    });
+
+    this.settingCtrl.getSetting(Settings.AUTO_IMPORT).then(res => {
+      this.autoImport = res === 'true';
+    });
+
+    this.settingCtrl.getSetting(Settings.ENABLE_STS).then(res => {
+      this.enableSTS = res === 'true';
     });
   }
 

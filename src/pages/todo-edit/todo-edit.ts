@@ -99,7 +99,7 @@ export class TodoEditPage extends GenericPage {
       name: [todo.name, Validators.required],
       desc: [todo.desc],
       notif: [todo.notif, Validators.required],
-      sendSMS: [todo.sendSMS, Validators.required],
+      sendSMS: [todo.SMSBeforeDeadline, Validators.required],
       SMSNumber: [todo.name],
       complete: [todo.name, Validators.required],
       deadline: [todo.deadline]
