@@ -24,11 +24,7 @@ import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AlertController, IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { NgxQRCodeModule } from 'ngx-qrcode2';
 
-import { AuthentificationPage } from '../pages/authentification/authentification';
-import { HomePage } from '../pages/home/home';
-import { ListEditPage } from '../pages/list-edit/list-edit';
-import { QrReaderPage } from '../pages/list-receiver/qr-reader/qr-reader';
-import { TabsPage } from '../pages/tabs/tabs';
+import { ComponentsModule } from '../components/components.module';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
 import { CloudServiceProvider } from '../providers/cloud-service/cloud-service';
 import { MapServiceProvider } from '../providers/map-service/map-service';
@@ -38,66 +34,23 @@ import { SettingServiceProvider } from '../providers/setting/setting-service';
 import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
-import { HeaderComponent } from './../components/header/header';
-import { CloudSenderPage } from './../pages/list-sender/cloud-sender/cloud-sender';
-import { NfcSenderPage } from './../pages/list-sender/nfc-sender/nfc-sender';
-import { QrcodeGeneratePage } from './../pages/list-sender/qrcode-generate/qrcode-generate';
-import { PopoverOptionsPage } from './../pages/popover-options/popover-options';
-import { SettingsPage } from './../pages/settings/settings';
-import { TodoEditPage } from './../pages/todo-edit/todo-edit';
-import { TodoListPage } from './../pages/todo-list/todo-list';
-import { TodoPage } from './../pages/todo/todo';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-import { ContactModalPage } from '../pages/contact-modal/contact-modal';
 
 @NgModule({
-  declarations: [
-    MyApp,
-    HomePage,
-    TodoListPage,
-    TabsPage,
-    TodoPage,
-    TodoEditPage,
-    AuthentificationPage,
-    HeaderComponent,
-    ListEditPage,
-    PopoverOptionsPage,
-    QrReaderPage,
-    QrcodeGeneratePage,
-    SettingsPage,
-    NfcSenderPage,
-    CloudSenderPage,
-    ContactModalPage
-  ],
+  declarations: [MyApp],
   imports: [
     BrowserModule,
     NgxQRCodeModule,
     IonicModule.forRoot(MyApp),
     AngularFireModule.initializeApp(FirebaseCredentials),
     AngularFireAuthModule,
-    AngularFirestoreModule.enablePersistence()
+    AngularFirestoreModule.enablePersistence(),
+    ComponentsModule
   ],
   bootstrap: [IonicApp],
-  entryComponents: [
-    MyApp,
-    TodoListPage,
-    HomePage,
-    TabsPage,
-    TodoPage,
-    TodoEditPage,
-    AuthentificationPage,
-    HeaderComponent,
-    ListEditPage,
-    PopoverOptionsPage,
-    QrReaderPage,
-    QrcodeGeneratePage,
-    SettingsPage,
-    NfcSenderPage,
-    CloudSenderPage,
-    ContactModalPage
-  ],
+  entryComponents: [MyApp],
   providers: [
     StatusBar,
     SplashScreen,

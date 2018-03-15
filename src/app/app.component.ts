@@ -1,16 +1,14 @@
 import { Component } from '@angular/core';
+import { Keyboard } from '@ionic-native/keyboard';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { Platform } from 'ionic-angular';
-import { Keyboard } from '@ionic-native/keyboard';
-
-import { TabsPage } from '../pages/tabs/tabs';
 
 @Component({
   templateUrl: 'app.html'
 })
 export class MyApp {
-  public rootPage: any = TabsPage;
+  public rootPage: any = 'TabsPage';
 
   constructor(
     platform: Platform,

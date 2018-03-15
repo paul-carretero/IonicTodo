@@ -1,18 +1,18 @@
-import { ISimpleContact } from './../../../model/simple-contact';
-import { ContactModalPage } from './../../contact-modal/contact-modal';
 import { Component } from '@angular/core';
+import { ILatLng } from '@ionic-native/google-maps';
 import {
   AlertController,
   IonicPage,
   LoadingController,
+  ModalController,
   NavController,
   NavParams,
-  ToastController,
-  ModalController
+  ToastController
 } from 'ionic-angular';
 
 import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 import { ICloudSharedList } from './../../../model/cloud-shared-list';
+import { ISimpleContact } from './../../../model/simple-contact';
 import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-service';
 import { EventServiceProvider } from './../../../providers/event/event-service';
 import { MapServiceProvider } from './../../../providers/map-service/map-service';
@@ -20,7 +20,6 @@ import { SpeechSynthServiceProvider } from './../../../providers/speech-synth-se
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { Global } from './../../../shared/global';
 import { GenericSharer } from './../generic-sharer';
-import { ILatLng } from '@ionic-native/google-maps';
 
 @IonicPage()
 @Component({
@@ -95,7 +94,7 @@ export class CloudSenderPage extends GenericSharer {
   }
 
   public openContactPopup(): void {
-    const contactModal = this.modalCtrl.create(ContactModalPage, {
+    const contactModal = this.modalCtrl.create('ContactModalPage', {
       contacts: this.contactList,
       onlyEmail: true
     });

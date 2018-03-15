@@ -1,11 +1,10 @@
-import { PopoverOptionsPage } from './../../pages/popover-options/popover-options';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MenuController, PopoverController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
+import { MenuRequestType } from '../../model/menu-request-type';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { IPageData } from './../../model/page-data';
-import { MenuRequestType } from '../../model/menu-request-type';
 
 @Component({
   selector: 'HeaderComponent',
@@ -39,7 +38,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   public presentPopover(myEvent): void {
-    const popover = this.popoverCtrl.create(PopoverOptionsPage);
+    const popover = this.popoverCtrl.create('PopoverOptionsPage');
     popover.present({
       ev: myEvent
     });

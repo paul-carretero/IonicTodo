@@ -3,11 +3,13 @@ import {
   AlertController,
   LoadingController,
   NavController,
-  ToastController
+  ToastController,
+  IonicPage
 } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 
-import { ListType, ITodoList } from '../../model/todo-list';
+import { ITodoList, ListType } from '../../model/todo-list';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
@@ -15,9 +17,6 @@ import { IMenuRequest } from './../../model/menu-request';
 import { ITodoItem } from './../../model/todo-item';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { Global } from './../../shared/global';
-import { ListEditPage } from './../list-edit/list-edit';
-import { TodoListPage } from './../todo-list/todo-list';
-import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 /**
  * Page principale de l'application.
@@ -26,6 +25,7 @@ import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
  * @class HomePage
  * @extends {GenericPage}
  */
+@IonicPage()
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
@@ -188,7 +188,7 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   public selectTodoList(uuid: string): void {
-    this.navCtrl.push(TodoListPage, { uuid: uuid });
+    this.navCtrl.push('TodoListPage', { uuid: uuid });
   }
 
   /**
@@ -197,7 +197,7 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   public createTodoList(): void {
-    this.navCtrl.push(ListEditPage, { uuid: null });
+    this.navCtrl.push('ListEditPage', { uuid: null });
   }
 
   /**

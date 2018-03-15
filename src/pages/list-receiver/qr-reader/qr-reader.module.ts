@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
 import { QrReaderPage } from './qr-reader';
+import { ComponentsModule } from '../../../components/components.module';
 
 /**
  * @export
@@ -8,6 +9,7 @@ import { QrReaderPage } from './qr-reader';
  */
 @NgModule({
   declarations: [QrReaderPage],
-  imports: [IonicPageModule.forChild(QrReaderPage)]
+  imports: [IonicPageModule.forChild(QrReaderPage), ComponentsModule],
+  exports: [ComponentsModule]
 })
 export class QrReaderPageModule {}

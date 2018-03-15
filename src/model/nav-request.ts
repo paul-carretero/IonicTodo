@@ -1,4 +1,4 @@
 export interface INavRequest {
-  page: any;
+  page: string;
   data?: any;
 }

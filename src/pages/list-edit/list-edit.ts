@@ -1,26 +1,26 @@
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs';
-import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
-import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
-import { ListType } from './../../model/todo-list';
-import { IPageData } from './../../model/page-data';
-import { Global } from './../../shared/global';
-import { EventServiceProvider } from './../../providers/event/event-service';
 import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
+  AlertController,
   IonicPage,
+  LoadingController,
   NavController,
   NavParams,
-  AlertController,
-  LoadingController,
   ToastController
 } from 'ionic-angular';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
-import { GenericPage } from '../../shared/generic-page';
-import { TodoListPage } from '../todo-list/todo-list';
+import { Subscription } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
+
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
+import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
+import { GenericPage } from '../../shared/generic-page';
+import { IPageData } from './../../model/page-data';
+import { ListType } from './../../model/todo-list';
+import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
+import { EventServiceProvider } from './../../providers/event/event-service';
+import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
+import { Global } from './../../shared/global';
 
 /**
  * Présente la listes des todo d'une liste de todo.
@@ -262,7 +262,7 @@ export class ListEditPage extends GenericPage {
     );
     this.navCtrl.pop();
     this.navCtrl.pop();
-    this.navCtrl.push(TodoListPage, { uuid: this.listUUID });
+    this.navCtrl.push('TodoListPage', { uuid: this.listUUID });
   }
 
   /**
@@ -296,7 +296,7 @@ export class ListEditPage extends GenericPage {
       destType
     );
     this.navCtrl.pop();
-    this.navCtrl.push(TodoListPage, { uuid: nextUuid });
+    this.navCtrl.push('TodoListPage', { uuid: nextUuid });
   }
 
   /**************************************************************************/

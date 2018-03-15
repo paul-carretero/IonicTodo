@@ -1,5 +1,3 @@
-import { IAuthor } from './../../model/author';
-import { NfcSenderPage } from './../list-sender/nfc-sender/nfc-sender';
 import { Component } from '@angular/core';
 import {
   AlertController,
@@ -14,20 +12,17 @@ import { Observable } from 'rxjs/Observable';
 
 import { Media } from '../../model/media';
 import { IMenuRequest } from '../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
-import { ListEditPage } from '../list-edit/list-edit';
+import { IAuthor } from './../../model/author';
 import { IPageData } from './../../model/page-data';
 import { ITodoItem } from './../../model/todo-item';
 import { ITodoList, ListType } from './../../model/todo-list';
 import { Global } from './../../shared/global';
-import { QrcodeGeneratePage } from './../list-sender/qrcode-generate/qrcode-generate';
-import { TodoEditPage } from './../todo-edit/todo-edit';
-import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
-import { MenuRequestType } from '../../model/menu-request-type';
-import { CloudSenderPage } from '../list-sender/cloud-sender/cloud-sender';
 
 @IonicPage()
 @Component({
@@ -162,7 +157,7 @@ export class TodoListPage extends GenericPage {
         break;
       }
       case MenuRequestType.EDIT: {
-        this.navCtrl.push(ListEditPage, { uuid: this.listUUID });
+        this.navCtrl.push('ListEditPage', { uuid: this.listUUID });
         break;
       }
       case MenuRequestType.IMPORT: {
@@ -172,19 +167,19 @@ export class TodoListPage extends GenericPage {
       case MenuRequestType.SEND: {
         switch (req.media) {
           case Media.QR_CODE:
-            this.navCtrl.push(QrcodeGeneratePage, {
+            this.navCtrl.push('QrcodeGeneratePage', {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SEND, media: Media.QR_CODE }
             });
             break;
           case Media.NFC:
-            this.navCtrl.push(NfcSenderPage, {
+            this.navCtrl.push('NfcSenderPage', {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SEND, media: Media.NFC }
             });
             break;
           case Media.CLOUD:
-            this.navCtrl.push(CloudSenderPage, {
+            this.navCtrl.push('CloudSenderPage', {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SEND, media: Media.CLOUD }
             });
@@ -195,19 +190,19 @@ export class TodoListPage extends GenericPage {
       case MenuRequestType.SHARE: {
         switch (req.media) {
           case Media.QR_CODE:
-            this.navCtrl.push(QrcodeGeneratePage, {
+            this.navCtrl.push('QrcodeGeneratePage', {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SHARE, media: Media.QR_CODE }
             });
             break;
           case Media.NFC:
-            this.navCtrl.push(NfcSenderPage, {
+            this.navCtrl.push('NfcSenderPage', {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SHARE, media: Media.NFC }
             });
             break;
           case Media.CLOUD:
-            this.navCtrl.push(CloudSenderPage, {
+            this.navCtrl.push('CloudSenderPage', {
               uuid: this.listUUID,
               request: { request: MenuRequestType.SHARE, media: Media.CLOUD }
             });
@@ -239,7 +234,7 @@ export class TodoListPage extends GenericPage {
   }
 
   public selectTodo(todoUUID: string): void {
-    this.navCtrl.push(TodoEditPage, {
+    this.navCtrl.push('TodoEditPage', {
       todoUUID: todoUUID,
       listUUID: this.listUUID
     });
@@ -254,7 +249,7 @@ export class TodoListPage extends GenericPage {
   }
 
   public createTodo(): void {
-    this.navCtrl.push(TodoEditPage, {
+    this.navCtrl.push('TodoEditPage', {
       todoUUID: null,
       listUUID: this.listUUID
     });

@@ -4,7 +4,6 @@ import { Observable } from 'rxjs/Observable';
 
 import { ITodoItem } from '../../model/todo-item';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
-import { TodoEditPage } from './../todo-edit/todo-edit';
 
 @IonicPage()
 @Component({
@@ -38,7 +37,7 @@ export class TodoPage implements OnInit {
   }
 
   public edit(todoUUID: string): void {
-    this.navCtrl.push(TodoEditPage, {
+    this.navCtrl.push('TodoEditPage', {
       todoUUID: todoUUID,
       listUUID: this.listUUID
     });

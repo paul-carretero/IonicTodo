@@ -1,15 +1,11 @@
-import { QrReaderPage } from './../list-receiver/qr-reader/qr-reader';
-import { SettingsPage } from './../settings/settings';
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
-import { AlertController, Tabs, ToastController } from 'ionic-angular';
+import { AlertController, Tabs, ToastController, IonicPage } from 'ionic-angular';
 
+import { NfcProvider } from '../../providers/nfc/nfc';
 import { Global } from '../../shared/global';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { EventServiceProvider } from './../../providers/event/event-service';
-import { AuthentificationPage } from './../authentification/authentification';
-import { HomePage } from './../home/home';
-import { NfcProvider } from '../../providers/nfc/nfc';
 
 /**
  * Page de nav de base de l'application
@@ -17,13 +13,14 @@ import { NfcProvider } from '../../providers/nfc/nfc';
  * @export
  * @class TabsPage
  */
+@IonicPage()
 @Component({
   templateUrl: 'tabs.html'
 })
 export class TabsPage {
-  public readonly tab1Root = HomePage;
-  public readonly tab2Root = AuthentificationPage;
-  public readonly tab3Root = SettingsPage;
+  public readonly tab1Root = 'HomePage';
+  public readonly tab2Root = 'AuthentificationPage';
+  public readonly tab3Root = 'SettingsPage';
   public JeVoisBien = false;
   @ViewChild('navTabs') tabRef: Tabs;
 
@@ -85,7 +82,7 @@ export class TabsPage {
   }
 
   public showQrPage(): void {
-    this.evtCtrl.getNavRequestSubject().next({ page: QrReaderPage });
+    this.evtCtrl.getNavRequestSubject().next({ page: 'QrReaderPage' });
   }
 
   public showCloudPage(): void {

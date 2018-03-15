@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
 import { TodoEditPage } from './todo-edit';
+import { ComponentsModule } from '../../components/components.module';
 
 /**
  * @export
@@ -8,6 +9,7 @@ import { TodoEditPage } from './todo-edit';
  */
 @NgModule({
   declarations: [TodoEditPage],
-  imports: [IonicPageModule.forChild(TodoEditPage)]
+  imports: [IonicPageModule.forChild(TodoEditPage), ComponentsModule],
+  exports: [ComponentsModule]
 })
 export class TodoEditPageModule {}
