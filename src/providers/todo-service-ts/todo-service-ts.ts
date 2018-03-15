@@ -652,11 +652,14 @@ export class TodoServiceProvider {
    * Permet de créer une liste. La liste sera créer localement si hors ligne ou non authentifié
    *
    * @param {ITodoList} data la liste
-   * @param {ListType} [type]
+   * @param {ListType.LOCAL | ListType.PRIVATE} [type]
    * @returns {Promise<string>}
    * @memberof TodoServiceProvider
    */
-  public async addList(data: ITodoList, type?: ListType): Promise<string> {
+  public async addList(
+    data: ITodoList,
+    type?: ListType.LOCAL | ListType.PRIVATE
+  ): Promise<string> {
     const newUuid: string = uuid();
 
     let dbCollection = this.todoListCollection;

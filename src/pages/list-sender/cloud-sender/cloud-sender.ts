@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { ILatLng } from '@ionic-native/google-maps';
 import {
   AlertController,
   IonicPage,
@@ -69,17 +68,12 @@ export class CloudSenderPage extends GenericSharer {
     return ['partager', 'partagée', 'partage'];
   }
 
-  private roundILatLng(pos: ILatLng): void {
-    pos.lat = Global.precisionRound(pos.lat, 3);
-    pos.lng = Global.precisionRound(pos.lng, 3);
-  }
-
   public async share(): Promise<void> {
     this.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
 
-    const coord = await this.mapService.getMyPosition();
-    this.roundILatLng(coord);
+    let coord = await this.mapService.getMyPosition();
+    coord = Global.roundILatLng(coord);
     this.shareData.coord = coord;
 
     this.shareData.email = this.authCtrl.getUser().email;

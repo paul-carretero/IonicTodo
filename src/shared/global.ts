@@ -1,6 +1,7 @@
 import { ICloudSharedList } from './../model/cloud-shared-list';
 import { ITodoList } from './../model/todo-list';
 import { IPageData } from './../model/page-data';
+import { ILatLng } from '@ionic-native/google-maps';
 
 /**
  * Contient des structure de données constante (ou semi constante)
@@ -156,8 +157,19 @@ export class Global {
     icon: null
   };
 
+  /**************************************************************************/
+  /********************************* HELPER *********************************/
+  /**************************************************************************/
+
   public static precisionRound(number, precision): number {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
+  }
+
+  public static roundILatLng(pos: ILatLng): ILatLng {
+    return {
+      lat: Global.precisionRound(pos.lat, 3),
+      lng: Global.precisionRound(pos.lng, 3)
+    };
   }
 }
