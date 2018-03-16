@@ -14,4 +14,12 @@ export interface IAppUser {
    * @memberof AppUser
    */
   todoListSharedWithMe: ITodoListPath[];
+
+  /**
+   * Utilisé pour récupérer un timestamp serveur de la part d'un utilisateur connecté
+   *
+   * @type {*}
+   * @memberof IAppUser
+   */
+  timestamp?: any;
 }

@@ -1,9 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  CollectionReference,
-  QueryDocumentSnapshot,
-  FieldValue
-} from '@firebase/firestore-types';
+import { CollectionReference, QueryDocumentSnapshot } from '@firebase/firestore-types';
 import { ILatLng } from '@ionic-native/google-maps';
 import {
   AngularFirestore,
@@ -24,12 +20,17 @@ import { Global } from './../../shared/global';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { MapServiceProvider } from './../map-service/map-service';
 import { SettingServiceProvider } from './../setting/setting-service';
+import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 
 @Injectable()
 export class CloudServiceProvider {
+  private static readonly MAX_SECONDS = 10;
+
   private readonly cloudListCollection: AngularFirestoreCollection<ICloudSharedList>;
 
   private availableListsSub: Subscription;
+
+  private availableSTSListsSub: Subscription;
 
   constructor(
     private readonly firestoreCtrl: AngularFirestore,
@@ -37,11 +38,97 @@ export class CloudServiceProvider {
     private readonly toastCtrl: ToastController,
     private readonly alertCtrl: AlertController,
     private readonly settingsCtrl: SettingServiceProvider,
-    private readonly mapCtrl: MapServiceProvider
+    private readonly mapCtrl: MapServiceProvider,
+    private readonly todoCtrl: TodoServiceProvider
   ) {
     this.cloudListCollection = this.firestoreCtrl.collection<ICloudSharedList>('cloud/');
+  }
 
-    this.authCtrl.getConnexionSubject().subscribe(this.watchForAvailableList);
+  public listenForUpdate(): void {
+    this.authCtrl
+      .getConnexionSubject()
+      .subscribe((user: User) => this.watchForAvailableList(user));
+  }
+
+  public async stsExport(listUuid: string): Promise<void> {
+    const path = this.todoCtrl.getListLink(listUuid);
+    const cloudData = Global.getDefaultCloudShareData();
+    cloudData.authorUuid = this.authCtrl.getUserId();
+
+    let myPos: ILatLng = await this.mapCtrl.getMyPosition();
+    if (myPos == null) {
+      this.displayToast(
+        'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
+      );
+      return;
+    }
+    myPos = Global.roundILatLng(myPos);
+
+    cloudData.coord = myPos;
+    cloudData.email = null;
+    cloudData.list = path;
+    cloudData.password = null;
+    cloudData.shakeToShare = true;
+    cloudData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+    this.postNewShareRequest(cloudData);
+
+    const name = await this.getListName(path);
+    this.displayToast(
+      'la liste ' +
+        name +
+        ' a été distribuée à toutes les personnes à proximité ayant activé ShakeToShare et ayant agitée leur téléphone'
+    );
+  }
+
+  public async postNewShareRequest(data: ICloudSharedList): Promise<void> {
+    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+    data.timestamp = timestamp;
+    const doc = this.cloudListCollection.doc<ICloudSharedList>(uuid());
+    await doc.set(data);
+  }
+
+  /**
+   * Lors de chaque connexion, supprime les anciens documents partagé sur le cloud
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof CloudServiceProvider
+   */
+  private async cleanUp(): Promise<void> {
+    const now = await this.authCtrl.getServerTimestamp();
+    const stsExpire = new Date(now.getTime() - CloudServiceProvider.MAX_SECONDS * 2000);
+    const cloudExpire = new Date(now.getTime() - 24 * 3600 * 1000);
+
+    const forCleanSTSCollection = this.firestoreCtrl.collection<ICloudSharedList>(
+      'cloud',
+      (ref: CollectionReference) =>
+        ref.where('shakeToShare', '==', true).where('timestamp', '<', stsExpire)
+    );
+
+    const forCleanCloudCollection = this.firestoreCtrl.collection<ICloudSharedList>(
+      'cloud',
+      (ref: CollectionReference) =>
+        ref.where('shakeToShare', '==', false).where('timestamp', '<', cloudExpire)
+    );
+
+    const subSTS = forCleanSTSCollection
+      .snapshotChanges()
+      .subscribe((refs: DocumentChangeAction[]) => {
+        for (const ref of refs) {
+          ref.payload.doc.ref.delete();
+        }
+        subSTS.unsubscribe();
+      });
+
+    const subCloud = forCleanCloudCollection
+      .snapshotChanges()
+      .subscribe((refs: DocumentChangeAction[]) => {
+        for (const ref of refs) {
+          ref.payload.doc.ref.delete();
+        }
+        subCloud.unsubscribe();
+      });
   }
 
   private tryUnsub(sub: Subscription): void {
@@ -52,40 +139,91 @@ export class CloudServiceProvider {
 
   private watchForAvailableList(user: User): void {
     this.tryUnsub(this.availableListsSub);
+    this.tryUnsub(this.availableSTSListsSub);
 
     if (user == null) {
       return;
     }
+    this.cleanUp();
 
     const forImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
-      'cloud/',
+      'cloud',
       (ref: CollectionReference) => ref.where('email', '==', this.authCtrl.getEmail())
     );
+
+    const forSTSImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
+      'cloud',
+      (ref: CollectionReference) => ref.where('shakeToShare', '==', true)
+    );
+
     this.availableListsSub = forImportCollection
       .snapshotChanges()
-      .subscribe(this.importSharedListsWrapper);
+      .subscribe((docChanges: DocumentChangeAction[]) => {
+        this.importSharedListsWrapper(docChanges);
+      });
+
+    this.availableSTSListsSub = forSTSImportCollection
+      .snapshotChanges()
+      .subscribe((docChanges: DocumentChangeAction[]) => {
+        this.importSharedListsWrapper(docChanges);
+      });
   }
 
-  private getListName(list: ITodoListPath): Promise<string> {
-    return new Promise(resolve => {
-      const doc = this.firestoreCtrl.doc<ITodoList>(
-        'user/' + list.userUUID + '/list/' + list.listUUID
-      );
+  private async getListName(list: ITodoListPath): Promise<string> {
+    const doc = this.firestoreCtrl.doc<ITodoList>(
+      'user/' + list.userUUID + '/list/' + list.listUUID
+    );
+    const ref = await doc.ref.get();
 
-      doc
-        .update({})
-        .then(() => {
-          const sub: Subscription = doc
-            .valueChanges()
-            .subscribe((todoList: ITodoList) => {
-              sub.unsubscribe();
-              resolve(todoList.name);
-            });
-        })
-        .catch(() => {
-          resolve(null);
-        });
-    });
+    if (ref.exists) {
+      return ref.get('name');
+    }
+    return null;
+  }
+
+  private async importByPassword(data: ICloudSharedList): Promise<void> {
+    let pass: string = '';
+    let hasCancel: boolean = true;
+    const name: string = await this.getListName(data.list as ITodoListPath);
+
+    while (pass !== data.password && !hasCancel) {
+      try {
+        pass = await this.presentPrompt(
+          'Veuillez saisir le mot de passe pour la liste "' + name + '"'
+        );
+      } catch (error) {
+        hasCancel = false;
+      }
+    }
+
+    if (!hasCancel) {
+      await this.importSharedList(data.list);
+    }
+  }
+
+  private async importBySTS(data: ICloudSharedList): Promise<void> {
+    const stsEnabled: boolean =
+      (await this.settingsCtrl.getSetting(Settings.ENABLE_STS)) === 'true';
+
+    if (stsEnabled) {
+      let myPos: ILatLng = await this.mapCtrl.getMyPosition();
+
+      if (myPos == null) {
+        this.displayToast(
+          'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
+        );
+        return;
+      }
+
+      myPos = Global.roundILatLng(myPos);
+
+      if (Global.equalCoord(myPos, data.coord)) {
+        const now = await this.timestampAreCloseToNow(data.timestamp);
+        if (now) {
+          this.todoCtrl.importList(data.list);
+        }
+      }
+    }
   }
 
   private async DocumentImportHandler(importdoc: QueryDocumentSnapshot): Promise<void> {
@@ -95,8 +233,7 @@ export class CloudServiceProvider {
     if (
       data == null ||
       data.list == null ||
-      data.list.magic !== Global.TODO_LIST_MAGIC ||
-      data.list.magic !== Global.LIST_PATH_MAGIC
+      data.authorUuid === this.authCtrl.getUserId()
     ) {
       return;
     }
@@ -108,61 +245,23 @@ export class CloudServiceProvider {
     }
 
     if (data.password != null) {
-      let pass: string = '';
-      let hasCancel: boolean = true;
-      let name: string = '';
-
-      if (data.list.magic === Global.LIST_PATH_MAGIC) {
-        name = await this.getListName(data.list as ITodoListPath);
-      }
-      if (data.list.magic === Global.TODO_LIST_MAGIC) {
-        name = (data.list as ITodoList).name;
-      }
-
-      while (pass !== data.password && !hasCancel) {
-        try {
-          pass = await this.presentPrompt(
-            'Veuillez saisir le mot de passe pour la liste "' + name + '"'
-          );
-        } catch (error) {
-          hasCancel = false;
-        }
-      }
-
-      if (!hasCancel) {
-        await this.importSharedList(data.list);
-      }
-
+      this.importByPassword(data);
       importdoc.ref.delete();
       return;
     }
 
-    if (data.shareWithShake != null && data.shareWithShake) {
-      const stsEnabled: boolean =
-        (await this.settingsCtrl.getSetting(Settings.ENABLE_STS)) === 'true';
-
-      if (stsEnabled) {
-        let myPos: ILatLng = await this.mapCtrl.getMyPosition();
-
-        if (myPos == null) {
-          this.displayToast(
-            'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
-          );
-          return;
-        }
-
-        myPos = Global.roundILatLng(myPos);
-        if (myPos.lat === data.coord.lat && myPos.lng === data.coord.lng) {
-          if (this.timestampAreClose(data.timestamp)) {
-          }
-        }
-      }
+    if (data.shakeToShare != null && data.shakeToShare) {
+      this.importBySTS(data);
+      importdoc.ref.delete();
+      return;
     }
   }
 
-  private timestampAreClose(ts1: FieldValue): boolean {
-    const ts2 = firebase.firestore.FieldValue.serverTimestamp();
-    return ts1 === ts2;
+  private async timestampAreCloseToNow(date: Date): Promise<boolean> {
+    const now = await this.authCtrl.getServerTimestamp();
+    const date_ts = Math.round(date.getTime() / 1000);
+    const now_ts = Math.round(now.getTime() / 1000);
+    return Math.abs(date_ts - now_ts) < CloudServiceProvider.MAX_SECONDS;
   }
 
   private importSharedListsWrapper(docChangeAction: DocumentChangeAction[]): void {
@@ -175,13 +274,13 @@ export class CloudServiceProvider {
     }
   }
 
-  private async importSharedList(list: ITodoList | ITodoListPath): Promise<void> {}
-
-  public async postNewShareRequest(data: ICloudSharedList): Promise<void> {
-    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-    data.timestamp = timestamp;
-    const doc = this.cloudListCollection.doc<ICloudSharedList>(uuid());
-    await doc.set(data);
+  private async importSharedList(list: ITodoListPath): Promise<void> {
+    if (list.shareByReference === true) {
+      await this.todoCtrl.addListLink(list);
+    } else {
+      await this.todoCtrl.importList(list);
+    }
+    this.displayToast('Une nouvelle liste partagée est disponible sur votre compte');
   }
 
   private displayToast(message: string): void {

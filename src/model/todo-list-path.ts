@@ -6,14 +6,6 @@
  */
 export interface ITodoListPath {
   /**
-   * Magic string pour identifier cette classe comme un lien vers une liste
-   *
-   * @type {string}
-   * @memberof ITodoListPath
-   */
-  magic?: string;
-
-  /**
    * Identifiant unique de l'utilisateur ayant créer le todo
    *
    * @type {string}
@@ -28,6 +20,14 @@ export interface ITodoListPath {
    * @memberof ITodoListPath
    */
   listUUID: string;
+
+  /**
+   * true si la liste doit être importé par référence (lien), false si l'on doit la cloner
+   *
+   * @type {boolean}
+   * @memberof ITodoListPath
+   */
+  shareByReference: boolean;
 
   /**
    * Défini si la liste doit être verrouillé en modification (ie insertion/suppression de todo et nom de liste)

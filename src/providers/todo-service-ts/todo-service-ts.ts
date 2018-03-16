@@ -282,27 +282,6 @@ export class TodoServiceProvider {
   }
 
   /**
-   * Permet de vérifier si le document considéré existe toujours (ie si l'utilisateur ayant créer la liste ne l'a pas supprimée)
-   *
-   * @private
-   * @param {AngularFirestoreDocument<TodoList>} doc une liste de todo
-   * @returns {Promise<boolean>}
-   * @memberof TodoServiceProvider
-   */
-  private checkIfExist(doc: AngularFirestoreDocument<ITodoList>): Promise<boolean> {
-    return new Promise<boolean>(resolve => {
-      doc
-        .update({})
-        .then(() => {
-          resolve(true);
-        })
-        .catch(() => {
-          resolve(false);
-        });
-    });
-  }
-
-  /**
    * Met à jour le tableau de document firestore des listes partagées en fonction des données utilisateur
    * Supprime les liste qui ne sont plus partagée
    *
@@ -311,9 +290,8 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  private updateSharedListCollection(data: IAppUser): void {
+  private async updateSharedListCollection(data: IAppUser): Promise<void> {
     const pathToDelete: string[] = [];
-    const promises: Promise<void>[] = [];
     this.sharedTodoCollection = [];
 
     for (const path of data.todoListSharedWithMe) {
@@ -321,26 +299,20 @@ export class TodoServiceProvider {
         'user/' + path.userUUID + '/list/' + path.listUUID
       );
 
-      promises.push(
-        this.checkIfExist(docToAdd).then((exist: boolean) => {
-          if (exist) {
-            this.sharedTodoCollection.push(docToAdd);
-          } else {
-            pathToDelete.push(path.listUUID);
-          }
-        })
-      );
+      if ((await docToAdd.ref.get()).exists) {
+        this.sharedTodoCollection.push(docToAdd);
+      } else {
+        pathToDelete.push(path.listUUID);
+      }
     }
 
-    Promise.all(promises).then(() => {
-      this.tryUnsub(this.sharedListSub);
-      this.sharedTodoLists.next([]);
-      this.listenForSharedUpdate();
+    this.tryUnsub(this.sharedListSub);
+    this.sharedTodoLists.next([]);
+    this.listenForSharedUpdate();
 
-      for (const listUUID of pathToDelete) {
-        this.removeListLink(listUUID);
-      }
-    });
+    for (const listUUID of pathToDelete) {
+      this.removeListLink(listUUID);
+    }
   }
 
   /**
@@ -536,7 +508,11 @@ export class TodoServiceProvider {
    */
   public getListLink(listUUID: string): ITodoListPath {
     if (this.getListType(listUUID) !== ListType.SHARED) {
-      return { userUUID: this.authCtrl.getUserId(), listUUID: listUUID };
+      return {
+        userUUID: this.authCtrl.getUserId(),
+        listUUID: listUUID,
+        shareByReference: true
+      };
     } else {
       const sharedSnap = this.currentUserData.getValue().todoListSharedWithMe;
       for (const path of sharedSnap) {
@@ -646,6 +622,28 @@ export class TodoServiceProvider {
         break;
     }
     return lists.find(d => d.uuid === listUuid);
+  }
+
+  /**
+   * Recherche une liste en sa basant sur son chemin absolu dans la base firestore
+   *
+   * @param {ITodoListPath} path
+   * @returns {Promise<ITodoList>}
+   * @memberof TodoServiceProvider
+   */
+  public async getAListSnapshotFromPath(path: ITodoListPath): Promise<ITodoList> {
+    const doc = this.firestoreCtrl.doc<ITodoList>(
+      'user/' + path.userUUID + '/list/' + path.listUUID
+    );
+    const snap = await doc.ref.get();
+    return snap.data() as ITodoList;
+  }
+
+  public async importList(path: ITodoListPath): Promise<void> {
+    const listData = await this.getAListSnapshotFromPath(path);
+    listData.uuid = null;
+    listData.order = -1;
+    await this.addList(listData);
   }
 
   /**

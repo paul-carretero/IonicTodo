@@ -68,23 +68,33 @@ export class CloudSenderPage extends GenericSharer {
     return ['partager', 'partagée', 'partage'];
   }
 
-  public async share(): Promise<void> {
+  public async share(email: string): Promise<void> {
     this.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
 
     let coord = await this.mapService.getMyPosition();
     coord = Global.roundILatLng(coord);
     this.shareData.coord = coord;
-
-    this.shareData.email = this.authCtrl.getUser().email;
+    this.shareData.email = email;
     this.shareData.password = this.password;
-    this.shareData.shareWithShake = false;
+    this.shareData.shakeToShare = false;
+    this.shareData.authorUuid = this.authCtrl.getUserId();
 
     await this.cloudCtrl.postNewShareRequest(this.shareData);
 
     this.loading.dismiss();
     this.displayToast('La liste à été ' + this.sendPartage[1] + ' avec succès');
     this.navCtrl.pop();
+  }
+
+  public shareWrapper(): void {
+    if (this.contactList.size > 0) {
+      for (const contact of this.contactList.values()) {
+        this.share(contact.email);
+      }
+    } else {
+      this.share(null);
+    }
   }
 
   public openContactPopup(): void {

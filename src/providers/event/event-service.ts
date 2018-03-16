@@ -1,12 +1,12 @@
-import { ITodoList } from './../../model/todo-list';
+import { Injectable } from '@angular/core';
+import { Shake } from '@ionic-native/shake';
+import { BehaviorSubject, Subject } from 'rxjs';
+
+import { IMenuRequest } from '../../model/menu-request';
+import { IPageData } from '../../model/page-data';
 import { INavRequest } from './../../model/nav-request';
 import { Global } from './../../shared/global';
-import { Injectable } from '@angular/core';
-import { Subject, BehaviorSubject } from 'rxjs';
-import { IPageData } from '../../model/page-data';
-import { IMenuRequest } from '../../model/menu-request';
-import { ITodoListPath } from '../../model/todo-list-path';
-import { Shake } from '@ionic-native/shake';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 /**
  * Après analyse, il a été préférer d'implémenter une classe d'Event plutôt que d'utiliser le service Ionic native Events
@@ -47,26 +47,16 @@ export class EventServiceProvider {
    */
   private readonly navRequestSubject: Subject<INavRequest>;
 
-  /**
-   * sujet sur lequel des json d'import de liste peuvent être envoyée
-   *
-   * @private
-   * @type {(Subject<ITodoList | ITodoListPath>)}
-   * @memberof EventServiceProvider
-   */
-  private readonly importJsonSubject: Subject<ITodoList | ITodoListPath>;
-
   constructor(private readonly shake: Shake) {
     this.headerData = new BehaviorSubject<IPageData>(Global.getDefaultPageData());
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
-    this.importJsonSubject = new Subject<ITodoList | ITodoListPath>();
     this.shakeDetect();
   }
 
   private shakeDetect(): void {
     this.shake.startWatch(60).subscribe(() => {
-      console.log('shaking!!!');
+      this.menuRequestSubject.next({ request: MenuRequestType.SHAKE });
     });
   }
 
@@ -80,9 +70,5 @@ export class EventServiceProvider {
 
   public getNavRequestSubject(): Subject<INavRequest> {
     return this.navRequestSubject;
-  }
-
-  public getImportJsonSubject(): Subject<ITodoList | ITodoListPath> {
-    return this.importJsonSubject;
   }
 }

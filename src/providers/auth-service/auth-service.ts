@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 import { AngularFireAuth } from 'angularfire2/auth';
+import { AngularFirestore } from 'angularfire2/firestore';
+import * as firebase from 'firebase';
 import { User } from 'firebase/app';
 import { BehaviorSubject } from 'rxjs';
 
@@ -15,7 +17,8 @@ export class AuthServiceProvider {
   constructor(
     private readonly firebaseAuth: AngularFireAuth,
     private readonly devideIdCtrl: UniqueDeviceID,
-    private readonly settingCtrl: SettingServiceProvider
+    private readonly settingCtrl: SettingServiceProvider,
+    private readonly firestoreCtrl: AngularFirestore
   ) {
     this.connexionSubject = new BehaviorSubject<User>(null);
     this.applyAutoLoginSetting();
@@ -37,6 +40,7 @@ export class AuthServiceProvider {
       this.useHorsConnexion = false;
       if (user != null && user.uid != null) {
         this.connexionSubject.next(user);
+        this.getServerTimestamp();
       } else {
         this.connexionSubject.next(null);
       }
@@ -107,5 +111,19 @@ export class AuthServiceProvider {
       throw new Error('Utilisateur non connecté');
     }
     return this.firebaseAuth.auth.currentUser.email;
+  }
+
+  public async getServerTimestamp(): Promise<Date> {
+    if (this.isConnected()) {
+      const doc = this.firestoreCtrl.doc<{ timestamp: any }>(
+        'timestamp/' + this.getUserId()
+      );
+      const sts = firebase.firestore.FieldValue.serverTimestamp();
+      await doc.set({ timestamp: sts });
+      const ref = await doc.ref.get();
+      const ts = ref.get('timestamp', { serverTimestamps: 'estimate' });
+      return new Date(ts);
+    }
+    return null;
   }
 }

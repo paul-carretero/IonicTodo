@@ -1,8 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
-import { AlertController, Tabs, ToastController, IonicPage } from 'ionic-angular';
+import { AlertController, IonicPage, Tabs, ToastController } from 'ionic-angular';
 
-import { NfcProvider } from '../../providers/nfc/nfc';
 import { Global } from '../../shared/global';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { EventServiceProvider } from './../../providers/event/event-service';
@@ -29,8 +28,7 @@ export class TabsPage {
     private readonly flashlight: Flashlight,
     private readonly alertCtrl: AlertController,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly toastCtrl: ToastController,
-    private readonly nfc: NfcProvider
+    private readonly toastCtrl: ToastController
   ) {}
 
   get allowNavigate(): boolean {
@@ -129,9 +127,5 @@ export class TabsPage {
    */
   public home(): void {
     this.setRoot(Global.HOMEPAGE);
-  }
-
-  public writenfc(): void {
-    this.nfc.write('nfc write hello world');
   }
 }

@@ -7,7 +7,7 @@ import {
   ToastController
 } from 'ionic-angular';
 
-import { Global } from './../../shared/global';
+import { ITodoListPath } from './../../model/todo-list-path';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 
 @Injectable()
@@ -21,7 +21,9 @@ export class NfcProvider {
     private readonly todoCtrl: TodoServiceProvider,
     private readonly toastCtrl: ToastController,
     private readonly loadingCtrl: LoadingController
-  ) {
+  ) {}
+
+  public listenForEvents(): void {
     this.listenToTag();
   }
 
@@ -51,24 +53,25 @@ export class NfcProvider {
       });
   }
 
-  private async publishJson(json: any): Promise<void> {
-    if (json == null || json.magic == null) {
+  private async publishJson(json: ITodoListPath): Promise<void> {
+    if (json == null) {
       return;
     }
 
     const canImport: boolean = await this.confirm();
 
-    if (canImport && json.magic === Global.LIST_PATH_MAGIC) {
-      this.showLoading();
-      await this.todoCtrl.addListLink(json);
-      this.loading.dismiss();
-      this.importOK();
-    }
-    if (canImport && json.magic === Global.TODO_LIST_MAGIC) {
-      this.showLoading();
-      await this.todoCtrl.addList(json);
-      this.loading.dismiss();
-      this.importOK();
+    if (canImport) {
+      if (json.shareByReference === true) {
+        this.showLoading();
+        await this.todoCtrl.addListLink(json);
+        this.loading.dismiss();
+        this.importOK();
+      } else {
+        this.showLoading();
+        await this.todoCtrl.importList(json);
+        this.loading.dismiss();
+        this.importOK();
+      }
     }
   }
 

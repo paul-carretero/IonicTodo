@@ -32,6 +32,7 @@ export class AuthentificationPage extends GenericPage {
   public authForm: FormGroup;
   public userProfile: User;
   public offlineDisabled = true;
+  private static autoRedirect = true;
 
   constructor(
     public readonly navCtrl: NavController,
@@ -62,17 +63,30 @@ export class AuthentificationPage extends GenericPage {
    * @memberof AuthentificationPage
    */
   ionViewDidEnter(): void {
-    let notLogged = this.authCtrl.getConnexionSubject().getValue() == null;
     this.connSub = this.authCtrl.getConnexionSubject().subscribe((user: User) => {
       this.userProfile = user;
-      if (notLogged && user != null) {
+      if (user != null && AuthentificationPage.autoRedirect) {
+        AuthentificationPage.autoRedirect = false;
         this.navCtrl.parent.select(Global.HOMEPAGE);
+      } else {
+        AuthentificationPage.autoRedirect = true;
       }
-      notLogged = user == null;
     });
+
     this.settingCtrl.getSetting(Settings.DISABLE_OFFLINE).then((res: string) => {
       this.offlineDisabled = res === 'true';
     });
+
+    this.settingCtrl.getSetting(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
+      if (res != null && res !== '') {
+        this.authForm = this.formBuilder.group({
+          email: [res, Validators.email],
+          password: ['', Validators.required]
+        });
+      }
+    });
+
+    this.authForm.get('password').setValue('');
   }
 
   ionViewWillLeave(): void {
@@ -137,6 +151,8 @@ export class AuthentificationPage extends GenericPage {
   public async firebaseLogin(): Promise<void> {
     const email: string = this.authForm.get('email').value;
     const password: string = this.authForm.get('password').value;
+
+    this.settingCtrl.setSetting(Settings.LAST_FIRE_EMAIL_LOGIN, email);
 
     try {
       this.showLoading('tentative de login...');

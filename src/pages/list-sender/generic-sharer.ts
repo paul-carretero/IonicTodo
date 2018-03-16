@@ -1,5 +1,3 @@
-import { ITodoListPath } from './../../model/todo-list-path';
-import { Global } from './../../shared/global';
 import {
   AlertController,
   LoadingController,
@@ -9,13 +7,13 @@ import {
 } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
-import { ITodoList } from '../../model/todo-list';
+import { MenuRequestType } from '../../model/menu-request-type';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
-import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
-import { MenuRequestType } from '../../model/menu-request-type';
+import { ITodoListPath } from './../../model/todo-list-path';
 
 export class GenericSharer extends GenericPage {
   /**
@@ -31,7 +29,7 @@ export class GenericSharer extends GenericPage {
 
   public listShare: ITodoListPath;
 
-  public listSend: ITodoList;
+  public listSend: ITodoListPath;
 
   public choice: 'lock' | 'unlock' | 'send';
 
@@ -82,7 +80,7 @@ export class GenericSharer extends GenericPage {
     return JSON.stringify(this.listShare);
   }
 
-  get list(): ITodoList | ITodoListPath {
+  get list(): ITodoListPath {
     if (this.choice === 'send') {
       return this.listSend;
     }
@@ -97,13 +95,14 @@ export class GenericSharer extends GenericPage {
 
   private shareListHandler(): void {
     this.listShare = this.todoCtrl.getListLink(this.listUUID);
-    this.listShare.magic = Global.LIST_PATH_MAGIC;
     this.listShare.locked = false;
+    this.listShare.shareByReference = true;
   }
 
   private sendListHandler(): void {
-    this.listSend = this.todoCtrl.getAListSnapshot(this.listUUID);
-    this.listSend.magic = Global.TODO_LIST_MAGIC;
+    this.listSend = this.todoCtrl.getListLink(this.listUUID);
+    this.listSend.locked = false;
+    this.listSend.shareByReference = false;
   }
 
   public menuEventHandler(req: IMenuRequest): void {

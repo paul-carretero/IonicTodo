@@ -44,5 +44,10 @@ export enum Settings {
   /**
    * Synthétise automatiquement les alerts
    */
-  AUTO_READ_ALERT
+  AUTO_READ_ALERT,
+
+  /**
+   * Dernier email renseigné pour une connexion firebase standard
+   */
+  LAST_FIRE_EMAIL_LOGIN
 }

@@ -6,14 +6,13 @@ import {
 } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
+import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { GenericPage } from '../../shared/generic-page';
-import { ListType, ITodoList } from './../../model/todo-list';
+import { ListType } from './../../model/todo-list';
 import { ITodoListPath } from './../../model/todo-list-path';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
-import { Global } from './../../shared/global';
-import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 
 export abstract class GenericReceiver extends GenericPage {
   constructor(
@@ -29,7 +28,7 @@ export abstract class GenericReceiver extends GenericPage {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
   }
 
-  private async listPathHandler(data: ITodoListPath): Promise<boolean> {
+  private async listPathHandler(path: ITodoListPath): Promise<boolean> {
     const resConf: boolean = await this.confirm(
       'Confirmation',
       'Etes vous sur de vouloir liée cette liste à votre compte ?'
@@ -38,12 +37,16 @@ export abstract class GenericReceiver extends GenericPage {
     if (resConf === false) {
       return false;
     }
-    await this.todoCtrl.addListLink(data);
+    await this.todoCtrl.addListLink(path);
     this.loading.dismiss();
     return true;
   }
 
-  private async todoListHandler(data: ITodoList): Promise<boolean> {
+  private async todoListHandler(path: ITodoListPath): Promise<boolean> {
+    const data = await this.todoCtrl.getAListSnapshotFromPath(path);
+    data.order = -1;
+    data.uuid = null;
+
     const resConf: boolean = await this.confirm(
       'Confirmation',
       'Etes vous sur de vouloir copier cette liste ( ' +
@@ -60,7 +63,7 @@ export abstract class GenericReceiver extends GenericPage {
   }
 
   public async importHandler(json: string): Promise<boolean> {
-    let listData: any;
+    let listData: ITodoListPath;
     try {
       listData = JSON.parse(json);
     } catch (e) {
@@ -69,14 +72,11 @@ export abstract class GenericReceiver extends GenericPage {
       return false;
     }
 
-    if (listData.magic === Global.TODO_LIST_MAGIC) {
+    if (listData.shareByReference === true) {
       return this.todoListHandler(listData);
-    } else if (listData.magic === Global.LIST_PATH_MAGIC) {
+    } else {
       return this.listPathHandler(listData);
     }
-    console.log('pas compatible => ' + json);
-    this.displayToast("Erreur lors de l'import, veuillez vérifier la source");
-    return false;
   }
 
   public menuEventHandler(req: IMenuRequest): void {

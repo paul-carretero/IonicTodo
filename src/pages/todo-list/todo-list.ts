@@ -1,3 +1,4 @@
+import { CloudServiceProvider } from './../../providers/cloud-service/cloud-service';
 import { Component } from '@angular/core';
 import {
   AlertController,
@@ -23,6 +24,8 @@ import { IPageData } from './../../model/page-data';
 import { ITodoItem } from './../../model/todo-item';
 import { ITodoList, ListType } from './../../model/todo-list';
 import { Global } from './../../shared/global';
+import { SettingServiceProvider } from '../../providers/setting/setting-service';
+import { Settings } from '../../model/settings';
 
 @IonicPage()
 @Component({
@@ -77,7 +80,9 @@ export class TodoListPage extends GenericPage {
     public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
     private readonly todoService: TodoServiceProvider,
-    private readonly navParams: NavParams
+    private readonly navParams: NavParams,
+    private readonly settingCtrl: SettingServiceProvider,
+    private readonly cloudCtrl: CloudServiceProvider
   ) {
     super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -164,6 +169,15 @@ export class TodoListPage extends GenericPage {
         this.importList();
         break;
       }
+      case MenuRequestType.SHAKE:
+        {
+          this.settingCtrl.getSetting(Settings.ENABLE_STS).then((res: string) => {
+            if (res === 'true') {
+              this.cloudCtrl.stsExport(this.listUUID);
+            }
+          });
+        }
+        break;
       case MenuRequestType.SEND: {
         switch (req.media) {
           case Media.QR_CODE:

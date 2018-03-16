@@ -7,5 +7,6 @@ export enum MenuRequestType {
   IMPORT,
   SPEECH_REC,
   SPEECH_SYNTH,
-  VALIDATE
+  VALIDATE,
+  SHAKE
 }

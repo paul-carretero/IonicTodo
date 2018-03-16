@@ -1,7 +1,9 @@
-import { ICloudSharedList } from './../model/cloud-shared-list';
-import { ITodoList } from './../model/todo-list';
-import { IPageData } from './../model/page-data';
 import { ILatLng } from '@ionic-native/google-maps';
+
+import { ITodoList } from '../model/todo-list';
+import { ITodoListPath } from '../model/todo-list-path';
+import { ICloudSharedList } from './../model/cloud-shared-list';
+import { IPageData } from './../model/page-data';
 
 /**
  * Contient des structure de données constante (ou semi constante)
@@ -43,30 +45,6 @@ export class Global {
    * @memberof Global
    */
   public static readonly OPTSPAGE: number = 2;
-
-  /**************************************************************************/
-  /***************************** MAGIC STRING *******************************/
-  /**************************************************************************/
-
-  /**
-   * Identifie une liste de todo, pour deserialization
-   *
-   * @readonly
-   * @static
-   * @type {string}
-   * @memberof Global
-   */
-  public static readonly TODO_LIST_MAGIC: string = '(╯°□°）╯︵ ┻━┻';
-
-  /**
-   * Identifie un lien vers une liste de todo pour désérialisation
-   *
-   * @readonly
-   * @static
-   * @type {string}
-   * @memberof Global
-   */
-  public static readonly LIST_PATH_MAGIC: string = '┬─┬ノ( º _ ºノ)';
 
   /**************************************************************************/
   /**************************** DEFAULT HEADER ******************************/
@@ -140,10 +118,24 @@ export class Global {
   /******************************* CLOUD SHARE ******************************/
   /**************************************************************************/
 
+  public static getBlankListPath(): ITodoListPath {
+    return {
+      userUUID: null,
+      listUUID: null,
+      shareByReference: false
+    };
+  }
+
   public static getDefaultCloudShareData(): ICloudSharedList {
     return {
-      list: Global.BLANK_LIST
+      list: Global.getBlankListPath(),
+      authorUuid: null,
+      shakeToShare: false
     };
+  }
+
+  public static equalCoord(p1: ILatLng, p2: ILatLng): boolean {
+    return p1.lat === p2.lat && p1.lng === p2.lng;
   }
 
   /**************************************************************************/

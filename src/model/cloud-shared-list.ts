@@ -1,7 +1,6 @@
 import { ILatLng } from '@ionic-native/google-maps';
+
 import { ITodoListPath } from './todo-list-path';
-import { ITodoList } from './todo-list';
-import { FieldValue } from '@firebase/firestore-types';
 
 /**
  * Permet d'exporter une liste sur le cloud et de la récupérer avec un mot de passe
@@ -10,7 +9,13 @@ import { FieldValue } from '@firebase/firestore-types';
  * @interface CloudSharedList
  */
 export interface ICloudSharedList {
-  list: ITodoList | ITodoListPath;
+  /**
+   * Lien vers la liste exportée
+   *
+   * @type {ITodoListPath}
+   * @memberof ICloudSharedList
+   */
+  list: ITodoListPath;
 
   /**
    * Mot de passe protégeant cette liste
@@ -31,10 +36,10 @@ export interface ICloudSharedList {
   /**
    * Timestamp ou le partage a été initié
    *
-   * @type {FieldValue}
+   * @type {*}
    * @memberof ICloudSharedList
    */
-  timestamp?: FieldValue;
+  timestamp?: any;
 
   /**
    * coordonnée ou le partage à été effectué
@@ -52,5 +57,13 @@ export interface ICloudSharedList {
    * @type {boolean}
    * @memberof ICloudSharedList
    */
-  shareWithShake?: boolean;
+  shakeToShare: boolean;
+
+  /**
+   * identifiant unique du créateur de ce partage
+   *
+   * @type {string}
+   * @memberof ICloudSharedList
+   */
+  authorUuid: string;
 }
