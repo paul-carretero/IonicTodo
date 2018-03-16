@@ -97,6 +97,7 @@ export class HomePage extends GenericPage {
   ionViewDidEnter() {
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Listes de Tâches';
+    pageData.searchable = true;
     this.evtCtrl.getHeadeSubject().next(pageData);
 
     this.todoList = this.todoService.getTodoList(ListType.PRIVATE);

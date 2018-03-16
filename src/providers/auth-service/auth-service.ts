@@ -40,7 +40,6 @@ export class AuthServiceProvider {
       this.useHorsConnexion = false;
       if (user != null && user.uid != null) {
         this.connexionSubject.next(user);
-        this.getServerTimestamp();
       } else {
         this.connexionSubject.next(null);
       }
@@ -114,16 +113,11 @@ export class AuthServiceProvider {
   }
 
   public async getServerTimestamp(): Promise<Date> {
-    if (this.isConnected()) {
-      const doc = this.firestoreCtrl.doc<{ timestamp: any }>(
-        'timestamp/' + this.getUserId()
-      );
-      const sts = firebase.firestore.FieldValue.serverTimestamp();
-      await doc.set({ timestamp: sts });
-      const ref = await doc.ref.get();
-      const ts = ref.get('timestamp', { serverTimestamps: 'estimate' });
-      return new Date(ts);
-    }
-    return null;
+    const doc = this.firestoreCtrl.doc<{ timestamp: any }>('timestamp/ts');
+    const sts = firebase.firestore.FieldValue.serverTimestamp();
+    await doc.set({ timestamp: sts });
+    const ref = await doc.ref.get();
+    const ts = ref.get('timestamp');
+    return new Date(ts);
   }
 }

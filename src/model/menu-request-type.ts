@@ -1,3 +1,9 @@
+/**
+ * Représente une requête utilisateur effectuée sur un menu.
+ *
+ * @export
+ * @enum {number}
+ */
 export enum MenuRequestType {
   DELETE,
   EDIT,

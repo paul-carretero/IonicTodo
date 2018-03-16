@@ -4,6 +4,7 @@ import { ITodoList } from '../model/todo-list';
 import { ITodoListPath } from '../model/todo-list-path';
 import { ICloudSharedList } from './../model/cloud-shared-list';
 import { IPageData } from './../model/page-data';
+import * as firebase from 'firebase';
 
 /**
  * Contient des structure de données constante (ou semi constante)
@@ -59,10 +60,11 @@ export class Global {
    */
   public static getDefaultPageData(): IPageData {
     return {
-      title: 'Edit me!',
+      title: '',
       shareable: false,
       editable: false,
-      validable: false
+      validable: false,
+      searchable: false
     };
   }
 
@@ -75,10 +77,11 @@ export class Global {
    */
   public static getValidablePageData(): IPageData {
     return {
-      title: 'Edit me',
+      title: '',
       shareable: false,
       editable: false,
-      validable: true
+      validable: true,
+      searchable: false
     };
   }
 
@@ -91,10 +94,11 @@ export class Global {
    */
   public static getShareEditPageData(): IPageData {
     return {
-      title: 'Edit me',
+      title: '',
       shareable: true,
       editable: true,
-      validable: false
+      validable: false,
+      searchable: false
     };
   }
 
@@ -107,10 +111,11 @@ export class Global {
    */
   public static getOnlyEditPageData(): IPageData {
     return {
-      title: 'Edit me',
+      title: '',
       shareable: false,
       editable: true,
-      validable: false
+      validable: false,
+      searchable: false
     };
   }
 
@@ -132,10 +137,6 @@ export class Global {
       authorUuid: null,
       shakeToShare: false
     };
-  }
-
-  public static equalCoord(p1: ILatLng, p2: ILatLng): boolean {
-    return p1.lat === p2.lat && p1.lng === p2.lng;
   }
 
   /**************************************************************************/
@@ -163,5 +164,13 @@ export class Global {
       lat: Global.precisionRound(pos.lat, 3),
       lng: Global.precisionRound(pos.lng, 3)
     };
+  }
+
+  public static getGeoPoint(p: ILatLng): firebase.firestore.GeoPoint {
+    return new firebase.firestore.GeoPoint(p.lat, p.lng);
+  }
+
+  public static getILatLng(p: firebase.firestore.GeoPoint): ILatLng {
+    return { lat: p.latitude, lng: p.longitude };
   }
 }

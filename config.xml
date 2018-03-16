@@ -85,7 +85,6 @@
         <variable name="REVERSED_CLIENT_ID" value="60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com" />
     </plugin>
     <allow-navigation href="http://192.168.1.76:8100" />
-    <engine name="browser" spec="~5.0.3" />
     <plugin name="cordova-plugin-geolocation" spec="^4.0.1">
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="position todo" />
     </plugin>
@@ -113,4 +112,5 @@
     <plugin name="phonegap-nfc" spec="^0.7.1" />
     <plugin name="ionic-plugin-keyboard" spec="^2.2.1" />
     <plugin name="cordova-plugin-contacts" spec="^3.0.1" />
+    <engine name="browser" spec="~5.0.3" />
 </widget>

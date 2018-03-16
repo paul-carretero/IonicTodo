@@ -96,6 +96,7 @@ export class TodoListPage extends GenericPage {
 
   ionViewDidEnter() {
     const pageData = Global.getShareEditPageData();
+    pageData.searchable = true;
     this.initDataList(pageData);
   }
 

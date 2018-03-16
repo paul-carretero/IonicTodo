@@ -1,9 +1,23 @@
 HeaderComponent {
-  .icon-sized {
-    display: inline-block;
-    width: 2em;
+  ion-toolbar {
+    min-height: 35px !important;
+    max-height: 35px !important;
+    height: 35px !important;
   }
   ion-searchbar {
-    background-color: lightgray !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .subtitle {
+    font-size: 1.2em;
+    vertical-align: middle;
+  }
+  .icon-sized {
+    border: 1px solid black;
+    width: 3em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    margin-right: 0.3em;
+    margin-left: 0.3em;
   }
 }

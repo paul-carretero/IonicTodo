@@ -1,5 +1,5 @@
 /**
- * Représente un chemin vers une liste de todo, notament pour partager des listes par référence
+ * Représente un chemin vers une liste de todo, notament pour partager des listes (par référence ou par valeur)
  *
  * @export
  * @interface ITodoListPath

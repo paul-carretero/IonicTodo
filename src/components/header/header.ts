@@ -1,19 +1,69 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { MenuController, PopoverController } from 'ionic-angular';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MenuController, PopoverController, Searchbar } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
 import { MenuRequestType } from '../../model/menu-request-type';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { IPageData } from './../../model/page-data';
 
+/**
+ * Composant angular gérant le menu haut de l'application et les différentes actions communes associés
+ * Les communications sont géré par Publish-Subscribe
+ *
+ * @export
+ * @class HeaderComponent
+ * @implements {OnInit}
+ * @implements {OnDestroy}
+ */
 @Component({
   selector: 'HeaderComponent',
   templateUrl: 'header.html'
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+  /**
+   * donnée d'affichage du header courrante
+   *
+   * @type {IPageData}
+   * @memberof HeaderComponent
+   */
   public data: IPageData;
+
+  /**
+   * true si l'on doit afficher la barre de recherche, false si l'on affiche les options et le sous titre
+   *
+   * @type {boolean}
+   * @memberof HeaderComponent
+   */
+  public displaySearchBar: boolean = false;
+
+  /**
+   * la barre de recherche, null si elle n'est pas affiché
+   *
+   * @type {Searchbar}
+   * @memberof HeaderComponent
+   */
+  @ViewChild(Searchbar) searchbar: Searchbar;
+
+  /**
+   * subscription aux requetes d'affichage menu
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof HeaderComponent
+   */
   private updateSub: Subscription;
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of HeaderComponent.
+   * @param {PopoverController} popoverCtrl
+   * @param {MenuController} menuCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @memberof HeaderComponent
+   */
   constructor(
     private readonly popoverCtrl: PopoverController,
     private readonly menuCtrl: MenuController,
@@ -22,37 +72,110 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.data = this.evtCtrl.getHeadeSubject().getValue();
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * termine le subscription au flux de mise à jour du header
+   *
+   * @memberof HeaderComponent
+   */
   ngOnDestroy(): void {
     this.updateSub.unsubscribe();
   }
 
+  /**
+   * initialise la subscription au flux de mise à jour du header
+   *
+   * @memberof HeaderComponent
+   */
   ngOnInit(): void {
     this.updateSub = this.evtCtrl.getHeadeSubject().subscribe(newData => {
       this.data = newData;
     });
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * Affiche le menu général à gauche
+   *
+   * @memberof HeaderComponent
+   */
   public openMenu(): void {
     this.menuCtrl.enable(true, 'menu-left');
     this.menuCtrl.open('menu-left');
   }
 
-  public presentPopover(myEvent): void {
+  /**
+   * Présente le menu contextuel de droite
+   *
+   * @memberof HeaderComponent
+   */
+  public presentPopover(): void {
     const popover = this.popoverCtrl.create('PopoverOptionsPage');
-    popover.present({
-      ev: myEvent
-    });
+    popover.present({});
   }
 
+  /**
+   * Envois une notification que le bouton de validation à été activé
+   *
+   * @memberof HeaderComponent
+   */
   public valid(): void {
     this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.VALIDATE });
   }
 
+  /**
+   * Envois une notification que le bouton de démarrage de la reconnaissance vocale à été activé
+   *
+   * @memberof HeaderComponent
+   */
   public startSpeechRec() {
     this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.SPEECH_REC });
   }
 
+  /**
+   * Envois une notification que le bouton de synthèse vocale à été activé
+   *
+   * @memberof HeaderComponent
+   */
   public startTTS() {
     this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.SPEECH_SYNTH });
+  }
+
+  /**
+   * initialise la bar de recherche et met le focus clavier dessus
+   *
+   * @memberof HeaderComponent
+   */
+  public searchInit(): void {
+    this.displaySearchBar = true;
+    setTimeout(() => {
+      this.searchbar.setFocus();
+    }, 100);
+  }
+
+  /**
+   * annule la recherche et retire la barre de recherche
+   *
+   * @memberof HeaderComponent
+   */
+  public cancelSearch(): void {
+    this.displaySearchBar = false;
+    this.evtCtrl.getSearchSubject().next(null);
+  }
+
+  /**
+   * envoie une recherche utilisateur
+   *
+   * @param {any} event
+   * @memberof HeaderComponent
+   */
+  public search(event): void {
+    this.evtCtrl.getSearchSubject().next(event.value);
   }
 }

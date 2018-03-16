@@ -1,3 +1,10 @@
+/**
+ * Représente une 'signature' d'un objet.
+ * Une signature contient notament l'autheur et la date et le lieu de création d'un objet
+ *
+ * @export
+ * @interface IAuthor
+ */
 export interface IAuthor {
   /**
    * Nom de l'autheur

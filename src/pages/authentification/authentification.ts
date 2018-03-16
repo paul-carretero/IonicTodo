@@ -79,10 +79,7 @@ export class AuthentificationPage extends GenericPage {
 
     this.settingCtrl.getSetting(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
       if (res != null && res !== '') {
-        this.authForm = this.formBuilder.group({
-          email: [res, Validators.email],
-          password: ['', Validators.required]
-        });
+        this.authForm.get('email').setValue(res);
       }
     });
 

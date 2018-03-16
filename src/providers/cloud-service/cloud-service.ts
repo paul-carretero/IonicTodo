@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CollectionReference, QueryDocumentSnapshot } from '@firebase/firestore-types';
+import { CollectionReference, DocumentSnapshot } from '@firebase/firestore-types';
 import { ILatLng } from '@ionic-native/google-maps';
 import {
   AngularFirestore,
@@ -12,12 +12,15 @@ import { AlertController, ToastController } from 'ionic-angular';
 import { Subscription } from 'rxjs/Rx';
 import { v4 as uuid } from 'uuid';
 
+import { MenuRequestType } from '../../model/menu-request-type';
 import { Settings } from '../../model/settings';
 import { ITodoList } from '../../model/todo-list';
 import { ITodoListPath } from '../../model/todo-list-path';
 import { ICloudSharedList } from './../../model/cloud-shared-list';
+import { IMenuRequest } from './../../model/menu-request';
 import { Global } from './../../shared/global';
 import { AuthServiceProvider } from './../auth-service/auth-service';
+import { EventServiceProvider } from './../event/event-service';
 import { MapServiceProvider } from './../map-service/map-service';
 import { SettingServiceProvider } from './../setting/setting-service';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
@@ -39,9 +42,15 @@ export class CloudServiceProvider {
     private readonly alertCtrl: AlertController,
     private readonly settingsCtrl: SettingServiceProvider,
     private readonly mapCtrl: MapServiceProvider,
-    private readonly todoCtrl: TodoServiceProvider
+    private readonly todoCtrl: TodoServiceProvider,
+    private readonly evtCtrl: EventServiceProvider
   ) {
     this.cloudListCollection = this.firestoreCtrl.collection<ICloudSharedList>('cloud/');
+    this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
+      if (req.request === MenuRequestType.SHAKE) {
+        this.watchForSTSAvailableList();
+      }
+    });
   }
 
   public listenForUpdate(): void {
@@ -64,7 +73,7 @@ export class CloudServiceProvider {
     }
     myPos = Global.roundILatLng(myPos);
 
-    cloudData.coord = myPos;
+    cloudData.coord = Global.getGeoPoint(myPos);
     cloudData.email = null;
     cloudData.list = path;
     cloudData.password = null;
@@ -86,6 +95,9 @@ export class CloudServiceProvider {
     data.timestamp = timestamp;
     const doc = this.cloudListCollection.doc<ICloudSharedList>(uuid());
     await doc.set(data);
+    setTimeout(() => {
+      doc.delete();
+    }, CloudServiceProvider.MAX_SECONDS * 1000);
   }
 
   /**
@@ -137,9 +149,31 @@ export class CloudServiceProvider {
     }
   }
 
+  private watchForSTSAvailableList(): void {
+    if (!this.authCtrl.isConnected()) {
+      return;
+    }
+
+    this.tryUnsub(this.availableSTSListsSub);
+
+    const forSTSImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
+      'cloud',
+      (ref: CollectionReference) => ref.where('shakeToShare', '==', true)
+    );
+
+    this.availableSTSListsSub = forSTSImportCollection
+      .snapshotChanges()
+      .subscribe((docChanges: DocumentChangeAction[]) => {
+        this.importSharedListsWrapper(docChanges);
+      });
+
+    setTimeout(() => {
+      this.tryUnsub(this.availableSTSListsSub);
+    }, CloudServiceProvider.MAX_SECONDS * 1000);
+  }
+
   private watchForAvailableList(user: User): void {
     this.tryUnsub(this.availableListsSub);
-    this.tryUnsub(this.availableSTSListsSub);
 
     if (user == null) {
       return;
@@ -151,18 +185,7 @@ export class CloudServiceProvider {
       (ref: CollectionReference) => ref.where('email', '==', this.authCtrl.getEmail())
     );
 
-    const forSTSImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
-      'cloud',
-      (ref: CollectionReference) => ref.where('shakeToShare', '==', true)
-    );
-
     this.availableListsSub = forImportCollection
-      .snapshotChanges()
-      .subscribe((docChanges: DocumentChangeAction[]) => {
-        this.importSharedListsWrapper(docChanges);
-      });
-
-    this.availableSTSListsSub = forSTSImportCollection
       .snapshotChanges()
       .subscribe((docChanges: DocumentChangeAction[]) => {
         this.importSharedListsWrapper(docChanges);
@@ -216,8 +239,9 @@ export class CloudServiceProvider {
       }
 
       myPos = Global.roundILatLng(myPos);
+      const myGeoPos = Global.getGeoPoint(myPos);
 
-      if (Global.equalCoord(myPos, data.coord)) {
+      if (myGeoPos.isEqual(data.coord)) {
         const now = await this.timestampAreCloseToNow(data.timestamp);
         if (now) {
           this.todoCtrl.importList(data.list);
@@ -226,7 +250,7 @@ export class CloudServiceProvider {
     }
   }
 
-  private async DocumentImportHandler(importdoc: QueryDocumentSnapshot): Promise<void> {
+  private async DocumentImportHandler(importdoc: DocumentSnapshot): Promise<void> {
     const myEmail = this.authCtrl.getEmail();
     const data: ICloudSharedList = importdoc.data() as ICloudSharedList;
 
@@ -238,21 +262,19 @@ export class CloudServiceProvider {
       return;
     }
 
-    if (data.email === myEmail || data.password == null || data.password === '') {
+    if (data.email != null && data.email === myEmail && data.email !== '') {
       this.importSharedList(data.list);
       importdoc.ref.delete();
       return;
     }
 
-    if (data.password != null) {
+    if (data.password != null && data.password !== '') {
       this.importByPassword(data);
-      importdoc.ref.delete();
       return;
     }
 
     if (data.shakeToShare != null && data.shakeToShare) {
       this.importBySTS(data);
-      importdoc.ref.delete();
       return;
     }
   }
@@ -270,7 +292,7 @@ export class CloudServiceProvider {
     }
 
     for (const doc of docChangeAction) {
-      this.DocumentImportHandler(doc.payload.doc);
+      this.DocumentImportHandler(doc.payload.doc as DocumentSnapshot);
     }
   }
 

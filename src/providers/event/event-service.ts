@@ -47,28 +47,78 @@ export class EventServiceProvider {
    */
   private readonly navRequestSubject: Subject<INavRequest>;
 
-  constructor(private readonly shake: Shake) {
+  /**
+   * Flux de commande de recherche, typiquement de la searchbar
+   *
+   * @readonly
+   * @private
+   * @type {Subject<string>}
+   * @memberof EventServiceProvider
+   */
+  private readonly searchSubject: Subject<string>;
+
+  /**
+   * Creates an instance of EventServiceProvider.
+   * @param {Shake} shakeCtrl
+   * @memberof EventServiceProvider
+   */
+  constructor(private readonly shakeCtrl: Shake) {
     this.headerData = new BehaviorSubject<IPageData>(Global.getDefaultPageData());
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
+    this.searchSubject = new Subject<string>();
     this.shakeDetect();
   }
 
+  /**
+   * Ecoute les agiation du téléphone et envoie un évenemnt si l'un est detecté
+   *
+   * @private
+   * @memberof EventServiceProvider
+   */
   private shakeDetect(): void {
-    this.shake.startWatch(60).subscribe(() => {
+    this.shakeCtrl.startWatch(60).subscribe(() => {
       this.menuRequestSubject.next({ request: MenuRequestType.SHAKE });
     });
   }
 
+  /**
+   * retourne le sujet de mise à jour du header
+   *
+   * @returns {BehaviorSubject<IPageData>}
+   * @memberof EventServiceProvider
+   */
   public getHeadeSubject(): BehaviorSubject<IPageData> {
     return this.headerData;
   }
 
+  /**
+   * retourne le sujet de requête menu utilisateur
+   *
+   * @returns {Subject<IMenuRequest>}
+   * @memberof EventServiceProvider
+   */
   public getMenuRequestSubject(): Subject<IMenuRequest> {
     return this.menuRequestSubject;
   }
 
+  /**
+   * retourne le sujet requetes de navigation interne
+   *
+   * @returns {Subject<INavRequest>}
+   * @memberof EventServiceProvider
+   */
   public getNavRequestSubject(): Subject<INavRequest> {
     return this.navRequestSubject;
+  }
+
+  /**
+   * retourne le sujet de recherche utilisateur
+   *
+   * @returns {Subject<string>}
+   * @memberof EventServiceProvider
+   */
+  public getSearchSubject(): Subject<string> {
+    return this.searchSubject;
   }
 }

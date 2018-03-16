@@ -1,4 +1,4 @@
-import { ILatLng } from '@ionic-native/google-maps';
+import * as firebase from 'firebase';
 
 import { ITodoListPath } from './todo-list-path';
 
@@ -44,10 +44,10 @@ export interface ICloudSharedList {
   /**
    * coordonnée ou le partage à été effectué
    *
-   * @type {ILatLng}
+   * @type {firebase.firestore.GeoPoint}
    * @memberof ICloudSharedList
    */
-  coord?: ILatLng;
+  coord?: firebase.firestore.GeoPoint;
 
   /**
    * Si vrai alors il s'agit d'une tentative de partage par shake (non sécurisé)

@@ -74,7 +74,7 @@ export class CloudSenderPage extends GenericSharer {
 
     let coord = await this.mapService.getMyPosition();
     coord = Global.roundILatLng(coord);
-    this.shareData.coord = coord;
+    this.shareData.coord = Global.getGeoPoint(coord);
     this.shareData.email = email;
     this.shareData.password = this.password;
     this.shareData.shakeToShare = false;
