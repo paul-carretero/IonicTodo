@@ -1,18 +1,12 @@
 import { Component } from '@angular/core';
-import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  NavController,
-  NavParams,
-  ToastController
-} from 'ionic-angular';
+import { IonicPage, NavController, NavParams } from 'ionic-angular';
 
+import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
+import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { GenericSharer } from './../generic-sharer';
-import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 
 @IonicPage()
 @Component({
@@ -23,24 +17,12 @@ export class QrcodeGeneratePage extends GenericSharer {
   constructor(
     public readonly navParams: NavParams,
     public readonly navCtrl: NavController,
-    public readonly loadingCtrl: LoadingController,
-    public readonly alertCtrl: AlertController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly toastCtrl: ToastController,
-    public readonly authCtrl: AuthServiceProvider
+    public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider
   ) {
-    super(
-      navParams,
-      navCtrl,
-      loadingCtrl,
-      alertCtrl,
-      evtCtrl,
-      ttsCtrl,
-      todoCtrl,
-      toastCtrl,
-      authCtrl
-    );
+    super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
 }

@@ -1,3 +1,4 @@
+import { CollectionReference } from '@firebase/firestore-types';
 import { ILatLng } from '@ionic-native/google-maps';
 import { IAuthor } from './../../model/author';
 import { ITodoItem } from './../../model/todo-item';
@@ -141,7 +142,8 @@ export class TodoServiceProvider {
   private readonly sharedTodoLists: BehaviorSubject<ITodoList[]>;
 
   /**
-   *
+   * Subscription pour l'observable du tableau des listes partagés.
+   * Il s'agit de l'observable combinant l'ensemble des observable des document des listes partagés unitaires
    *
    * @private
    * @type {Subscription}
@@ -253,7 +255,8 @@ export class TodoServiceProvider {
    */
   private initPrivateListCollection(): void {
     this.todoListCollection = this.firestoreCtrl.collection<ITodoList>(
-      'user/' + this.authCtrl.getUserId() + '/list'
+      'user/' + this.authCtrl.getUserId() + '/list',
+      (ref: CollectionReference) => ref.orderBy('order', 'asc')
     );
     this.listsPublisher();
   }
@@ -373,6 +376,12 @@ export class TodoServiceProvider {
     });
   }
 
+  /**
+   * Réinitialise les observable des listes partagés
+   *
+   * @private
+   * @memberof TodoServiceProvider
+   */
   private refreshShared(): void {
     if (this.authCtrl.isConnected()) {
       this.tryUnsub(this.sharedListSub);
@@ -391,7 +400,8 @@ export class TodoServiceProvider {
   private async updateLocalDBLink(): Promise<void> {
     const machineId: string = await this.authCtrl.getMachineId();
     this.localTodoListCollection = this.firestoreCtrl.collection<ITodoList>(
-      'machine/' + machineId + '/list'
+      'machine/' + machineId + '/list',
+      (ref: CollectionReference) => ref.orderBy('order', 'asc')
     );
     this.localTodoListCollection.valueChanges().subscribe((lists: ITodoList[]) => {
       this.localTodoLists.next(lists);
@@ -496,149 +506,16 @@ export class TodoServiceProvider {
   }
 
   /**************************************************************************/
-  /************************* PUBLIC LISTS INTERFACE *************************/
+  /*********************** PUBLIC ADD LISTS INTERFACE ***********************/
   /**************************************************************************/
 
   /**
-   * Permet de récupérer un objet de chemin pour la liste ayant l'identifiant spécifié
-   *
-   * @param {string} listUUID
-   * @returns {TodoListPath}
-   * @memberof TodoServiceProvider
-   */
-  public getListLink(listUUID: string): ITodoListPath {
-    if (this.getListType(listUUID) !== ListType.SHARED) {
-      return {
-        userUUID: this.authCtrl.getUserId(),
-        listUUID: listUUID,
-        shareByReference: true
-      };
-    } else {
-      const sharedSnap = this.currentUserData.getValue().todoListSharedWithMe;
-      for (const path of sharedSnap) {
-        if (path.listUUID === listUUID) {
-          return path;
-        }
-      }
-    }
-
-    throw new Error('list UUID not found');
-  }
-
-  /**
-   * Permet de vérifier si une liste partagée est verouillé en lecture seule
-   *
-   * @param {string} listUuid
-   * @returns {boolean}
-   * @memberof TodoServiceProvider
-   */
-  public isReadOnly(listUuid: string): boolean {
-    const listShareData = this.currentUserData
-      .getValue()
-      .todoListSharedWithMe.find(d => d.listUUID === listUuid);
-
-    if (listShareData != null) {
-      if (listShareData.locked != null) {
-        return listShareData.locked;
-      }
-    }
-    return false;
-  }
-  /**
-   * Permet de récupérer le type d'une liste
-   *
-   * @param {string} ListUuid l'identifiant d'une liste
-   * @returns {ListType} le type de la liste, local, private ou shared
-   * @memberof TodoServiceProvider
-   */
-  public getListType(ListUuid: string): ListType {
-    const localLists: ITodoList[] = this.localTodoLists.getValue();
-    const sharedLists: ITodoList[] = this.sharedTodoLists.getValue();
-    const privateLists: ITodoList[] = this.todoLists.getValue();
-
-    if (localLists.find(d => d.uuid === ListUuid) != null) {
-      return ListType.LOCAL;
-    }
-    if (sharedLists.find(d => d.uuid === ListUuid) != null) {
-      return ListType.SHARED;
-    }
-    if (privateLists.find(d => d.uuid === ListUuid) != null) {
-      return ListType.PRIVATE;
-    }
-
-    throw new Error('Liste inconnu ou type invalide');
-  }
-
-  /**
-   * Permet de récupérer un Observable de tableau de liste de todo
-   *
-   * @param {ListType} [type] Permet de préciser le type de liste que l'on souhaite récupérer
-   * @returns {Observable<ITodoList[]>}
-   * @memberof TodoServiceProvider
-   */
-  public getTodoList(type: ListType): Observable<ITodoList[]> {
-    switch (type) {
-      case ListType.LOCAL:
-        return this.localTodoLists.asObservable();
-      case ListType.SHARED:
-        return this.sharedTodoLists.asObservable();
-      case ListType.PRIVATE:
-        return this.todoLists.asObservable();
-    }
-    throw new Error('Liste inconnu ou type invalide');
-  }
-
-  /**
-   * Permet de récupérer une liste représenté par son identifiant unique
-   *
-   * @param {string} ListUuid l'identifiant unique de la liste
-   * @returns {Observable<ITodoList>}
-   * @memberof TodoServiceProvider
-   */
-  public async getAList(ListUuid: string): Promise<Observable<ITodoList>> {
-    const doc = await this.getFirestoreDocument(ListUuid);
-    return doc.valueChanges();
-  }
-
-  /**
-   * A utiliser avec prudence car non synchronisé, retourne une liste telle qu'elle était lors de l'appel
-   *
-   * @param {string} listUuid
-   * @returns {ITodoList}
-   * @memberof TodoServiceProvider
-   */
-  public getAListSnapshot(listUuid: string): ITodoList {
-    const type = this.getListType(listUuid);
-    let lists: ITodoList[] = [];
-    switch (type) {
-      case ListType.LOCAL:
-        lists = this.localTodoLists.getValue();
-        break;
-      case ListType.SHARED:
-        lists = this.sharedTodoLists.getValue();
-        break;
-      case ListType.PRIVATE:
-        lists = this.todoLists.getValue();
-        break;
-    }
-    return lists.find(d => d.uuid === listUuid);
-  }
-
-  /**
-   * Recherche une liste en sa basant sur son chemin absolu dans la base firestore
+   * Permet de cloner une liste d'un autre utilisateur vers le compte de l'utilsateur courant
    *
    * @param {ITodoListPath} path
-   * @returns {Promise<ITodoList>}
+   * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async getAListSnapshotFromPath(path: ITodoListPath): Promise<ITodoList> {
-    const doc = this.firestoreCtrl.doc<ITodoList>(
-      'user/' + path.userUUID + '/list/' + path.listUUID
-    );
-    const snap = await doc.ref.get();
-    return snap.data() as ITodoList;
-  }
-
   public async importList(path: ITodoListPath): Promise<void> {
     const listData = await this.getAListSnapshotFromPath(path);
     listData.uuid = null;
@@ -716,7 +593,8 @@ export class TodoServiceProvider {
     if (destType == null || destType === curListType) {
       await fireDoc.update({
         name: data.name,
-        icon: data.icon
+        icon: data.icon,
+        order: data.order
       });
     } else if (destType === ListType.PRIVATE || destType === ListType.LOCAL) {
       // on ajoute la liste à la collection de destination
@@ -725,6 +603,169 @@ export class TodoServiceProvider {
       this.deleteList(data.uuid, curListType);
     }
   }
+
+  public async updateOrder(listUuid: string, ord: number): Promise<void> {
+    const fireDoc = await this.getFirestoreDocument(listUuid);
+    console.log(listUuid + ' -> ' + ord);
+    fireDoc.update({
+      order: ord
+    });
+  }
+
+  /**************************************************************************/
+  /*********************** PUBLIC GET LISTS INTERFACE ***********************/
+  /**************************************************************************/
+
+  /****************************** LISTS GETTERS *****************************/
+
+  /**
+   * Permet de récupérer un Observable de tableau de liste de todo
+   *
+   * @param {ListType} [type] Permet de préciser le type de liste que l'on souhaite récupérer
+   * @returns {Observable<ITodoList[]>}
+   * @memberof TodoServiceProvider
+   */
+  public getTodoList(type: ListType): Observable<ITodoList[]> {
+    switch (type) {
+      case ListType.LOCAL:
+        return this.localTodoLists.asObservable();
+      case ListType.SHARED:
+        return this.sharedTodoLists.asObservable();
+      case ListType.PRIVATE:
+        return this.todoLists.asObservable();
+    }
+    throw new Error('Liste inconnu ou type invalide');
+  }
+
+  /****************************** LIST GETTERS ******************************/
+
+  /**
+   * Permet de récupérer un objet de chemin pour la liste ayant l'identifiant spécifié
+   *
+   * @param {string} listUUID
+   * @returns {TodoListPath}
+   * @memberof TodoServiceProvider
+   */
+  public getListLink(listUUID: string): ITodoListPath {
+    if (this.getListType(listUUID) !== ListType.SHARED) {
+      return {
+        userUUID: this.authCtrl.getUserId(),
+        listUUID: listUUID,
+        shareByReference: true
+      };
+    } else {
+      const sharedSnap = this.currentUserData.getValue().todoListSharedWithMe;
+      for (const path of sharedSnap) {
+        if (path.listUUID === listUUID) {
+          return path;
+        }
+      }
+    }
+
+    throw new Error('list UUID not found');
+  }
+
+  /**
+   * Permet de vérifier si une liste partagée est verouillé en lecture seule
+   *
+   * @param {string} listUuid
+   * @returns {boolean}
+   * @memberof TodoServiceProvider
+   */
+  public isReadOnly(listUuid: string): boolean {
+    const listShareData = this.currentUserData
+      .getValue()
+      .todoListSharedWithMe.find(d => d.listUUID === listUuid);
+
+    if (listShareData != null) {
+      if (listShareData.locked != null) {
+        return listShareData.locked;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Permet de récupérer le type d'une liste
+   *
+   * @param {string} ListUuid l'identifiant d'une liste
+   * @returns {ListType} le type de la liste, local, private ou shared
+   * @memberof TodoServiceProvider
+   */
+  public getListType(ListUuid: string): ListType {
+    const localLists: ITodoList[] = this.localTodoLists.getValue();
+    const sharedLists: ITodoList[] = this.sharedTodoLists.getValue();
+    const privateLists: ITodoList[] = this.todoLists.getValue();
+
+    if (localLists.find(d => d.uuid === ListUuid) != null) {
+      return ListType.LOCAL;
+    }
+    if (sharedLists.find(d => d.uuid === ListUuid) != null) {
+      return ListType.SHARED;
+    }
+    if (privateLists.find(d => d.uuid === ListUuid) != null) {
+      return ListType.PRIVATE;
+    }
+
+    throw new Error('Liste inconnu ou type invalide');
+  }
+
+  /**
+   * Permet de récupérer une liste représenté par son identifiant unique
+   *
+   * @param {string} ListUuid l'identifiant unique de la liste
+   * @returns {Observable<ITodoList>}
+   * @memberof TodoServiceProvider
+   */
+  public async getAList(ListUuid: string): Promise<Observable<ITodoList>> {
+    const doc = await this.getFirestoreDocument(ListUuid);
+    return doc.valueChanges();
+  }
+
+  /****************************** SNAPSHOTS ONLY ****************************/
+
+  /**
+   * A utiliser avec prudence car non synchronisé, retourne une liste telle qu'elle était lors de l'appel
+   *
+   * @param {string} listUuid
+   * @returns {ITodoList}
+   * @memberof TodoServiceProvider
+   */
+  public getAListSnapshot(listUuid: string): ITodoList {
+    const type = this.getListType(listUuid);
+    let lists: ITodoList[] = [];
+    switch (type) {
+      case ListType.LOCAL:
+        lists = this.localTodoLists.getValue();
+        break;
+      case ListType.SHARED:
+        lists = this.sharedTodoLists.getValue();
+        break;
+      case ListType.PRIVATE:
+        lists = this.todoLists.getValue();
+        break;
+    }
+    return lists.find(d => d.uuid === listUuid);
+  }
+
+  /**
+   * Recherche une liste en sa basant sur son chemin absolu dans la base firestore
+   *
+   * @param {ITodoListPath} path
+   * @returns {Promise<ITodoList>}
+   * @memberof TodoServiceProvider
+   */
+  public async getAListSnapshotFromPath(path: ITodoListPath): Promise<ITodoList> {
+    const doc = this.firestoreCtrl.doc<ITodoList>(
+      'user/' + path.userUUID + '/list/' + path.listUUID
+    );
+    const snap = await doc.ref.get();
+    return snap.data() as ITodoList;
+  }
+
+  /**************************************************************************/
+  /*********************** PUBLIC DEL LISTS INTERFACE ***********************/
+  /**************************************************************************/
 
   /**
    * Supprime une liste ou la délie si il s'ait d'une liste partagée
@@ -747,10 +788,6 @@ export class TodoServiceProvider {
 
   /**************************************************************************/
   /************************* PUBLIC TODOS INTERFACE *************************/
-  /**************************************************************************/
-
-  /**************************************************************************/
-  /************************* PUBLIC USER INTERFACE **************************/
   /**************************************************************************/
 
   /*******************************

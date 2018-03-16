@@ -1,13 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  NavController,
-  NavParams,
-  ToastController
-} from 'ionic-angular';
+import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
@@ -20,6 +13,7 @@ import { ListType } from './../../model/todo-list';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
+import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
 
 /**
@@ -71,30 +65,26 @@ export class ListEditPage extends GenericPage {
   /**
    * Creates an instance of ListEditPage.
    * @param {NavController} navCtrl
-   * @param {AlertController} alertCtrl
-   * @param {LoadingController} loadingCtrl
    * @param {EventServiceProvider} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
-   * @param {ToastController} toastCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
    * @param {FormBuilder} formBuilder
    * @param {TodoServiceProvider} todoService
    * @param {NavParams} navParams
-   * @param {AuthServiceProvider} authCtrl
    * @memberof ListEditPage
    */
   constructor(
     public readonly navCtrl: NavController,
-    public readonly alertCtrl: AlertController,
-    public readonly loadingCtrl: LoadingController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly formBuilder: FormBuilder,
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.defineNewList();
   }
@@ -235,7 +225,7 @@ export class ListEditPage extends GenericPage {
   }
 
   private async updateList(): Promise<void> {
-    this.showLoading('Mise à jour de la liste...');
+    this.uiCtrl.showLoading('Mise à jour de la liste...');
 
     let destType: ListType = this.listType;
 
@@ -274,7 +264,7 @@ export class ListEditPage extends GenericPage {
    * @memberof ListEditPage
    */
   private async defineList(): Promise<void> {
-    this.showLoading('Création de la liste...');
+    this.uiCtrl.showLoading('Création de la liste...');
 
     let destType: ListType = ListType.LOCAL;
 
@@ -333,7 +323,7 @@ export class ListEditPage extends GenericPage {
         this.updateList();
       }
     } else {
-      this.alert(
+      this.uiCtrl.alert(
         'Opération Impossible',
         "Veuillez vérifier d'avoir renseignée toutes les données"
       );

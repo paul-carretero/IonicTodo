@@ -37,6 +37,7 @@ import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-t
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
+import { UiServiceProvider } from '../providers/ui-service/ui-service';
 
 @NgModule({
   declarations: [MyApp],
@@ -83,7 +84,8 @@ import { FirebaseCredentials } from './firebase.credentials';
     CloudServiceProvider,
     Geolocation,
     Keyboard,
-    Contacts
+    Contacts,
+    UiServiceProvider
   ]
 })
 export class AppModule {}

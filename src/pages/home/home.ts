@@ -1,11 +1,5 @@
 import { Component } from '@angular/core';
-import {
-  AlertController,
-  LoadingController,
-  NavController,
-  ToastController,
-  IonicPage
-} from 'ionic-angular';
+import { IonicPage, NavController, reorderArray } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
 
 import { ITodoList, ListType } from '../../model/todo-list';
@@ -16,7 +10,9 @@ import { GenericPage } from '../../shared/generic-page';
 import { IMenuRequest } from './../../model/menu-request';
 import { ITodoItem } from './../../model/todo-item';
 import { EventServiceProvider } from './../../providers/event/event-service';
+import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
+import { Subscription } from 'rxjs';
 
 /**
  * Page principale de l'application.
@@ -32,28 +28,68 @@ import { Global } from './../../shared/global';
 })
 export class HomePage extends GenericPage {
   /**
-   * Observable des liste privée de l'utilisateur connecté
+   * Observable des liste privée de l'utilisateur connecté non terminée
    *
-   * @type {Observable<ITodoList[]>}
+   * @public
+   * @type {ITodoList[]}
    * @memberof HomePage
    */
-  public todoList: Observable<ITodoList[]>;
+  public todoList: ITodoList[];
+
+  /**
+   * Observable des liste privée de l'utilisateur connecté terminée
+   *
+   * @public
+   * @type {ITodoList[]}
+   * @memberof HomePage
+   */
+  public todoListComplete: ITodoList[];
 
   /**
    * Liste partagé sur la machine courrante
    *
-   * @type {Observable<ITodoList[]>}
+   * @public
+   * @type {ITodoList[]}
    * @memberof HomePage
    */
-  public localTodoList: Observable<ITodoList[]>;
+  public localTodoList: ITodoList[];
 
   /**
    * Liste des listes partagés avec cet utilisateur
    *
+   * @public
    * @type {Observable<ITodoList[]>}
    * @memberof HomePage
    */
   public sharedTodoList: Observable<ITodoList[]>;
+
+  /**
+   * abonemment aux listes utilisateur privée
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof HomePage
+   */
+  private listSub: Subscription;
+
+  /**
+   * abonnement aux listes de la machines
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof HomePage
+   */
+  private localListSub: Subscription;
+
+  /**
+   * true si aucune opération de ré-ordonement est en cours, false sinon
+   * ne devrait pas durer plus de quelques ms
+   *
+   * @private
+   * @type {boolean}
+   * @memberof HomePage
+   */
+  private orderableReady: boolean = true;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -62,26 +98,25 @@ export class HomePage extends GenericPage {
   /**
    * Creates an instance of HomePage.
    * @param {NavController} navCtrl
-   * @param {AlertController} alertCtrl
-   * @param {LoadingController} loadingCtrl
    * @param {EventServiceProvider} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
-   * @param {ToastController} toastCtrl
    * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
    * @param {TodoServiceProvider} todoService
    * @memberof HomePage
    */
   constructor(
     public readonly navCtrl: NavController,
-    public readonly alertCtrl: AlertController,
-    public readonly loadingCtrl: LoadingController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    this.todoList = [];
+    this.todoListComplete = [];
+    this.localTodoList = [];
   }
 
   /**************************************************************************/
@@ -100,9 +135,52 @@ export class HomePage extends GenericPage {
     pageData.searchable = true;
     this.evtCtrl.getHeadeSubject().next(pageData);
 
-    this.todoList = this.todoService.getTodoList(ListType.PRIVATE);
-    this.localTodoList = this.todoService.getTodoList(ListType.LOCAL);
+    this.initPrivateListSub();
+    this.initLocalListSub();
     this.sharedTodoList = this.todoService.getTodoList(ListType.SHARED);
+  }
+
+  /**
+   * Termine les subscription aux listes privée et locales
+   *
+   * @memberof HomePage
+   */
+  ionViewWillLeave() {
+    this.tryUnSub(this.listSub);
+    this.tryUnSub(this.localListSub);
+  }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  private initPrivateListSub(): void {
+    this.listSub = this.todoService
+      .getTodoList(ListType.PRIVATE)
+      .subscribe((lists: ITodoList[]) => {
+        this.todoList = [];
+        this.todoListComplete = [];
+        for (const list of lists) {
+          const isNotComplete =
+            this.getCompleted(list.items) < list.items.length || list.items.length === 0;
+          if (isNotComplete) {
+            this.todoList.push(list);
+          } else {
+            this.todoListComplete.push(list);
+          }
+        }
+      });
+  }
+
+  private initLocalListSub(): void {
+    this.localListSub = this.todoService
+      .getTodoList(ListType.LOCAL)
+      .subscribe((lists: ITodoList[]) => {
+        this.localTodoList = [];
+        for (const list of lists) {
+          this.localTodoList.push(list);
+        }
+      });
   }
 
   /**************************************************************************/
@@ -209,5 +287,29 @@ export class HomePage extends GenericPage {
    */
   public deleteTodoList(uuid: string): void {
     this.todoService.deleteList(uuid);
+  }
+
+  /**
+   * lorsque l'utilisateur tente de réorganiser ses listes
+   * Reorganise rapidement en local la liste avant de la soumettre au service (elle sera alors re-rafraichi lors de la maj firebase)
+   * Garde la consistence de l'ordre des autres éléments
+   *
+   * @param {{ from: number; to: number }} indexes
+   * @param {ITodoList[]} tab le tableau de référence (soit todoList, soit todoListComplete, soit TodoListLocal)
+   * @memberof HomePage
+   */
+  public async reorder(indexes, tab: ITodoList[]): Promise<void> {
+    if (!this.orderableReady) {
+      return;
+    }
+
+    this.orderableReady = false;
+    const promises: Promise<void>[] = [];
+    tab = reorderArray(tab, indexes);
+    for (let i = 0; i < tab.length; i++) {
+      promises.push(this.todoService.updateOrder(tab[i].uuid, i));
+    }
+    await Promise.all(promises);
+    this.orderableReady = true;
   }
 }

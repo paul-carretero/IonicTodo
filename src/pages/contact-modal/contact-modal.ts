@@ -1,14 +1,6 @@
 import { Component } from '@angular/core';
 import { Contact, Contacts, IContactField } from '@ionic-native/contacts';
-import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  NavController,
-  NavParams,
-  ToastController,
-  ViewController
-} from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
@@ -17,6 +9,7 @@ import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ISimpleContact } from './../../model/simple-contact';
 import { Global } from './../../shared/global';
@@ -86,13 +79,11 @@ export class ContactModalPage extends GenericPage {
    * Creates an instance of ContactModalPage.
    * @param {NavParams} navParams
    * @param {NavController} navCtrl
-   * @param {LoadingController} loadingCtrl
-   * @param {AlertController} alertCtrl
    * @param {EventServiceProvider} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
    * @param {TodoServiceProvider} todoCtrl
-   * @param {ToastController} toastCtrl
    * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
    * @param {ViewController} viewCtrl
    * @param {Contacts} contactsCtrl
    * @memberof ContactModalPage
@@ -100,17 +91,15 @@ export class ContactModalPage extends GenericPage {
   constructor(
     public readonly navParams: NavParams,
     public readonly navCtrl: NavController,
-    public readonly loadingCtrl: LoadingController,
-    public readonly alertCtrl: AlertController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly viewCtrl: ViewController,
     private readonly contactsCtrl: Contacts
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
     this.exportedContacts = this.navParams.get('contacts');
 

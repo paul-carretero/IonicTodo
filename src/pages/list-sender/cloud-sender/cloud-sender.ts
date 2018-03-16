@@ -1,15 +1,8 @@
 import { Component } from '@angular/core';
-import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  ModalController,
-  NavController,
-  NavParams,
-  ToastController
-} from 'ionic-angular';
+import { IonicPage, ModalController, NavController, NavParams } from 'ionic-angular';
 
 import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
+import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
 import { ICloudSharedList } from './../../../model/cloud-shared-list';
 import { ISimpleContact } from './../../../model/simple-contact';
 import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-service';
@@ -35,28 +28,16 @@ export class CloudSenderPage extends GenericSharer {
   constructor(
     public readonly navParams: NavParams,
     public readonly navCtrl: NavController,
-    public readonly loadingCtrl: LoadingController,
-    public readonly alertCtrl: AlertController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider,
     private readonly mapService: MapServiceProvider,
     private readonly modalCtrl: ModalController
   ) {
-    super(
-      navParams,
-      navCtrl,
-      loadingCtrl,
-      alertCtrl,
-      evtCtrl,
-      ttsCtrl,
-      todoCtrl,
-      toastCtrl,
-      authCtrl
-    );
+    super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
     this.shareData = Global.getDefaultCloudShareData();
     this.contactList = new Map();
   }
@@ -69,7 +50,7 @@ export class CloudSenderPage extends GenericSharer {
   }
 
   public async share(email: string): Promise<void> {
-    this.showLoading(this.sendPartage[2] + ' de votre liste en cours');
+    this.uiCtrl.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
 
     let coord = await this.mapService.getMyPosition();
@@ -82,8 +63,8 @@ export class CloudSenderPage extends GenericSharer {
 
     await this.cloudCtrl.postNewShareRequest(this.shareData);
 
-    this.loading.dismiss();
-    this.displayToast('La liste à été ' + this.sendPartage[1] + ' avec succès');
+    this.uiCtrl.dismissLoading();
+    this.uiCtrl.displayToast('La liste à été ' + this.sendPartage[1] + ' avec succès');
     this.navCtrl.pop();
   }
 

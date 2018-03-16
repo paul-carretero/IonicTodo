@@ -1,23 +1,18 @@
+import { UiServiceProvider } from './../ui-service/ui-service';
 import { EventServiceProvider } from './../event/event-service';
 import { Injectable } from '@angular/core';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
-import { Subject } from 'rxjs';
-import { LoadingController, Loading, AlertController } from 'ionic-angular';
 import { MenuRequestType } from '../../model/menu-request-type';
 
 @Injectable()
 export class SpeechRecServiceProvider {
-  private readonly userInputSubject: Subject<any>;
-  private loading: Loading;
   private allOK = false;
 
   constructor(
     private readonly speechRecognition: SpeechRecognition,
-    private readonly loadCtrl: LoadingController,
     private readonly evtCtrl: EventServiceProvider,
-    private readonly alertCtrl: AlertController
+    private readonly uiCtrl: UiServiceProvider
   ) {
-    this.userInputSubject = new Subject();
     this.listenForSpeechRequest();
   }
 
@@ -36,18 +31,20 @@ export class SpeechRecServiceProvider {
   private startListening(): void {
     this.speechRecognition.startListening().subscribe(
       (matches: string[]) => {
-        this.loading.dismiss();
+        this.uiCtrl.dismissLoading();
         console.log(matches);
       },
       () => {
-        this.alert('Erreur', 'une erreur inattendue est survenue');
-        this.loading.dismiss();
+        this.uiCtrl.alert('Erreur', 'une erreur inattendue est survenue');
+        this.uiCtrl.dismissLoading();
       }
     );
   }
 
   private speechWrapper(): void {
-    this.showLoading();
+    this.uiCtrl.showLoading(
+      'Veuillez patienter, préparation de le reconnaissance vocale'
+    );
     this.speechRecognition.isRecognitionAvailable().then((available: boolean) => {
       if (available) {
         this.speechRecognition.hasPermission().then((hasPermission: boolean) => {
@@ -61,8 +58,8 @@ export class SpeechRecServiceProvider {
                 this.startListening();
               },
               () => {
-                this.loading.dismiss();
-                this.alert(
+                this.uiCtrl.dismissLoading();
+                this.uiCtrl.alert(
                   'Erreur',
                   "Vous devez autoriser l'application à utiliser votre microphone"
                 );
@@ -71,37 +68,12 @@ export class SpeechRecServiceProvider {
           }
         });
       } else {
-        this.loading.dismiss();
-        this.alert(
+        this.uiCtrl.dismissLoading();
+        this.uiCtrl.alert(
           'Erreur',
           'Fonctinalité de reconnaissance vocale indisponible sur votre terminal'
         );
       }
     });
-  }
-
-  /**
-   * affiche un élément modal de chargement
-   * @param text le texte affiché lors du chargement
-   */
-  public showLoading() {
-    this.loading = this.loadCtrl.create({
-      content: 'Veuillez patienter, préparation de le reconnaissance vocale'
-    });
-    this.loading.present();
-  }
-
-  public alert(title: string, text: string) {
-    this.alertCtrl
-      .create({
-        title: title,
-        subTitle: text,
-        buttons: ['OK']
-      })
-      .present();
-  }
-
-  public getUserRequest(): Subject<any> {
-    return this.userInputSubject;
   }
 }

@@ -1,31 +1,25 @@
-import { CloudServiceProvider } from './../../providers/cloud-service/cloud-service';
 import { Component } from '@angular/core';
-import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  NavController,
-  NavParams,
-  ToastController
-} from 'ionic-angular';
+import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
 import { Media } from '../../model/media';
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
+import { Settings } from '../../model/settings';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
+import { SettingServiceProvider } from '../../providers/setting/setting-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { IAuthor } from './../../model/author';
 import { IPageData } from './../../model/page-data';
 import { ITodoItem } from './../../model/todo-item';
 import { ITodoList, ListType } from './../../model/todo-list';
+import { CloudServiceProvider } from './../../providers/cloud-service/cloud-service';
 import { Global } from './../../shared/global';
-import { SettingServiceProvider } from '../../providers/setting/setting-service';
-import { Settings } from '../../model/settings';
 
 @IonicPage()
 @Component({
@@ -71,20 +65,31 @@ export class TodoListPage extends GenericPage {
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
+  /**
+   * Creates an instance of TodoListPage.
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {TodoServiceProvider} todoService
+   * @param {NavParams} navParams
+   * @param {SettingServiceProvider} settingCtrl
+   * @param {CloudServiceProvider} cloudCtrl
+   * @memberof TodoListPage
+   */
   constructor(
     public readonly navCtrl: NavController,
-    public readonly loadingCtrl: LoadingController,
-    public readonly alertCtrl: AlertController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams,
     private readonly settingCtrl: SettingServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.todoItems = Observable.of([]);
     this.listType = this.todoService.getListType(this.listUUID);
@@ -138,7 +143,7 @@ export class TodoListPage extends GenericPage {
   }
 
   private async importList(): Promise<void> {
-    this.showLoading('Import de la liste en cours');
+    this.uiCtrl.showLoading('Import de la liste en cours');
     const list: ITodoList = this.todoService.getAListSnapshot(this.listUUID);
     await this.todoService.addList(list, ListType.PRIVATE);
     this.todoService.removeListLink(this.listUUID);

@@ -8,7 +8,6 @@ import {
 } from 'angularfire2/firestore';
 import * as firebase from 'firebase';
 import { User } from 'firebase/app';
-import { AlertController, ToastController } from 'ionic-angular';
 import { Subscription } from 'rxjs/Rx';
 import { v4 as uuid } from 'uuid';
 
@@ -24,6 +23,7 @@ import { EventServiceProvider } from './../event/event-service';
 import { MapServiceProvider } from './../map-service/map-service';
 import { SettingServiceProvider } from './../setting/setting-service';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from './../ui-service/ui-service';
 
 @Injectable()
 export class CloudServiceProvider {
@@ -38,12 +38,11 @@ export class CloudServiceProvider {
   constructor(
     private readonly firestoreCtrl: AngularFirestore,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly toastCtrl: ToastController,
-    private readonly alertCtrl: AlertController,
     private readonly settingsCtrl: SettingServiceProvider,
     private readonly mapCtrl: MapServiceProvider,
     private readonly todoCtrl: TodoServiceProvider,
-    private readonly evtCtrl: EventServiceProvider
+    private readonly evtCtrl: EventServiceProvider,
+    private readonly uiCtrl: UiServiceProvider
   ) {
     this.cloudListCollection = this.firestoreCtrl.collection<ICloudSharedList>('cloud/');
     this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
@@ -66,7 +65,7 @@ export class CloudServiceProvider {
 
     let myPos: ILatLng = await this.mapCtrl.getMyPosition();
     if (myPos == null) {
-      this.displayToast(
+      this.uiCtrl.displayToast(
         'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
       );
       return;
@@ -83,7 +82,7 @@ export class CloudServiceProvider {
     this.postNewShareRequest(cloudData);
 
     const name = await this.getListName(path);
-    this.displayToast(
+    this.uiCtrl.displayToast(
       'la liste ' +
         name +
         ' a été distribuée à toutes les personnes à proximité ayant activé ShakeToShare et ayant agitée leur téléphone'
@@ -232,7 +231,7 @@ export class CloudServiceProvider {
       let myPos: ILatLng = await this.mapCtrl.getMyPosition();
 
       if (myPos == null) {
-        this.displayToast(
+        this.uiCtrl.displayToast(
           'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
         );
         return;
@@ -302,44 +301,18 @@ export class CloudServiceProvider {
     } else {
       await this.todoCtrl.importList(list);
     }
-    this.displayToast('Une nouvelle liste partagée est disponible sur votre compte');
-  }
-
-  private displayToast(message: string): void {
-    this.toastCtrl
-      .create({ message: message, duration: 3000, position: 'bottom' })
-      .present();
+    this.uiCtrl.displayToast(
+      'Une nouvelle liste partagée est disponible sur votre compte'
+    );
   }
 
   private presentPrompt(message: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-      const alert = this.alertCtrl.create({
-        title: 'Liste protégée',
-        subTitle: message,
-        inputs: [
-          {
-            name: 'password',
-            placeholder: 'Password',
-            type: 'password'
-          }
-        ],
-        buttons: [
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            handler: () => {
-              reject();
-            }
-          },
-          {
-            text: 'Valider',
-            handler: data => {
-              resolve(data.password);
-            }
-          }
-        ]
-      });
-      alert.present();
-    });
+    return this.uiCtrl.presentPrompt('Liste protégée', message, [
+      {
+        name: 'password',
+        placeholder: 'Password',
+        type: 'password'
+      }
+    ]);
   }
 }

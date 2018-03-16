@@ -1,10 +1,4 @@
-import {
-  AlertController,
-  LoadingController,
-  NavController,
-  NavParams,
-  ToastController
-} from 'ionic-angular';
+import { NavController, NavParams } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
@@ -12,6 +6,7 @@ import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ITodoListPath } from './../../model/todo-list-path';
 
@@ -36,15 +31,13 @@ export class GenericSharer extends GenericPage {
   constructor(
     public readonly navParams: NavParams,
     public readonly navCtrl: NavController,
-    public readonly loadingCtrl: LoadingController,
-    public readonly alertCtrl: AlertController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly toastCtrl: ToastController,
-    public readonly authCtrl: AuthServiceProvider
+    public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = navParams.get('uuid');
     this.request = navParams.get('request');
     this.sendListHandler();

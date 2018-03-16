@@ -1,14 +1,10 @@
-import {
-  AlertController,
-  LoadingController,
-  NavController,
-  ToastController
-} from 'ionic-angular';
+import { NavController } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
+import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ListType } from './../../model/todo-list';
 import { ITodoListPath } from './../../model/todo-list-path';
@@ -17,28 +13,26 @@ import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-serv
 export abstract class GenericReceiver extends GenericPage {
   constructor(
     public readonly navCtrl: NavController,
-    public readonly alertCtrl: AlertController,
-    public readonly loadingCtrl: LoadingController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly authCtrl: AuthServiceProvider
+    public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
   }
 
   private async listPathHandler(path: ITodoListPath): Promise<boolean> {
-    const resConf: boolean = await this.confirm(
+    const resConf: boolean = await this.uiCtrl.confirm(
       'Confirmation',
       'Etes vous sur de vouloir liée cette liste à votre compte ?'
     );
-    this.showLoading('Import de la liste en cours');
+    this.uiCtrl.showLoading('Import de la liste en cours');
     if (resConf === false) {
       return false;
     }
     await this.todoCtrl.addListLink(path);
-    this.loading.dismiss();
+    this.uiCtrl.dismissLoading();
     return true;
   }
 
@@ -47,18 +41,18 @@ export abstract class GenericReceiver extends GenericPage {
     data.order = -1;
     data.uuid = null;
 
-    const resConf: boolean = await this.confirm(
+    const resConf: boolean = await this.uiCtrl.confirm(
       'Confirmation',
       'Etes vous sur de vouloir copier cette liste ( ' +
         data.name +
         ' ) sur votre compte ?'
     );
-    this.showLoading('Import de la liste en cours');
+    this.uiCtrl.showLoading('Import de la liste en cours');
     if (resConf === false) {
       return false;
     }
     await this.todoCtrl.addList(data, ListType.PRIVATE);
-    this.loading.dismiss();
+    this.uiCtrl.dismissLoading();
     return true;
   }
 
@@ -67,7 +61,7 @@ export abstract class GenericReceiver extends GenericPage {
     try {
       listData = JSON.parse(json);
     } catch (e) {
-      this.displayToast("Erreur lors de l'import, veuillez vérifier la source");
+      this.uiCtrl.displayToast("Erreur lors de l'import, veuillez vérifier la source");
       console.log('impossible à parser => ' + json);
       return false;
     }

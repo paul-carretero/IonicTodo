@@ -3,24 +3,19 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@firebase/auth-types';
 import { GooglePlus } from '@ionic-native/google-plus';
 import * as firebase from 'firebase/app';
+import { IonicPage, NavController } from 'ionic-angular';
 import moment from 'moment';
-import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  NavController,
-  ToastController
-} from 'ionic-angular';
 import { Subscription } from 'rxjs/Rx';
 
 import { FirebaseCredentials } from '../../app/firebase.credentials';
+import { Settings } from '../../model/settings';
 import { EventServiceProvider } from '../../providers/event/event-service';
+import { SettingServiceProvider } from '../../providers/setting/setting-service';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
+import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { GenericPage } from './../../shared/generic-page';
 import { Global } from './../../shared/global';
-import { SettingServiceProvider } from '../../providers/setting/setting-service';
-import { Settings } from '../../model/settings';
 
 @IonicPage()
 @Component({
@@ -36,17 +31,15 @@ export class AuthentificationPage extends GenericPage {
 
   constructor(
     public readonly navCtrl: NavController,
-    public readonly alertCtrl: AlertController,
-    public readonly loadingCtrl: LoadingController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly googlePlus: GooglePlus,
     private readonly formBuilder: FormBuilder,
     private readonly settingCtrl: SettingServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.authForm = this.formBuilder.group({
       email: ['', Validators.email],
       password: ['', Validators.required]
@@ -118,7 +111,7 @@ export class AuthentificationPage extends GenericPage {
 
   public async loginGooglePlus(): Promise<void> {
     try {
-      this.showLoading('tentative de login...');
+      this.uiCtrl.showLoading('tentative de login...');
       const result = await this.googlePlus.login({
         webClientId: FirebaseCredentials.webClientId,
         offline: false
@@ -131,17 +124,17 @@ export class AuthentificationPage extends GenericPage {
           .auth()
           .signInWithCredential(googleCredential)
           .then(() => {
-            this.displayToast(
+            this.uiCtrl.displayToast(
               'Connexion avec votre compte Google effectuée avec succès!'
             );
           });
       }
     } catch (err) {
-      this.alert(
+      this.uiCtrl.alert(
         'Erreur de connexion',
         'Connexion à votre compte Google impossible' + 'Message : <br/>' + err
       );
-      this.loading.dismiss();
+      this.uiCtrl.dismissLoading();
     }
   }
 
@@ -152,25 +145,25 @@ export class AuthentificationPage extends GenericPage {
     this.settingCtrl.setSetting(Settings.LAST_FIRE_EMAIL_LOGIN, email);
 
     try {
-      this.showLoading('tentative de login...');
+      this.uiCtrl.showLoading('tentative de login...');
       const result = await firebase.auth().signInWithEmailAndPassword(email, password);
       if (result) {
-        this.displayToast('Connexion avec votre compte effectuée avec succès!');
+        this.uiCtrl.displayToast('Connexion avec votre compte effectuée avec succès!');
       }
     } catch (err) {
-      this.alert(
+      this.uiCtrl.alert(
         'Erreur de connexion',
         'Connexion à votre compte impossible' + 'Message : <br/>' + err
       );
-      this.loading.dismiss();
+      this.uiCtrl.dismissLoading();
     }
   }
 
   public async logout(): Promise<void> {
     if (this.authCtrl.isConnected()) {
-      this.showLoading('Déconnexion en cours');
+      this.uiCtrl.showLoading('Déconnexion en cours');
       await this.authCtrl.logout();
-      this.loading.dismiss();
+      this.uiCtrl.dismissLoading();
     }
   }
 
@@ -179,22 +172,22 @@ export class AuthentificationPage extends GenericPage {
     const password: string = this.authForm.get('password').value;
 
     try {
-      this.showLoading('création du compte...');
+      this.uiCtrl.showLoading('création du compte...');
       const result = await firebase
         .auth()
         .createUserWithEmailAndPassword(email, password);
       if (result) {
-        this.displayToast('Création de votre compte effectuée avec succès!', 1000);
+        this.uiCtrl.displayToast('Création de votre compte effectuée avec succès!', 1000);
         //firebase.auth().currentUser.updateProfile();
-        this.loading.dismiss();
+        this.uiCtrl.dismissLoading();
         this.firebaseLogin();
       }
     } catch (err) {
-      this.alert(
+      this.uiCtrl.alert(
         'Erreur de connection',
         'Création de votre compte impossible' + 'Message : <br/>' + err
       );
-      this.loading.dismiss();
+      this.uiCtrl.dismissLoading();
     }
   }
 
@@ -208,7 +201,7 @@ export class AuthentificationPage extends GenericPage {
   public async offlineMode(): Promise<void> {
     await this.logout();
     this.authCtrl.allowOffline();
-    this.displayToast(
+    this.uiCtrl.displayToast(
       'Mode Hors Connexion activé: Certaines Fonctionalités ne seront pas disponible'
     );
     this.navCtrl.parent.select(Global.HOMEPAGE);

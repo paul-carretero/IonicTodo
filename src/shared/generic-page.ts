@@ -1,22 +1,15 @@
-import { AuthServiceProvider } from './../providers/auth-service/auth-service';
-import {
-  AlertController,
-  Loading,
-  LoadingController,
-  NavController,
-  ToastController
-} from 'ionic-angular';
+import { NavController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
 import { IMenuRequest } from '../model/menu-request';
+import { MenuRequestType } from '../model/menu-request-type';
 import { EventServiceProvider } from '../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { INavRequest } from './../model/nav-request';
-import { MenuRequestType } from '../model/menu-request-type';
+import { AuthServiceProvider } from './../providers/auth-service/auth-service';
+import { UiServiceProvider } from './../providers/ui-service/ui-service';
 
 export abstract class GenericPage {
-  public loading: Loading;
-
   private navSub: Subscription;
 
   /**
@@ -36,12 +29,10 @@ export abstract class GenericPage {
 
   constructor(
     public navCtrl: NavController,
-    public alertCtrl: AlertController,
-    public loadingCtrl: LoadingController,
     public evtCtrl: EventServiceProvider,
     public ttsCtrl: SpeechSynthServiceProvider,
-    public toastCtrl: ToastController,
-    public authCtrl: AuthServiceProvider
+    public authCtrl: AuthServiceProvider,
+    public uiCtrl: UiServiceProvider
   ) {}
 
   /**************************************************************************/
@@ -75,7 +66,7 @@ export abstract class GenericPage {
             this.ttsCtrl.synthText(this.generateDescription());
             break;
           case MenuRequestType.HELP:
-            this.alert('Aide sur la page', this.generateHelp());
+            this.uiCtrl.alert('Aide sur la page', this.generateHelp());
             break;
         }
         this.menuEventHandler(req);
@@ -111,84 +102,10 @@ export abstract class GenericPage {
   /******************************** HELPER **********************************/
   /**************************************************************************/
 
-  /**
-   * affiche un élément modal de chargement
-   *
-   * @param {string} text le texte affiché lors du chargement
-   * @param {number} [duration]
-   * @memberof GenericPage
-   */
-  public showLoading(text: string, duration?: number): void {
-    if (this.loading != null) {
-      this.loading.dismissAll();
-    }
-
-    if (duration == null) {
-      duration = 30000; // 30sec max default
-    }
-
-    this.loading = this.loadingCtrl.create({
-      content: text,
-      dismissOnPageChange: true,
-      duration: duration
-    });
-    this.loading.present();
-  }
-
-  /**
-   * affiche une fenêtre d'information
-   * @param {string} title le titre de la fenêtre d'alerte
-   * @param {string} text le texte de le fenêtre d'alerte
-   */
-  public alert(title: string, text: string): void {
-    this.alertCtrl
-      .create({
-        title: title,
-        subTitle: text,
-        buttons: ['OK']
-      })
-      .present();
-  }
-
-  public displayToast(message: string, duration?: number): void {
-    if (duration == null) {
-      duration = 3000;
-    }
-    this.toastCtrl
-      .create({ message: message, duration: duration, position: 'bottom' })
-      .present();
-  }
-
   public tryUnSub(sub: Subscription) {
     if (sub != null) {
       sub.unsubscribe();
     }
-  }
-
-  public confirm(title: string, message: string): Promise<boolean> {
-    return new Promise<boolean>(resolve => {
-      this.alertCtrl
-        .create({
-          title: title,
-          message: message,
-          buttons: [
-            {
-              text: 'Annuler',
-              role: 'cancel',
-              handler: () => {
-                resolve(false);
-              }
-            },
-            {
-              text: 'Valider',
-              handler: () => {
-                resolve(true);
-              }
-            }
-          ]
-        })
-        .present();
-    });
   }
 
   public dateToString(date: Date): string {

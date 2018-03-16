@@ -1,22 +1,17 @@
-import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { Component } from '@angular/core';
 import { CameraPreview, CameraPreviewOptions } from '@ionic-native/camera-preview';
 import { QRScanner, QRScannerStatus } from '@ionic-native/qr-scanner';
-import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  NavController,
-  ToastController
-} from 'ionic-angular';
+import { ScreenOrientation } from '@ionic-native/screen-orientation';
+import { IonicPage, NavController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
 import { IMenuRequest } from '../../../model/menu-request';
+import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
 import { GenericReceiver } from '../generic-receiver';
-import { ScreenOrientation } from '@ionic-native/screen-orientation';
-import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
+import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from './../../../providers/ui-service/ui-service';
 
 @IonicPage()
 @Component({
@@ -44,12 +39,10 @@ export class QrReaderPage extends GenericReceiver {
 
   constructor(
     public readonly navCtrl: NavController,
-    public readonly alertCtrl: AlertController,
-    public readonly loadingCtrl: LoadingController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly todoCtrl: TodoServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly qrScanner: QRScanner,
     private readonly cameraPreview: CameraPreview,
     private readonly screenCtrl: ScreenOrientation,
@@ -57,13 +50,12 @@ export class QrReaderPage extends GenericReceiver {
   ) {
     super(
       navCtrl,
-      alertCtrl,
-      loadingCtrl,
+
       evtCtrl,
       ttsCtrl,
-      toastCtrl,
       todoCtrl,
-      authCtrl
+      authCtrl,
+      uiCtrl
     );
   }
 
@@ -107,7 +99,7 @@ export class QrReaderPage extends GenericReceiver {
   private timeoutNoData(): void {
     setTimeout(() => {
       if (!this.scanSub.closed) {
-        this.displayToast(
+        this.uiCtrl.displayToast(
           'Impossible de trouver un QR Code à scanner, veuillez rééssayer'
         );
         this.scanSub.unsubscribe();
@@ -118,17 +110,17 @@ export class QrReaderPage extends GenericReceiver {
 
   public async scan(): Promise<void> {
     this.stopPreview();
-    this.showLoading('Tentative de scan en cours', QrReaderPage.MAX_SCAN_TIME);
+    this.uiCtrl.showLoading('Tentative de scan en cours', QrReaderPage.MAX_SCAN_TIME);
     await this.qrScanner.prepare();
 
     this.scanSub = this.qrScanner.scan().subscribe((text: string) => {
-      this.loading.dismiss();
+      this.uiCtrl.dismissLoading();
       this.scanSub.unsubscribe();
       this.importHandler(text).then((success: boolean) => {
         if (success) {
           this.navCtrl.popToRoot();
         } else {
-          this.loading.dismiss();
+          this.uiCtrl.dismissLoading();
           this.startPreview();
         }
       });

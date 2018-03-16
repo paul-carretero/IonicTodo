@@ -112,12 +112,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   /**
    * Présente le menu contextuel de droite
+   * note: event est nécessaire à l'affichage la ou le boutton est sinon c'est au milieu...
    *
    * @memberof HeaderComponent
    */
-  public presentPopover(): void {
+  public presentPopover(event: any): void {
     const popover = this.popoverCtrl.create('PopoverOptionsPage');
-    popover.present({});
+    popover.present({ ev: event });
   }
 
   /**

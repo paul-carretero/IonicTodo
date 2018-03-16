@@ -1,28 +1,23 @@
-import { EventServiceProvider } from './../../providers/event/event-service';
-import { MapServiceProvider } from './../../providers/map-service/map-service';
 import { Component } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
-  AlertController,
-  IonicPage,
-  LoadingController,
-  NavController,
-  ToastController
-} from 'ionic-angular';
-import {
-  GoogleMaps,
   GoogleMap,
-  GoogleMapsEvent,
-  GoogleMapOptions
+  GoogleMapOptions,
+  GoogleMaps,
+  GoogleMapsEvent
 } from '@ionic-native/google-maps';
+import { IonicPage, NavController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { GenericPage } from '../../shared/generic-page';
-import { ITodoItem } from './../../model/todo-item';
-import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
-import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { IMenuRequest } from '../../model/menu-request';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
+import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
+import { GenericPage } from '../../shared/generic-page';
+import { ITodoItem } from './../../model/todo-item';
+import { EventServiceProvider } from './../../providers/event/event-service';
+import { MapServiceProvider } from './../../providers/map-service/map-service';
+import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 
 @IonicPage()
 @Component({
@@ -40,17 +35,15 @@ export class TodoEditPage extends GenericPage {
 
   constructor(
     public readonly navCtrl: NavController,
-    public readonly alertCtrl: AlertController,
-    public readonly loadingCtrl: LoadingController,
     public readonly evtCtrl: EventServiceProvider,
     public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly toastCtrl: ToastController,
     public readonly authCtrl: AuthServiceProvider,
+    public readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider,
     private readonly formBuilder: FormBuilder,
     private readonly MapService: MapServiceProvider
   ) {
-    super(navCtrl, alertCtrl, loadingCtrl, evtCtrl, ttsCtrl, toastCtrl, authCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     //this.todoUUID = navParams.get('todoUUID');
     //this.listUUID = navParams.get('listUUID');
     this.todo = { name: '', complete: false, desc: '', uuid: this.todoUUID };
