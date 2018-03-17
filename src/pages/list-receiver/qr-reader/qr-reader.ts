@@ -12,6 +12,7 @@ import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-serv
 import { GenericReceiver } from '../generic-receiver';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../../../providers/ui-service/ui-service';
+import { Global } from '../../../shared/global';
 
 @IonicPage()
 @Component({
@@ -19,7 +20,7 @@ import { UiServiceProvider } from './../../../providers/ui-service/ui-service';
   templateUrl: 'qr-reader.html'
 })
 export class QrReaderPage extends GenericReceiver {
-  private static readonly MAX_SCAN_TIME = 8000;
+  private static readonly MAX_SCAN_TIME = 10000;
 
   private static readonly cameraPreviewOpts: CameraPreviewOptions = {
     x: 0,
@@ -38,31 +39,28 @@ export class QrReaderPage extends GenericReceiver {
   private scanSub: Subscription;
 
   constructor(
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly qrScanner: QRScanner,
     private readonly cameraPreview: CameraPreview,
     private readonly screenCtrl: ScreenOrientation,
-    public readonly authCtrl: AuthServiceProvider
+    protected readonly authCtrl: AuthServiceProvider
   ) {
-    super(
-      navCtrl,
-
-      evtCtrl,
-      ttsCtrl,
-      todoCtrl,
-      authCtrl,
-      uiCtrl
-    );
+    super(navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
 
   ionViewDidEnter() {
     this.checkAuthForScan();
     this.startPreview();
     this.screenCtrl.lock(this.screenCtrl.ORIENTATIONS.PORTRAIT);
+
+    const pageData = Global.getDefaultPageData();
+    pageData.title = 'Scanner un QR Code';
+    pageData.subtitle = 'Importer une liste';
+    this.evtCtrl.getHeadeSubject().next(pageData);
   }
 
   ionViewWillLeave() {

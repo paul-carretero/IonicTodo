@@ -1,10 +1,11 @@
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
-import { AlertController, IonicPage, Tabs, ToastController } from 'ionic-angular';
+import { IonicPage, Tabs } from 'ionic-angular';
 
 import { Global } from '../../shared/global';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { EventServiceProvider } from './../../providers/event/event-service';
+import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 
 /**
  * Page de nav de base de l'application
@@ -26,9 +27,8 @@ export class TabsPage {
   constructor(
     private readonly evtCtrl: EventServiceProvider,
     private readonly flashlight: Flashlight,
-    private readonly alertCtrl: AlertController,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly toastCtrl: ToastController
+    private readonly uiCtrl: UiServiceProvider
   ) {}
 
   get allowNavigate(): boolean {
@@ -47,44 +47,26 @@ export class TabsPage {
     return this.authCtrl.isConnected();
   }
 
-  public checkIfNotAllowed(): void {
-    if (!this.allowNavigate) {
-      this.toastCtrl
-        .create({
-          message:
-            'Vous devez être connecté ou utiliser le mode hors ligne pour accéder à cette page',
-          duration: 3000,
-          position: 'bottom'
-        })
-        .present();
-    }
-  }
-
   private setRoot(root: number) {
     this.tabRef.select(root);
   }
 
   /**
-   * affiche une fenêtre d'information
-   * @param title le titre de la fenêtre d'alerte
-   * @param text le texte de le fenêtre d'alerte
+   * envoie une demande de redirection vers la page de lecture qr code
+   *
+   * @memberof TabsPage
    */
-  public alert(title: string, text: string) {
-    this.alertCtrl
-      .create({
-        title: title,
-        subTitle: text,
-        buttons: ['OK']
-      })
-      .present();
-  }
-
   public showQrPage(): void {
     this.evtCtrl.getNavRequestSubject().next({ page: 'QrReaderPage' });
   }
 
+  /**
+   * envoie une demande de redirection vers la page de cloud
+   *
+   * @memberof TabsPage
+   */
   public showCloudPage(): void {
-    //todo
+    this.evtCtrl.getNavRequestSubject().next({ page: 'CloudSpacePage' });
   }
 
   /**
@@ -97,7 +79,7 @@ export class TabsPage {
     this.JeVoisBien = !this.JeVoisBien;
     if (this.JeVoisBien) {
       this.flashlight.switchOn().catch(() => {
-        this.alert(
+        this.uiCtrl.alert(
           'erreur',
           "Vous devez accepter que l'utilisation de votre appareil photo pour mieux voir."
         );

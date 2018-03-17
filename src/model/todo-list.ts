@@ -9,14 +9,6 @@ import { ITodoItem } from './todo-item';
  */
 export interface ITodoList {
   /**
-   * Magic string pour identifier cette classe comme une liste de todo
-   *
-   * @type {string}
-   * @memberof ITodoList
-   */
-  magic?: string;
-
-  /**
    * Identifieur unique de la liste
    *
    * @type {string}
@@ -54,7 +46,7 @@ export interface ITodoList {
    * @type {number}
    * @memberof ITodoList
    */
-  order?: number;
+  order: number;
 
   /**
    * Autheur de cette liste
@@ -62,7 +54,7 @@ export interface ITodoList {
    * @type {IAuthor}
    * @memberof ITodoList
    */
-  author?: IAuthor;
+  author: IAuthor;
 }
 
 /**

@@ -1,17 +1,14 @@
 <ion-tabs #navTabs selectedIndex="1">
-    <ng-container (click)="checkIfNotAllowed()">
-        <ion-tab [root]="tab1Root" tabTitle="Vos Tâches" tabIcon="list" #content swipeBackEnabled="true" [enabled]="allowNavigate"></ion-tab>
-    </ng-container>
+    <ion-tab [root]="tab1Root" tabTitle="Vos Tâches" tabIcon="list" #content swipeBackEnabled="true" [enabled]="allowNavigate"></ion-tab>
     <ion-tab [root]="tab2Root" tabTitle="Authentification" tabIcon="key"></ion-tab>
-    <ng-container (click)="checkIfNotAllowed()">
-        <ion-tab [root]="tab3Root" tabTitle="Configuration" tabIcon="settings" [enabled]="allowNavigate"></ion-tab>
-    </ng-container>
+    <ion-tab [root]="tab3Root" tabTitle="Configuration" tabIcon="settings" [enabled]="allowNavigate"></ion-tab>
 </ion-tabs>
 
 <ion-menu [content]="content" id="menu-left">
     <ion-header>
         <ion-toolbar color="danger">
-            <ion-title>TODO: trouver un nom</ion-title>
+            <ion-title icon-start>
+                <ion-icon name="done-all"></ion-icon>OhMyTask</ion-title>
         </ion-toolbar>
     </ion-header>
     <ion-content>
@@ -20,10 +17,6 @@
             <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showQrPage()" icon-start>
                 <ion-icon small name="qr-scanner"></ion-icon>
                 Recevoir une liste (QR Code)
-            </button>
-            <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showNFCPage()" icon-start>
-                <ion-icon small name="phone-portrait"></ion-icon>
-                Recevoir une liste (NFC)
             </button>
             <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showCloudPage()" icon-start>
                 <ion-icon small name="cloud-download"></ion-icon>

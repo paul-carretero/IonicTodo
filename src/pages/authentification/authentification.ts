@@ -30,11 +30,11 @@ export class AuthentificationPage extends GenericPage {
   private static autoRedirect = true;
 
   constructor(
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly googlePlus: GooglePlus,
     private readonly formBuilder: FormBuilder,
     private readonly settingCtrl: SettingServiceProvider

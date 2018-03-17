@@ -34,11 +34,11 @@ export class TodoEditPage extends GenericPage {
   public todoForm: FormGroup;
 
   constructor(
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider,
     private readonly formBuilder: FormBuilder,
     private readonly MapService: MapServiceProvider

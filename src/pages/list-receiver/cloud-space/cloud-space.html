@@ -1,0 +1,26 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+<ion-content padding>
+  <ng-container *ngFor="let list of cloudList$ | async">
+    <ng-container *ngIf="search$ | async as search">
+      <ion-card *ngIf="areMatching(list,search)">
+        <ion-toolbar>
+          <ion-title>{{list.name}}</ion-title>
+          <ion-buttons right>
+            <button round outline ion-button icon-start class="import-button" *ngIf="list.list.shareByReference" (click)="importList(list)">
+              <ion-icon name="link"></ion-icon>
+              Lier
+            </button>
+            <button round outline ion-button icon-start class="import-button" *ngIf="!list.list.shareByReference" (click)="importList(list)">
+              <ion-icon name="copy"></ion-icon>
+              Copier
+            </button>
+          </ion-buttons>
+        </ion-toolbar>
+        <author-display [author]="list.author"></author-display>
+      </ion-card>
+    </ng-container>
+  </ng-container>
+</ion-content>

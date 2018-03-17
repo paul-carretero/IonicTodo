@@ -8,6 +8,7 @@ import { NfcProvider } from './../../../providers/nfc/nfc';
 import { SpeechSynthServiceProvider } from './../../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { GenericSharer } from './../generic-sharer';
+import { Global } from '../../../shared/global';
 
 @IonicPage()
 @Component({
@@ -17,15 +18,22 @@ import { GenericSharer } from './../generic-sharer';
 export class NfcSenderPage extends GenericSharer {
   constructor(
     public readonly navParams: NavParams,
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly nfcCtrl: NfcProvider
   ) {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
+  }
+
+  ionViewDidEnter() {
+    const pageData = Global.getDefaultPageData();
+    pageData.title = 'Exporter par NFC';
+    pageData.subtitle = this.evtCtrl.getHeadeSubject().getValue().title;
+    this.evtCtrl.getHeadeSubject().next(pageData);
   }
 
   public async updateSharedTag(): Promise<void> {

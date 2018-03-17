@@ -55,7 +55,7 @@ export class EventServiceProvider {
    * @type {Subject<string>}
    * @memberof EventServiceProvider
    */
-  private readonly searchSubject: Subject<string>;
+  private readonly searchSubject: BehaviorSubject<string>;
 
   /**
    * Creates an instance of EventServiceProvider.
@@ -66,7 +66,7 @@ export class EventServiceProvider {
     this.headerData = new BehaviorSubject<IPageData>(Global.getDefaultPageData());
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
-    this.searchSubject = new Subject<string>();
+    this.searchSubject = new BehaviorSubject<string>('#');
     this.shakeDetect();
   }
 
@@ -118,7 +118,7 @@ export class EventServiceProvider {
    * @returns {Subject<string>}
    * @memberof EventServiceProvider
    */
-  public getSearchSubject(): Subject<string> {
+  public getSearchSubject(): BehaviorSubject<string> {
     return this.searchSubject;
   }
 }

@@ -18,8 +18,8 @@ export interface IAppUser {
   /**
    * Utilisé pour récupérer un timestamp serveur de la part d'un utilisateur connecté
    *
-   * @type {*}
+   * @type {Date}
    * @memberof IAppUser
    */
-  timestamp?: any;
+  timestamp?: Date;
 }

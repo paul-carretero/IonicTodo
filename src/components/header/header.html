@@ -16,11 +16,14 @@
 
   <ion-searchbar [placeholder]="data.searchPlaceholders" #Searchbar *ngIf="displaySearchBar" (ionInput)="search($event)"></ion-searchbar>
 
-  <span class="subtitle" *ngIf="!displaySearchBar">{{data.title}}</span>
+  <span class="subtitle" *ngIf="!displaySearchBar">{{data.subtitle}}</span>
 
   <ion-buttons right *ngIf="!displaySearchBar">
-    <button ion-button round class="icon-sized" (click)="searchInit()">
+    <button *ngIf="data.searchable" ion-button round class="icon-sized" (click)="searchInit()">
       <ion-icon name="search"></ion-icon>
+    </button>
+    <button *ngIf="data.validable" ion-button round (click)="valid()" class="icon-sized">
+      <ion-icon name="checkmark"></ion-icon>
     </button>
     <button ion-button round class="icon-sized" (click)="startSpeechRec()">
       <ion-icon name="mic"></ion-icon>
@@ -28,10 +31,7 @@
     <button ion-button round class="icon-sized" (click)="startTTS()">
       <ion-icon name="volume-up"></ion-icon>
     </button>
-    <button *ngIf="data.validable" ion-button round (click)="valid()" class="icon-sized">
-      <ion-icon name="checkmark"></ion-icon>
-    </button>
-    <button ion-button round (click)="presentPopover()" class="icon-sized">
+    <button ion-button round (click)="presentPopover($event)" class="icon-sized">
       <ion-icon name="more"></ion-icon>
     </button>
   </ion-buttons>

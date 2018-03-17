@@ -27,6 +27,7 @@ import { Subscription } from 'rxjs';
   templateUrl: 'home.html'
 })
 export class HomePage extends GenericPage {
+  /***************************** PUBLIC FIELDS ******************************/
   /**
    * Observable des liste privée de l'utilisateur connecté non terminée
    *
@@ -62,6 +63,17 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   public sharedTodoList: Observable<ITodoList[]>;
+
+  /**
+   * flux des recherches utilisateur
+   *
+   * @readonly
+   * @type {Observable<string>}
+   * @memberof HomePage
+   */
+  public readonly search$: Observable<string>;
+
+  /**************************** PRIVATE FIELDS ******************************/
 
   /**
    * abonemment aux listes utilisateur privée
@@ -106,17 +118,18 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   constructor(
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoList = [];
     this.todoListComplete = [];
     this.localTodoList = [];
+    this.search$ = this.evtCtrl.getSearchSubject();
   }
 
   /**************************************************************************/
@@ -131,8 +144,10 @@ export class HomePage extends GenericPage {
    */
   ionViewDidEnter() {
     const pageData = Global.getDefaultPageData();
-    pageData.title = 'Listes de Tâches';
+    pageData.title = 'Vos Listes de Tâches';
+    pageData.subtitle = 'Accueil OhMyTask';
     pageData.searchable = true;
+    pageData.searchPlaceholders = 'chercher par liste ou auteur';
     this.evtCtrl.getHeadeSubject().next(pageData);
 
     this.initPrivateListSub();

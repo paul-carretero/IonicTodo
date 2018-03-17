@@ -30,12 +30,12 @@ export class GenericSharer extends GenericPage {
 
   constructor(
     public readonly navParams: NavParams,
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = navParams.get('uuid');

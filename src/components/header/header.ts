@@ -20,6 +20,8 @@ import { IPageData } from './../../model/page-data';
   templateUrl: 'header.html'
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+  /***************************** PUBLIC FIELDS ******************************/
+
   /**
    * donnée d'affichage du header courrante
    *
@@ -35,6 +37,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * @memberof HeaderComponent
    */
   public displaySearchBar: boolean = false;
+
+  /**************************** PRIVATE FIELDS ******************************/
 
   /**
    * la barre de recherche, null si elle n'est pas affiché
@@ -94,6 +98,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.updateSub = this.evtCtrl.getHeadeSubject().subscribe(newData => {
       this.data = newData;
     });
+    // car  [ '' == false ]     (╯°□°）╯︵ ┻━┻
+    this.evtCtrl.getSearchSubject().next('#');
   }
 
   /**************************************************************************/
@@ -116,9 +122,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
    *
    * @memberof HeaderComponent
    */
-  public presentPopover(event: any): void {
+  public presentPopover(myEvent): void {
     const popover = this.popoverCtrl.create('PopoverOptionsPage');
-    popover.present({ ev: event });
+    popover.present({
+      ev: myEvent
+    });
   }
 
   /**
@@ -167,7 +175,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   public cancelSearch(): void {
     this.displaySearchBar = false;
-    this.evtCtrl.getSearchSubject().next(null);
+    this.evtCtrl.getSearchSubject().next('#');
   }
 
   /**
@@ -177,6 +185,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * @memberof HeaderComponent
    */
   public search(event): void {
-    this.evtCtrl.getSearchSubject().next(event.value);
+    if (event.target.value === '' || event.target.value == null) {
+      this.evtCtrl.getSearchSubject().next('#');
+    } else {
+      this.evtCtrl.getSearchSubject().next(event.target.value.toUpperCase());
+    }
   }
 }

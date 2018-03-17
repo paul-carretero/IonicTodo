@@ -36,7 +36,7 @@ export interface IAuthor {
    * @type {Date}
    * @memberof IAuthor
    */
-  date?: Date;
+  timestamp?: Date;
 
   /**
    * ville à laquelle l'objet à été créé
@@ -45,4 +45,12 @@ export interface IAuthor {
    * @memberof IAuthor
    */
   city?: string;
+
+  /**
+   * Position plus précise où à été réalisé l'objet
+   *
+   * @type {firebase.firestore.GeoPoint}
+   * @memberof IAuthor
+   */
+  coord?: firebase.firestore.GeoPoint;
 }

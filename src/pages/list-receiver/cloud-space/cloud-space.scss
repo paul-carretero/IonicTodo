@@ -1,0 +1,13 @@
+page-cloud-space {
+  ion-toolbar {
+    min-height: 35px !important;
+    max-height: 35px !important;
+    height: 35px !important;
+    ion-title {
+      font-size: 66%;
+    }
+    .import-button {
+      width: 7em;
+    }
+  }
+}

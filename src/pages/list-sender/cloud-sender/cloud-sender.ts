@@ -7,7 +7,6 @@ import { ICloudSharedList } from './../../../model/cloud-shared-list';
 import { ISimpleContact } from './../../../model/simple-contact';
 import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-service';
 import { EventServiceProvider } from './../../../providers/event/event-service';
-import { MapServiceProvider } from './../../../providers/map-service/map-service';
 import { SpeechSynthServiceProvider } from './../../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { Global } from './../../../shared/global';
@@ -27,19 +26,26 @@ export class CloudSenderPage extends GenericSharer {
 
   constructor(
     public readonly navParams: NavParams,
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider,
-    private readonly mapService: MapServiceProvider,
     private readonly modalCtrl: ModalController
   ) {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
     this.shareData = Global.getDefaultCloudShareData();
     this.contactList = new Map();
+  }
+
+  ionViewDidEnter() {
+    super.ionViewDidEnter();
+    const pageData = Global.getDefaultPageData();
+    pageData.title = 'Exporter en ligne';
+    pageData.subtitle = this.evtCtrl.getHeadeSubject().getValue().title;
+    this.evtCtrl.getHeadeSubject().next(pageData);
   }
 
   get sendPartage(): string[] {
@@ -53,13 +59,11 @@ export class CloudSenderPage extends GenericSharer {
     this.uiCtrl.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
 
-    let coord = await this.mapService.getMyPosition();
-    coord = Global.roundILatLng(coord);
-    this.shareData.coord = Global.getGeoPoint(coord);
+    this.shareData.author = await this.authCtrl.getAuthor(true);
     this.shareData.email = email;
     this.shareData.password = this.password;
     this.shareData.shakeToShare = false;
-    this.shareData.authorUuid = this.authCtrl.getUserId();
+    this.shareData.name = await this.cloudCtrl.getListName(this.list);
 
     await this.cloudCtrl.postNewShareRequest(this.shareData);
 

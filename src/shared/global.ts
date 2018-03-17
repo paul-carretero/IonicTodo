@@ -61,6 +61,7 @@ export class Global {
   public static getDefaultPageData(): IPageData {
     return {
       title: '',
+      subtitle: '',
       shareable: false,
       editable: false,
       validable: false,
@@ -78,6 +79,7 @@ export class Global {
   public static getValidablePageData(): IPageData {
     return {
       title: '',
+      subtitle: '',
       shareable: false,
       editable: false,
       validable: true,
@@ -95,6 +97,7 @@ export class Global {
   public static getShareEditPageData(): IPageData {
     return {
       title: '',
+      subtitle: '',
       shareable: true,
       editable: true,
       validable: false,
@@ -112,6 +115,7 @@ export class Global {
   public static getOnlyEditPageData(): IPageData {
     return {
       title: '',
+      subtitle: '',
       shareable: false,
       editable: true,
       validable: false,
@@ -134,8 +138,9 @@ export class Global {
   public static getDefaultCloudShareData(): ICloudSharedList {
     return {
       list: Global.getBlankListPath(),
-      authorUuid: null,
-      shakeToShare: false
+      author: null,
+      shakeToShare: false,
+      name: null
     };
   }
 
@@ -147,7 +152,9 @@ export class Global {
     uuid: null,
     name: null,
     items: [],
-    icon: null
+    icon: null,
+    order: 0,
+    author: null
   };
 
   /**************************************************************************/
@@ -172,5 +179,43 @@ export class Global {
 
   public static getILatLng(p: firebase.firestore.GeoPoint): ILatLng {
     return { lat: p.latitude, lng: p.longitude };
+  }
+
+  /**
+   * Formule de haversine pour calculer la distance entre deux points
+   *
+   * @static
+   * @param {firebase.firestore.GeoPoint} p1
+   * @param {firebase.firestore.GeoPoint} p2
+   * @returns {number}
+   * @memberof Global
+   */
+  public static geoDistance(
+    p1: firebase.firestore.GeoPoint,
+    p2: firebase.firestore.GeoPoint
+  ): number {
+    const R = 6371; // Radius of the earth in km
+    const dLat = Global.deg2rad(p2.latitude - p1.latitude);
+    const dLon = Global.deg2rad(p2.longitude - p1.longitude);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(Global.deg2rad(p1.latitude)) *
+        Math.cos(Global.deg2rad(p2.latitude)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 2;
+    return R * c;
+  }
+
+  /**
+   * Degrés vers Radian
+   *
+   * @static
+   * @param {number} deg
+   * @returns {number}
+   * @memberof Global
+   */
+  public static deg2rad(deg: number): number {
+    return deg * (Math.PI / 180);
   }
 }

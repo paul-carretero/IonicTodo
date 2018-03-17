@@ -12,12 +12,12 @@ import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-serv
 
 export abstract class GenericReceiver extends GenericPage {
   constructor(
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
   }
@@ -38,7 +38,7 @@ export abstract class GenericReceiver extends GenericPage {
 
   private async todoListHandler(path: ITodoListPath): Promise<boolean> {
     const data = await this.todoCtrl.getAListSnapshotFromPath(path);
-    data.order = -1;
+    data.order = 0;
     data.uuid = null;
 
     const resConf: boolean = await this.uiCtrl.confirm(

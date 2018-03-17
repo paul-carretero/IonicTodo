@@ -1,5 +1,4 @@
-import * as firebase from 'firebase';
-
+import { IAuthor } from './author';
 import { ITodoListPath } from './todo-list-path';
 
 /**
@@ -34,22 +33,6 @@ export interface ICloudSharedList {
   email?: string;
 
   /**
-   * Timestamp ou le partage a été initié
-   *
-   * @type {*}
-   * @memberof ICloudSharedList
-   */
-  timestamp?: any;
-
-  /**
-   * coordonnée ou le partage à été effectué
-   *
-   * @type {firebase.firestore.GeoPoint}
-   * @memberof ICloudSharedList
-   */
-  coord?: firebase.firestore.GeoPoint;
-
-  /**
    * Si vrai alors il s'agit d'une tentative de partage par shake (non sécurisé)
    * Ce type de partage se base sur le fait que deux téléphone sont secouer avec
    * un timestamp proche et une position proche
@@ -60,10 +43,18 @@ export interface ICloudSharedList {
   shakeToShare: boolean;
 
   /**
-   * identifiant unique du créateur de ce partage
+   * Author de ce partage
+   *
+   * @type {IAuthor}
+   * @memberof ICloudSharedList
+   */
+  author: IAuthor;
+
+  /**
+   * Le nom de la liste for the sake of performance
    *
    * @type {string}
    * @memberof ICloudSharedList
    */
-  authorUuid: string;
+  name: string;
 }

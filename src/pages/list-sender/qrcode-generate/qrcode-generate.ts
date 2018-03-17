@@ -7,6 +7,7 @@ import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-serv
 import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { GenericSharer } from './../generic-sharer';
+import { Global } from '../../../shared/global';
 
 @IonicPage()
 @Component({
@@ -16,13 +17,21 @@ import { GenericSharer } from './../generic-sharer';
 export class QrcodeGeneratePage extends GenericSharer {
   constructor(
     public readonly navParams: NavParams,
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider
   ) {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
+  }
+
+  ionViewDidEnter() {
+    super.ionViewDidEnter();
+    const pageData = Global.getDefaultPageData();
+    pageData.title = 'Exporter par QR Code';
+    pageData.subtitle = this.evtCtrl.getHeadeSubject().getValue().title;
+    this.evtCtrl.getHeadeSubject().next(pageData);
   }
 }

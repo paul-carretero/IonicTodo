@@ -1,5 +1,5 @@
+import { CloudServiceProvider } from './../cloud-service/cloud-service';
 import { CollectionReference } from '@firebase/firestore-types';
-import { ILatLng } from '@ionic-native/google-maps';
 import { IAuthor } from './../../model/author';
 import { ITodoItem } from './../../model/todo-item';
 import { ITodoListPath } from './../../model/todo-list-path';
@@ -20,11 +20,19 @@ import { ITodoList, ListType } from '../../model/todo-list';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Subscription } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
-import { MapServiceProvider } from '../map-service/map-service';
 
 @Injectable()
 export class TodoServiceProvider {
   private readonly data: ITodoList[] = [];
+
+  /**
+   * cloud controlleur qui s'enregistrera plus tard
+   *
+   * @private
+   * @type {CloudServiceProvider}
+   * @memberof TodoServiceProvider
+   */
+  private cloudCtrl: CloudServiceProvider;
 
   /**************************************************************************/
   /**************************** TODO UTILISATEUR ****************************/
@@ -175,8 +183,7 @@ export class TodoServiceProvider {
    */
   constructor(
     private readonly firestoreCtrl: AngularFirestore,
-    private readonly authCtrl: AuthServiceProvider,
-    private readonly mapCtrl: MapServiceProvider
+    private readonly authCtrl: AuthServiceProvider
   ) {
     this.todoLists = new BehaviorSubject<ITodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
@@ -186,6 +193,10 @@ export class TodoServiceProvider {
     });
     this.updateDBLink();
     this.updateLocalDBLink();
+  }
+
+  public cloudRegister(c: CloudServiceProvider): void {
+    this.cloudCtrl = c;
   }
 
   /**************************************************************************/
@@ -519,7 +530,7 @@ export class TodoServiceProvider {
   public async importList(path: ITodoListPath): Promise<void> {
     const listData = await this.getAListSnapshotFromPath(path);
     listData.uuid = null;
-    listData.order = -1;
+    listData.order = 0;
     await this.addList(listData);
   }
 
@@ -543,7 +554,7 @@ export class TodoServiceProvider {
     }
 
     if (data.order == null) {
-      data.order = -1;
+      data.order = 0;
     }
 
     let author: IAuthor = null;
@@ -553,16 +564,7 @@ export class TodoServiceProvider {
     }
 
     if (data.author == null && this.authCtrl.isConnected()) {
-      const myPos: ILatLng = await this.mapCtrl.getMyPosition();
-      const myCity: string = await this.mapCtrl.getCity(myPos);
-
-      author = {
-        displayName: this.authCtrl.getDisplayName(),
-        city: myCity,
-        email: this.authCtrl.getEmail(),
-        date: new Date(),
-        uuid: this.authCtrl.getUserId()
-      };
+      author = await this.authCtrl.getAuthor(false);
     }
 
     await dbCollection.doc<ITodoList>(newUuid).set({
@@ -593,8 +595,7 @@ export class TodoServiceProvider {
     if (destType == null || destType === curListType) {
       await fireDoc.update({
         name: data.name,
-        icon: data.icon,
-        order: data.order
+        icon: data.icon
       });
     } else if (destType === ListType.PRIVATE || destType === ListType.LOCAL) {
       // on ajoute la liste à la collection de destination
@@ -773,16 +774,17 @@ export class TodoServiceProvider {
    * @param {string} ListUuid l'identifiant de la liste
    * @memberof TodoServiceProvider
    */
-  public async deleteList(ListUuid: string, type?: ListType): Promise<void> {
+  public async deleteList(listUuid: string, type?: ListType): Promise<void> {
     if (type == null) {
-      type = this.getListType(ListUuid);
+      type = this.getListType(listUuid);
     }
 
     if (type === ListType.SHARED) {
-      this.removeListLink(ListUuid);
+      this.removeListLink(listUuid);
     } else {
-      const doc = await this.getFirestoreDocument(ListUuid, type);
+      const doc = await this.getFirestoreDocument(listUuid, type);
       doc.delete();
+      this.cloudCtrl.removeCloudList(listUuid);
     }
   }
 

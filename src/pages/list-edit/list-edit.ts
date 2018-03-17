@@ -9,7 +9,7 @@ import { MenuRequestType } from '../../model/menu-request-type';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
 import { IPageData } from './../../model/page-data';
-import { ListType } from './../../model/todo-list';
+import { ListType, ITodoList } from './../../model/todo-list';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
@@ -47,6 +47,13 @@ export class ListEditPage extends GenericPage {
    */
   public readonly listUUID: string;
 
+  /**
+   * abonnment aux mises à jour de la liste
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof ListEditPage
+   */
   private listSub: Subscription;
 
   /**
@@ -57,6 +64,15 @@ export class ListEditPage extends GenericPage {
    * @memberof ListEditPage
    */
   private listType: ListType;
+
+  /**
+   * Blanklist si nvelle ou la liste en train d'être editée
+   *
+   * @private
+   * @type {ITodoList}
+   * @memberof ListEditPage
+   */
+  private currentList: ITodoList;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -75,17 +91,18 @@ export class ListEditPage extends GenericPage {
    * @memberof ListEditPage
    */
   constructor(
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly formBuilder: FormBuilder,
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
+    this.currentList = Global.BLANK_LIST;
     this.defineNewList();
   }
 
@@ -102,13 +119,20 @@ export class ListEditPage extends GenericPage {
     const header = Global.getValidablePageData();
 
     if (this.listUUID != null) {
+      header.subtitle = 'Menu édition';
       this.defineEditList(header);
     } else {
       header.title = 'Nouvelle Liste';
+      header.subtitle = 'Menu création';
       this.evtCtrl.getHeadeSubject().next(header);
     }
   }
 
+  /**
+   * termine les subscriptions
+   *
+   * @memberof ListEditPage
+   */
   ionViewWillExit() {
     this.tryUnSub(this.listSub);
   }
@@ -210,6 +234,7 @@ export class ListEditPage extends GenericPage {
     }
 
     this.listSub = todoList.subscribe(list => {
+      this.currentList = list;
       header.title = 'Editer "' + list.name + '" ';
       this.evtCtrl.getHeadeSubject().next(header);
       this.newList = this.formBuilder.group({
@@ -245,8 +270,10 @@ export class ListEditPage extends GenericPage {
       {
         uuid: this.listUUID,
         name: this.newList.value.name,
-        items: [],
-        icon: this.newList.value.icon
+        items: this.currentList.items,
+        icon: this.newList.value.icon,
+        order: this.currentList.order,
+        author: this.currentList.author
       },
       destType
     );
@@ -281,7 +308,9 @@ export class ListEditPage extends GenericPage {
         uuid: null,
         name: this.newList.value.name,
         items: [],
-        icon: this.newList.value.icon
+        icon: this.newList.value.icon,
+        author: null,
+        order: 0
       },
       destType
     );

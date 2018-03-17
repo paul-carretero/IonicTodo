@@ -79,11 +79,11 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   constructor(
-    public readonly navCtrl: NavController,
-    public readonly evtCtrl: EventServiceProvider,
-    public readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly authCtrl: AuthServiceProvider,
-    public readonly uiCtrl: UiServiceProvider,
+    protected readonly navCtrl: NavController,
+    protected readonly evtCtrl: EventServiceProvider,
+    protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
+    protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams,
     private readonly settingCtrl: SettingServiceProvider,
@@ -102,6 +102,7 @@ export class TodoListPage extends GenericPage {
   ionViewDidEnter() {
     const pageData = Global.getShareEditPageData();
     pageData.searchable = true;
+    pageData.subtitle = 'Détails des tâches';
     this.initDataList(pageData);
   }
 
