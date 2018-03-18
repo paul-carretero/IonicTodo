@@ -1,9 +1,7 @@
 import { Component } from '@angular/core';
 import { ActionSheetController, IonicPage, ViewController } from 'ionic-angular';
-import { Subscription } from 'rxjs';
 
 import { Media } from './../../model/media';
-import { IPageData } from './../../model/page-data';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { MenuRequestType } from '../../model/menu-request-type';
 
@@ -13,7 +11,6 @@ import { MenuRequestType } from '../../model/menu-request-type';
   templateUrl: 'popover-options.html'
 })
 export class PopoverOptionsPage {
-  private updateSub: Subscription;
   public editable: boolean;
   public shareable: boolean;
   public importable: boolean;
@@ -32,16 +29,12 @@ export class PopoverOptionsPage {
   ) {}
 
   ionViewDidLoad() {
-    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe((newData: IPageData) => {
-      this.editable = newData.editable;
-      this.shareable = newData.shareable;
-      this.importable = newData.importable;
-    });
+    this.editable = this.evtCtrl.getHeader().editable;
+    this.shareable = this.evtCtrl.getHeader().shareable;
+    this.importable = this.evtCtrl.getHeader().importable;
   }
 
-  ionViewWillUnload() {
-    this.updateSub.unsubscribe();
-  }
+  ionViewWillUnload() {}
 
   private openSendMenu(): void {
     const actionSheet = this.actionSheetCtrl.create({

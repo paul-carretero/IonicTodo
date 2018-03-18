@@ -24,27 +24,8 @@
     </ion-list>
 
     <ion-card *ngIf="listAuthor != null">
-        <ion-list small>
-            <ion-list-header color="light" small icon-end (click)="displayInfo = !displayInfo">
-                <ion-icon *ngIf="!displayInfo" name="arrow-dropdown-circle" item-end></ion-icon>
-                <ion-icon *ngIf="displayInfo" name="arrow-dropup-circle" item-end></ion-icon>
-                Détails sur la liste
-            </ion-list-header>
-            <ng-container *ngIf="displayInfo">
-                <ion-item small *ngIf="listAuthor.displayName != null">
-                    <ion-icon name="person" item-start></ion-icon>
-                    {{listAuthor.displayName}} ({{listAuthor.email}})
-                </ion-item>
-                <ion-item small *ngIf="listAuthor.date != null">
-                    <ion-icon name="calendar" item-start></ion-icon>
-                    Créée le : {{dateToString(listAuthor.date)}}
-                </ion-item>
-                <ion-item small *ngIf="listAuthor.city != null">
-                    <ion-icon name="pin" item-start></ion-icon>
-                    à : {{listAuthor.city}}
-                </ion-item>
-            </ng-container>
-        </ion-list>
+        <ion-card-header>Informations sur la liste</ion-card-header>
+        <author-display [author]="listAuthor"></author-display>
     </ion-card>
 
     <button *ngIf="editable" class="bottom-right-button" ion-fab (click)="createTodo()">

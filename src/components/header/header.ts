@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MenuController, PopoverController, Searchbar } from 'ionic-angular';
-import { Subscription } from 'rxjs';
 
 import { MenuRequestType } from '../../model/menu-request-type';
 import { EventServiceProvider } from '../../providers/event/event-service';
@@ -48,15 +47,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   @ViewChild(Searchbar) searchbar: Searchbar;
 
-  /**
-   * subscription aux requetes d'affichage menu
-   *
-   * @private
-   * @type {Subscription}
-   * @memberof HeaderComponent
-   */
-  private updateSub: Subscription;
-
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -73,7 +63,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly menuCtrl: MenuController,
     private readonly evtCtrl: EventServiceProvider
   ) {
-    this.data = this.evtCtrl.getHeadeSubject().getValue();
+    this.data = this.evtCtrl.getHeader();
   }
 
   /**************************************************************************/
@@ -81,13 +71,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   /**************************************************************************/
 
   /**
-   * termine le subscription au flux de mise à jour du header
    *
    * @memberof HeaderComponent
    */
-  ngOnDestroy(): void {
-    this.updateSub.unsubscribe();
-  }
+  ngOnDestroy(): void {}
 
   /**
    * initialise la subscription au flux de mise à jour du header
@@ -95,9 +82,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * @memberof HeaderComponent
    */
   ngOnInit(): void {
-    this.updateSub = this.evtCtrl.getHeadeSubject().subscribe(newData => {
-      this.data = newData;
-    });
     // car  [ '' == false ]     (╯°□°）╯︵ ┻━┻
     this.evtCtrl.getSearchSubject().next('#');
   }

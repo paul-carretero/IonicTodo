@@ -25,7 +25,7 @@ export class EventServiceProvider {
    * @type {BehaviorSubject<IPageData>}
    * @memberof EventServiceProvider
    */
-  private readonly headerData: BehaviorSubject<IPageData>;
+  private readonly headerData: IPageData;
 
   /**
    * Flux des commandes menu de l'utilisateur pour les pages intéressées
@@ -63,7 +63,7 @@ export class EventServiceProvider {
    * @memberof EventServiceProvider
    */
   constructor(private readonly shakeCtrl: Shake) {
-    this.headerData = new BehaviorSubject<IPageData>(Global.getDefaultPageData());
+    this.headerData = Global.getDefaultPageData();
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
     this.searchSubject = new BehaviorSubject<string>('#');
@@ -83,13 +83,24 @@ export class EventServiceProvider {
   }
 
   /**
-   * retourne le sujet de mise à jour du header
+   * retourne le header
    *
    * @returns {BehaviorSubject<IPageData>}
    * @memberof EventServiceProvider
    */
-  public getHeadeSubject(): BehaviorSubject<IPageData> {
+  public getHeader(): IPageData {
     return this.headerData;
+  }
+
+  public setHeader(newHeader: IPageData): void {
+    this.headerData.editable = newHeader.editable;
+    this.headerData.importable = newHeader.importable;
+    this.headerData.searchable = newHeader.searchable;
+    this.headerData.searchPlaceholders = newHeader.searchPlaceholders;
+    this.headerData.shareable = newHeader.shareable;
+    this.headerData.subtitle = newHeader.subtitle;
+    this.headerData.title = newHeader.title;
+    this.headerData.validable = newHeader.validable;
   }
 
   /**

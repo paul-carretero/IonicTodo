@@ -63,7 +63,7 @@ export class TodoEditPage extends GenericPage {
     } else {
       header.title = 'Nouvelle Tâche';
       header.subtitle = 'Menu création';
-      this.evtCtrl.getHeadeSubject().next(header);
+      this.evtCtrl.setHeader(header);
     }
   }
 

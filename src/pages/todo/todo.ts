@@ -33,7 +33,8 @@ export class TodoPage implements OnInit {
   }
 
   ionViewWillEnter() {
-    this.todo = this.todoService.getTodo(this.listUUID, this.todoUUID);
+    //this.todo = this.todoService.getTodo(this.listUUID, this.todoUUID);
+    this.todo;
   }
 
   public edit(todoUUID: string): void {

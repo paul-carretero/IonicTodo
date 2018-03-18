@@ -148,7 +148,7 @@ export class HomePage extends GenericPage {
     pageData.subtitle = 'Accueil OhMyTask';
     pageData.searchable = true;
     pageData.searchPlaceholders = 'chercher par liste ou auteur';
-    this.evtCtrl.getHeadeSubject().next(pageData);
+    this.evtCtrl.setHeader(pageData);
 
     this.initPrivateListSub();
     this.initLocalListSub();

@@ -102,7 +102,7 @@ export class ListEditPage extends GenericPage {
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
-    this.currentList = Global.BLANK_LIST;
+    this.currentList = Global.getBlankList();
     this.defineNewList();
   }
 
@@ -128,7 +128,7 @@ export class ListEditPage extends GenericPage {
     } else {
       header.title = 'Nouvelle Liste';
       header.subtitle = 'Menu création';
-      this.evtCtrl.getHeadeSubject().next(header);
+      this.evtCtrl.setHeader(header);
     }
   }
 
@@ -223,35 +223,34 @@ export class ListEditPage extends GenericPage {
   private async defineEditList(header: IPageData): Promise<void> {
     this.listType = this.todoService.getListType(this.listUUID);
 
-    let local = false;
-    if (this.listType === ListType.LOCAL) {
-      local = true;
-    }
-
-    let todoList = await this.todoService.getAList(this.listUUID);
+    let todoList: Observable<ITodoList>;
 
     try {
       todoList = await this.todoService.getAList(this.listUUID);
     } catch (error) {
-      console.log(
-        '[ListEditPage] list not found, assuming logout & redirect, ignoring... '
-      );
-      todoList = Observable.of(Global.BLANK_LIST);
+      this.navCtrl.popToRoot();
+      todoList = Observable.of(Global.getBlankList());
     }
 
     this.listSub = todoList.subscribe(list => {
-      this.currentList = list;
-      header.title = 'Editer "' + list.name + '" ';
-      this.evtCtrl.getHeadeSubject().next(header);
-      this.newList = this.formBuilder.group({
-        name: [list.name, Validators.required],
-        icon: [list.icon, Validators.required],
-        local: [local, Validators.required]
-      });
+      if (list != null) {
+        this.currentList = list;
+        header.title = 'Editer "' + list.name + '" ';
+        this.evtCtrl.setHeader(header);
 
-      const localForm = this.newList.get('local');
-      if (this.listType === ListType.SHARED && localForm != null) {
-        localForm.disable();
+        const nameForm = this.newList.get('name');
+        const iconForm = this.newList.get('icon');
+        const localForm = this.newList.get('local');
+
+        if (nameForm != null && iconForm != null && localForm != null) {
+          nameForm.setValue(list.name);
+          iconForm.setValue(list.icon);
+          localForm.setValue(this.listType === ListType.LOCAL);
+        }
+
+        if (this.listType === ListType.SHARED && localForm != null) {
+          localForm.disable();
+        }
       }
     });
   }
@@ -274,7 +273,10 @@ export class ListEditPage extends GenericPage {
       }
     }
 
-    await this.todoService.updateList(
+    this.tryUnSub(this.deleteSub);
+    this.todoService.unsubDeleteSubject();
+
+    const newUuid = await this.todoService.updateList(
       {
         uuid: this.listUUID,
         name: this.newList.value.name,
@@ -285,9 +287,12 @@ export class ListEditPage extends GenericPage {
       },
       destType
     );
-    this.navCtrl.pop();
-    this.navCtrl.pop();
-    this.navCtrl.push('TodoListPage', { uuid: this.listUUID });
+
+    await this.navCtrl.push('TodoListPage', { uuid: newUuid });
+    this.navCtrl.remove(1);
+    if (this.listType !== destType) {
+      this.navCtrl.remove(1);
+    }
   }
 
   /**
@@ -319,8 +324,8 @@ export class ListEditPage extends GenericPage {
       },
       destType
     );
-    this.navCtrl.pop();
-    this.navCtrl.push('TodoListPage', { uuid: nextUuid });
+    await this.navCtrl.push('TodoListPage', { uuid: nextUuid });
+    this.navCtrl.remove(1);
   }
 
   /**************************************************************************/

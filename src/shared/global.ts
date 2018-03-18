@@ -159,14 +159,16 @@ export class Global {
   /******************************** FALLBACK ********************************/
   /**************************************************************************/
 
-  public static readonly BLANK_LIST: ITodoList = {
-    uuid: null,
-    name: null,
-    externTodos: [],
-    icon: null,
-    order: 0,
-    author: null
-  };
+  public static getBlankList(): ITodoList {
+    return {
+      uuid: null,
+      name: null,
+      externTodos: [],
+      icon: null,
+      order: 0,
+      author: null
+    };
+  }
 
   public static getBlankTodo(): ITodoItem {
     return {

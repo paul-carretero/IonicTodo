@@ -63,7 +63,7 @@ export class CloudSpacePage extends GenericPage {
     pageData.subtitle = 'Listes disponibles';
     pageData.searchable = true;
     pageData.searchPlaceholders = 'chercher par liste ou auteur';
-    this.evtCtrl.getHeadeSubject().next(pageData);
+    this.evtCtrl.setHeader(pageData);
   }
 
   /**************************************************************************/

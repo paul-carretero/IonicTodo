@@ -153,7 +153,7 @@ export abstract class GenericPage {
   /**************************************************************************/
 
   /**
-   * tente de terminé une subscription
+   * tente de terminer une subscription
    *
    * @protected
    * @param {Subscription} sub

@@ -102,7 +102,9 @@ export class TodoListPage extends GenericPage {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.todoItems = Observable.of([]);
-    this.listType = this.todoService.getListType(this.listUUID);
+    try {
+      this.listType = this.todoService.getListType(this.listUUID);
+    } catch (error) {}
   }
 
   /**************************************************************************/
@@ -160,13 +162,15 @@ export class TodoListPage extends GenericPage {
       console.log(
         '[TodoListPage] list not found, assuming logout & redirect, ignoring... '
       );
-      todoList = Observable.of(Global.BLANK_LIST);
+      todoList = Observable.of(Global.getBlankList());
     }
 
     this.listeSub = todoList.subscribe((res: ITodoList) => {
-      pageData.title = 'Liste "' + res.name + '"';
-      this.evtCtrl.getHeadeSubject().next(pageData);
-      this.listAuthor = res.author;
+      if (res != null && res.name != null) {
+        pageData.title = 'Liste "' + res.name + '"';
+        this.evtCtrl.setHeader(pageData);
+        this.listAuthor = res.author;
+      }
     });
   }
 

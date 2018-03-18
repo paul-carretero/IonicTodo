@@ -60,7 +60,7 @@ export class QrReaderPage extends GenericReceiver {
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Scanner un QR Code';
     pageData.subtitle = 'Importer une liste';
-    this.evtCtrl.getHeadeSubject().next(pageData);
+    this.evtCtrl.setHeader(pageData);
   }
 
   ionViewWillLeave() {

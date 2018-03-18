@@ -44,8 +44,8 @@ export class CloudSenderPage extends GenericSharer {
     super.ionViewDidEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Exporter en ligne';
-    pageData.subtitle = this.evtCtrl.getHeadeSubject().getValue().title;
-    this.evtCtrl.getHeadeSubject().next(pageData);
+    pageData.subtitle = this.evtCtrl.getHeader().title;
+    this.evtCtrl.setHeader(pageData);
   }
 
   get sendPartage(): string[] {

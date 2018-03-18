@@ -126,14 +126,14 @@ export class ContactModalPage extends GenericPage {
       desiredFields: ['displayName', 'emails', 'phoneNumbers']
     });
 
-    this.lastHeader = this.evtCtrl.getHeadeSubject().getValue();
+    this.lastHeader = this.evtCtrl.getHeader();
     const header = Global.getValidablePageData();
     header.title = 'Vos contacts';
-    this.evtCtrl.getHeadeSubject().next(header);
+    this.evtCtrl.setHeader(header);
   }
 
   ionViewWillLeave() {
-    this.evtCtrl.getHeadeSubject().next(this.lastHeader);
+    this.evtCtrl.setHeader(this.lastHeader);
   }
 
   /**************************************************************************/
