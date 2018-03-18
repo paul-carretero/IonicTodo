@@ -1,5 +1,4 @@
 import { CloudServiceProvider } from './../cloud-service/cloud-service';
-import { CollectionReference } from '@firebase/firestore-types';
 import { IAuthor } from './../../model/author';
 import { ITodoItem } from './../../model/todo-item';
 import { ITodoListPath } from './../../model/todo-list-path';
@@ -10,7 +9,8 @@ import { Injectable } from '@angular/core';
 import {
   AngularFirestore,
   AngularFirestoreCollection,
-  AngularFirestoreDocument
+  AngularFirestoreDocument,
+  DocumentChangeAction
 } from 'angularfire2/firestore';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
@@ -18,13 +18,11 @@ import { v4 as uuid } from 'uuid';
 
 import { ITodoList, ListType } from '../../model/todo-list';
 import { AuthServiceProvider } from './../auth-service/auth-service';
-import { Subscription } from 'rxjs/Rx';
+import { Subscription, Subject } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
 
 @Injectable()
 export class TodoServiceProvider {
-  private readonly data: ITodoList[] = [];
-
   /**
    * cloud controlleur qui s'enregistrera plus tard
    *
@@ -160,6 +158,37 @@ export class TodoServiceProvider {
   private sharedListSub: Subscription;
 
   /**************************************************************************/
+  /****************************** TODO FIELDS *******************************/
+  /**************************************************************************/
+
+  private todoSub: Subscription;
+
+  private readonly extTodoSubject: Subject<Observable<ITodoItem[]>>;
+
+  /**************************************************************************/
+  /************************* TODO/LIST DELETE NOTIF *************************/
+  /**************************************************************************/
+
+  /**
+   * Subscription à la suppression d'une liste en cours d'observation.
+   * Fire un nouvel evement si la liste en cours est supprimé
+   *
+   * @private
+   * @type {Subject<void>}
+   * @memberof TodoServiceProvider
+   */
+  private readonly deleteSubject: Subject<void>;
+
+  /**
+   * Subscription à la suppression d'une liste en cours d'observation
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof TodoServiceProvider
+   */
+  private deleteSub: Subscription;
+
+  /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
@@ -191,6 +220,8 @@ export class TodoServiceProvider {
     this.currentUserData = new BehaviorSubject<IAppUser>({
       todoListSharedWithMe: []
     });
+    this.extTodoSubject = new Subject<Observable<ITodoItem[]>>();
+    this.deleteSubject = new Subject<void>();
     this.updateDBLink();
     this.updateLocalDBLink();
   }
@@ -267,7 +298,7 @@ export class TodoServiceProvider {
   private initPrivateListCollection(): void {
     this.todoListCollection = this.firestoreCtrl.collection<ITodoList>(
       'user/' + this.authCtrl.getUserId() + '/list',
-      (ref: CollectionReference) => ref.orderBy('order', 'asc')
+      ref => ref.orderBy('order', 'asc')
     );
     this.listsPublisher();
   }
@@ -316,7 +347,9 @@ export class TodoServiceProvider {
       if ((await docToAdd.ref.get()).exists) {
         this.sharedTodoCollection.push(docToAdd);
       } else {
-        pathToDelete.push(path.listUUID);
+        if (path.listUUID != null) {
+          pathToDelete.push(path.listUUID);
+        }
       }
     }
 
@@ -412,7 +445,7 @@ export class TodoServiceProvider {
     const machineId: string = await this.authCtrl.getMachineId();
     this.localTodoListCollection = this.firestoreCtrl.collection<ITodoList>(
       'machine/' + machineId + '/list',
-      (ref: CollectionReference) => ref.orderBy('order', 'asc')
+      ref => ref.orderBy('order', 'asc')
     );
     this.localTodoListCollection.valueChanges().subscribe((lists: ITodoList[]) => {
       this.localTodoLists.next(lists);
@@ -557,7 +590,7 @@ export class TodoServiceProvider {
       data.order = 0;
     }
 
-    let author: IAuthor = null;
+    let author: IAuthor | null = null;
 
     if (data.author != null) {
       author = data.author;
@@ -570,10 +603,10 @@ export class TodoServiceProvider {
     await dbCollection.doc<ITodoList>(newUuid).set({
       uuid: newUuid,
       name: data.name,
-      items: [],
       icon: data.icon,
       order: data.order,
-      author: author
+      author: author,
+      externTodos: []
     });
 
     return newUuid;
@@ -588,6 +621,10 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public async updateList(data: ITodoList, destType?: ListType): Promise<void> {
+    if (data == null || data.uuid == null) {
+      return;
+    }
+
     const curListType = this.getListType(data.uuid);
     const fireDoc = await this.getFirestoreDocument(data.uuid, curListType);
 
@@ -605,7 +642,11 @@ export class TodoServiceProvider {
     }
   }
 
-  public async updateOrder(listUuid: string, ord: number): Promise<void> {
+  public async updateOrder(listUuid: string | null, ord: number): Promise<void> {
+    if (listUuid == null) {
+      return;
+    }
+
     const fireDoc = await this.getFirestoreDocument(listUuid);
     console.log(listUuid + ' -> ' + ord);
     fireDoc.update({
@@ -723,6 +764,57 @@ export class TodoServiceProvider {
     return doc.valueChanges();
   }
 
+  /****************************** REMOVAL NOTIFS ****************************/
+
+  /**
+   * reconfigure le sujet de suppression de liste pour l'identifiant passé en paramètre et retoune le sujet
+   *
+   * @public
+   * @param {any} listUuid
+   * @returns {Subject<void>}
+   * @memberof TodoServiceProvider
+   */
+  public getDeleteSubject(listUuid: string): Subject<void> {
+    this.subscribeForDelete(listUuid);
+    return this.deleteSubject;
+  }
+
+  /**
+   * annule les subscription pour suppression de liste
+   *
+   * @public
+   * @memberof TodoServiceProvider
+   */
+  public unsubDeleteSubject(): void {
+    this.tryUnsub(this.deleteSub);
+  }
+
+  /**
+   * reconfigure le sujet de suppression de liste pour un nouvel identifiant de liste
+   *
+   * @public
+   * @param {any} listUuid
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  public async subscribeForDelete(listUuid: string, todoUuid?: string): Promise<void> {
+    let doc = null;
+    if (todoUuid == null) {
+      doc = await this.getFirestoreDocument(listUuid);
+    } else {
+      doc = (await this.getFirestoreDocument(listUuid)).collection('todo').doc(todoUuid);
+    }
+
+    this.tryUnsub(this.deleteSub);
+
+    this.deleteSub = doc.snapshotChanges().subscribe(snap => {
+      if (!snap.payload.exists) {
+        this.deleteSubject.next();
+        this.tryUnsub(this.deleteSub);
+      }
+    });
+  }
+
   /****************************** SNAPSHOTS ONLY ****************************/
 
   /**
@@ -732,7 +824,7 @@ export class TodoServiceProvider {
    * @returns {ITodoList}
    * @memberof TodoServiceProvider
    */
-  public getAListSnapshot(listUuid: string): ITodoList {
+  public getAListSnapshot(listUuid: string): ITodoList | null {
     const type = this.getListType(listUuid);
     let lists: ITodoList[] = [];
     switch (type) {
@@ -746,7 +838,11 @@ export class TodoServiceProvider {
         lists = this.todoLists.getValue();
         break;
     }
-    return lists.find(d => d.uuid === listUuid);
+    const res = lists.find(d => d.uuid === listUuid);
+    if (res !== undefined) {
+      return res;
+    }
+    return null;
   }
 
   /**
@@ -782,6 +878,7 @@ export class TodoServiceProvider {
     if (type === ListType.SHARED) {
       this.removeListLink(listUuid);
     } else {
+      await this.cleanUpTodos(listUuid);
       const doc = await this.getFirestoreDocument(listUuid, type);
       doc.delete();
       this.cloudCtrl.removeCloudList(listUuid);
@@ -789,54 +886,132 @@ export class TodoServiceProvider {
   }
 
   /**************************************************************************/
+  /**************************************************************************/
   /************************* PUBLIC TODOS INTERFACE *************************/
   /**************************************************************************/
+  /**************************************************************************/
 
-  /*******************************
-   * gestions des todos          *
-   *******************************/
-
-  public getTodos(ListUuid: String): Observable<ITodoItem[]> {
-    return Observable.of(this.data.find(d => d.uuid === ListUuid).items);
+  /**
+   * reconfigure le sujet de suppression de liste/todo pour l'identifiant de todo et
+   * de liste passé en paramètre et retoune le sujet
+   *
+   * @param {string} listUuid
+   * @param {string} todoUuid
+   * @returns {Subject<void>}
+   * @memberof TodoServiceProvider
+   */
+  public getTodoDeleteSubject(listUuid: string, todoUuid: string): Subject<void> {
+    this.subscribeForDelete(listUuid, todoUuid);
+    return this.deleteSubject;
   }
 
-  public getTodo(listUUID: string, TodoUuid: string): Observable<ITodoItem> {
-    return Observable.of(
-      this.data.find(d => d.uuid === listUUID).items.find(d => d.uuid === TodoUuid)
-    );
+  /**
+   * retourne la collection firestore des todos standard de la liste dont l'uuid est passé en paramètre
+   *
+   * @private
+   * @param {string} listUuid
+   * @returns {Promise<Observable<ITodoItem>>}
+   * @memberof TodoServiceProvider
+   */
+  public async getPrivateTodos(listUuid: string): Promise<Observable<ITodoItem[]>> {
+    const listBase = await this.getFirestoreDocument(listUuid);
+    return listBase.collection<ITodoItem>('todo').valueChanges();
   }
 
-  public complete(listUUID: string, todoUUID: string, status: boolean) {
-    const todo = this.data
-      .find(d => d.uuid === listUUID)
-      .items.find(d => d.uuid === todoUUID);
-    todo.complete = status;
-    if (status === true) {
-      todo.posCompleted = null;
-      todo.dateCompleted = null;
-    } else {
-      todo.posCompleted = null;
-      todo.dateCompleted = null;
+  public async getExportedTodosObservables(
+    listUuid: string
+  ): Promise<Observable<Observable<ITodoItem[]>>> {
+    const listBase = await this.getFirestoreDocument(listUuid);
+    this.tryUnsub(this.todoSub);
+
+    this.todoSub = listBase.valueChanges().subscribe((list: ITodoList) => {
+      const afDocs: Observable<ITodoItem>[] = [];
+      for (const extTodo of list.externTodos) {
+        afDocs.push(
+          new AngularFirestoreDocument<ITodoItem>(extTodo as any).valueChanges()
+        );
+      }
+      this.extTodoSubject.next(Observable.combineLatest(afDocs));
+    });
+
+    return this.extTodoSubject;
+  }
+
+  public unsubscribeOfTodo(): void {
+    this.tryUnsub(this.todoSub);
+  }
+
+  public getTodo(listUuid: string, todoUuid: string): Observable<ITodoItem> {
+    listUuid;
+    todoUuid;
+    return Observable.of({
+      name: null,
+      uuid: null,
+      desc: null,
+      author: null,
+      complete: false
+    });
+  }
+
+  public async complete(
+    listUuid: string,
+    todoUuid: string,
+    status: boolean
+  ): Promise<void> {
+    const list = await this.getFirestoreDocument(listUuid);
+    const doc = list.collection('todo').doc<ITodoItem>(todoUuid);
+    await doc.update({
+      complete: status
+    });
+  }
+
+  public async editTodo(listUuid: string, editedItem: ITodoItem): Promise<void> {
+    if (editedItem == null || editedItem.uuid == null) {
+      return;
     }
+
+    const list = await this.getFirestoreDocument(listUuid);
+    const doc = list.collection('todo').doc<ITodoItem>(editedItem.uuid);
+    await doc.update({
+      name: editedItem.name
+      // a complete une fois fini
+    });
   }
 
-  public editTodo(listUuid: String, editedItem: ITodoItem) {
-    const items = this.data.find(d => d.uuid === listUuid).items;
-    const index = items.findIndex(value => value.uuid === editedItem.uuid);
-    items[index] = editedItem;
+  public async addTodo(listUuid: string, newItem: ITodoItem): Promise<void> {
+    const list = await this.getFirestoreDocument(listUuid);
+    const todoUuid = uuid();
+    newItem.uuid = todoUuid;
+    newItem.author = await this.authCtrl.getAuthor(false);
+    const doc = list.collection('todo').doc<ITodoItem>(todoUuid);
+    await doc.set(newItem);
   }
 
-  public addTodo(listUuid: String, newItem: ITodoItem): void {
-    const items = this.data.find(d => d.uuid === listUuid).items;
-    newItem.uuid = uuid();
-    items.push(newItem);
+  public async deleteTodo(listUuid: string, todoUuid: string): Promise<void> {
+    const list = await this.getFirestoreDocument(listUuid);
+    await list
+      .collection('todo')
+      .doc<ITodoItem>(todoUuid)
+      .delete();
   }
 
-  public deleteTodo(listUuid: String, TodoUuid: String) {
-    const items = this.data.find(d => d.uuid === listUuid).items;
-    const index = items.findIndex(value => value.uuid === TodoUuid);
-    if (index !== -1) {
-      items.splice(index, 1);
-    }
+  /**
+   * Méthode permettant de supprimer tout les todos d'une liste
+   *
+   * @param {string} listUuid
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  public async cleanUpTodos(listUuid: string): Promise<void> {
+    const list = await this.getFirestoreDocument(listUuid);
+    const todosCollection = list.collection('todo');
+    const sub = todosCollection
+      .snapshotChanges()
+      .subscribe((snap: DocumentChangeAction[]) => {
+        for (const dca of snap) {
+          dca.payload.doc.ref.delete();
+        }
+        sub.unsubscribe();
+      });
   }
 }

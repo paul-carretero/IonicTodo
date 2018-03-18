@@ -198,7 +198,7 @@ export class ContactModalPage extends GenericPage {
     if (this.isSelected(contact)) {
       this.exportedContacts.delete(contact.id);
     } else {
-      let email = null;
+      let email: string | undefined;
       if (contact.emails != null) {
         email = contact.emails[0].value;
       }
@@ -226,9 +226,9 @@ export class ContactModalPage extends GenericPage {
    * @returns {string}
    * @memberof ContactModalPage
    */
-  private getMobile(contact: Contact): string {
+  private getMobile(contact: Contact): string | null {
     for (const phone of contact.phoneNumbers) {
-      if (phone.type != null && phone.type === 'mobile') {
+      if (phone.type != null && phone.type === 'mobile' && phone.value != null) {
         return phone.value;
       }
     }

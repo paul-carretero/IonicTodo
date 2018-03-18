@@ -8,6 +8,8 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
     "lib": ["dom", "es2017"],
     "module": "esnext",
     "moduleResolution": "node",

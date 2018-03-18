@@ -11,56 +11,12 @@
             <ion-card-content>
                 <ion-item>
                     <ion-label color="primary" stacked>Nom de la tâche</ion-label>
-                    <ion-input type="text" placeholder="Champs Requis"></ion-input>
+                    <ion-input formControlName="name" type="text" placeholder="Champs Requis"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label color="primary" stacked>Description de la tâche</ion-label>
-                    <ion-textarea placeholder="Champs optionnel"></ion-textarea>
+                    <ion-textarea formControlName="desc" placeholder="Champs optionnel"></ion-textarea>
                 </ion-item>
-                <ion-item>
-                    <ion-label color="primary" stacked>Deadline</ion-label>
-                    <ion-datetime displayFormat="MM/DD/YYYY" placeholder="Champs optionnel"></ion-datetime>
-                </ion-item>
-            </ion-card-content>
-        </ion-card>
-        <ion-card>
-            <ion-card-header>
-                Notifications
-            </ion-card-header>
-            <ion-card-content>
-                <p>Permet de recevoir une notification, ou d'en envoyer une à la deadline</p>
-                <ion-item>
-                    <ion-icon *ngIf="true" name="notifications" item-start></ion-icon>
-                    <ion-icon *ngIf="true" name="notifications-off" item-start></ion-icon>
-                    <ion-label color="primary">Recevoir une notification sur mon téléphone</ion-label>
-                    <ion-toggle></ion-toggle>
-                </ion-item>
-                <ion-item>
-                    <ion-icon name="chatboxes" item-start></ion-icon>
-                    <ion-label color="primary">Envoyer un SMS</ion-label>
-                    <ion-toggle></ion-toggle>
-                </ion-item>
-                <ion-item>
-                    <ion-icon name="keypad" item-start></ion-icon>
-                    <ion-label color="primary" stacked>Numéro de téléphone</ion-label>
-                    <ion-input type="tel" placeholder="Numéro de Téléphone"></ion-input>
-                </ion-item>
-            </ion-card-content>
-        </ion-card>
-        <ion-card>
-            <ion-card-header>
-                Description Multimédia
-            </ion-card-header>
-            <ion-card-content>
-
-            </ion-card-content>
-        </ion-card>
-        <ion-card>
-            <ion-card-header>
-                Point d'intéret tâche
-            </ion-card-header>
-            <ion-card-content>
-                <div style="height : 100%" #mapwrapper id="mapwrapper"></div>
             </ion-card-content>
         </ion-card>
     </form>

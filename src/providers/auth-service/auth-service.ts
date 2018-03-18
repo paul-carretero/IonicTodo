@@ -16,7 +16,7 @@ import { ILatLng } from '@ionic-native/google-maps';
 @Injectable()
 export class AuthServiceProvider {
   private useHorsConnexion = false;
-  private readonly connexionSubject: BehaviorSubject<User>;
+  private readonly connexionSubject: BehaviorSubject<User | null>;
 
   constructor(
     private readonly firebaseAuth: AngularFireAuth,
@@ -25,7 +25,7 @@ export class AuthServiceProvider {
     private readonly firestoreCtrl: AngularFirestore,
     private readonly mapCtrl: MapServiceProvider
   ) {
-    this.connexionSubject = new BehaviorSubject<User>(null);
+    this.connexionSubject = new BehaviorSubject<User | null>(null);
     this.applyAutoLoginSetting();
   }
 
@@ -52,7 +52,11 @@ export class AuthServiceProvider {
   }
 
   public getUserId(): string {
-    return this.connexionSubject.getValue().uid;
+    const user = this.connexionSubject.getValue();
+    if (user == null) {
+      throw new Error('Utilisateur non connecté');
+    }
+    return user.uid;
   }
 
   public getMachineId(): Promise<any> {
@@ -64,7 +68,7 @@ export class AuthServiceProvider {
     return this.firebaseAuth.auth.signOut();
   }
 
-  public getConnexionSubject(): BehaviorSubject<User> {
+  public getConnexionSubject(): BehaviorSubject<User | null> {
     return this.connexionSubject;
   }
 
@@ -95,12 +99,12 @@ export class AuthServiceProvider {
     return this.useHorsConnexion || this.isConnected();
   }
 
-  public getUser(): User {
+  public getUser(): User | null {
     return this.connexionSubject.getValue();
   }
 
-  public getDisplayName(): string {
-    if (!this.isConnected()) {
+  public getDisplayName(): string | null {
+    if (!this.isConnected() || this.firebaseAuth.auth.currentUser == null) {
       throw new Error('Utilisateur non connecté');
     }
 
@@ -110,8 +114,8 @@ export class AuthServiceProvider {
     return this.firebaseAuth.auth.currentUser.email;
   }
 
-  public getEmail(): string {
-    if (!this.isConnected()) {
+  public getEmail(): string | null {
+    if (!this.isConnected() || this.firebaseAuth.auth.currentUser == null) {
       throw new Error('Utilisateur non connecté');
     }
     return this.firebaseAuth.auth.currentUser.email;
@@ -134,12 +138,12 @@ export class AuthServiceProvider {
    * @returns {Promise<IAuthor>}
    * @memberof AuthServiceProvider
    */
-  public async getAuthor(roundUp: boolean): Promise<IAuthor> {
+  public async getAuthor(roundUp: boolean): Promise<IAuthor | null> {
     if (!this.isConnected()) {
       return null;
     }
 
-    let myPos: ILatLng = await this.mapCtrl.getMyPosition();
+    let myPos: ILatLng | null = await this.mapCtrl.getMyPosition();
     const ts: Date = await this.getServerTimestamp();
 
     if (myPos == null) {
@@ -147,11 +151,13 @@ export class AuthServiceProvider {
         displayName: this.getDisplayName(),
         email: this.getEmail(),
         timestamp: ts,
-        uuid: this.getUserId()
+        uuid: this.getUserId(),
+        city: null,
+        coord: null
       };
     }
 
-    const myCity: string = await this.mapCtrl.getCity(myPos);
+    const myCity: string | null = await this.mapCtrl.getCity(myPos);
     if (roundUp) {
       myPos = Global.roundILatLng(myPos);
     }

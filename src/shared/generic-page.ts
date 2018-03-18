@@ -38,6 +38,15 @@ export abstract class GenericPage {
    */
   private secureAuthSub: Subscription;
 
+  /**
+   * subscription pour la suppression de la liste ou du todo lors de l'édition.
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof GenericPage
+   */
+  protected deleteSub: Subscription;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -79,6 +88,7 @@ export abstract class GenericPage {
    */
   ionViewWillUnload(): void {
     this.tryUnSub(this.secureAuthSub);
+    this.tryUnSub(this.deleteSub);
   }
 
   /**
@@ -168,6 +178,14 @@ export abstract class GenericPage {
   }
 
   protected areMatching(list: ITodoList, search: string): boolean {
+    if (
+      list.name == null ||
+      list.author == null ||
+      list.author.email == null ||
+      list.author.displayName == null
+    ) {
+      return false;
+    }
     return (
       list.name.toUpperCase().includes(search) ||
       list.author.email.toUpperCase().includes(search) ||
@@ -176,6 +194,15 @@ export abstract class GenericPage {
       search === '#' ||
       search == null
     );
+  }
+
+  protected hasBeenRemoved(isList: boolean): void {
+    if (isList) {
+      this.uiCtrl.displayToast("La liste a été supprimée et n'est plus disponible");
+    } else {
+      this.uiCtrl.displayToast("La tâche a été supprimée et n'est plus disponible");
+    }
+    this.navCtrl.popToRoot();
   }
 
   /**************************************************************************/

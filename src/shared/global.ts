@@ -5,6 +5,7 @@ import { ITodoListPath } from '../model/todo-list-path';
 import { ICloudSharedList } from './../model/cloud-shared-list';
 import { IPageData } from './../model/page-data';
 import * as firebase from 'firebase';
+import { ITodoItem } from '../model/todo-item';
 
 /**
  * Contient des structure de données constante (ou semi constante)
@@ -65,7 +66,9 @@ export class Global {
       shareable: false,
       editable: false,
       validable: false,
-      searchable: false
+      searchable: false,
+      importable: false,
+      searchPlaceholders: 'Rechercher'
     };
   }
 
@@ -83,7 +86,9 @@ export class Global {
       shareable: false,
       editable: false,
       validable: true,
-      searchable: false
+      searchable: false,
+      importable: false,
+      searchPlaceholders: 'Rechercher'
     };
   }
 
@@ -101,7 +106,9 @@ export class Global {
       shareable: true,
       editable: true,
       validable: false,
-      searchable: false
+      searchable: false,
+      importable: false,
+      searchPlaceholders: 'Rechercher'
     };
   }
 
@@ -119,7 +126,9 @@ export class Global {
       shareable: false,
       editable: true,
       validable: false,
-      searchable: false
+      searchable: false,
+      importable: false,
+      searchPlaceholders: 'Rechercher'
     };
   }
 
@@ -140,7 +149,9 @@ export class Global {
       list: Global.getBlankListPath(),
       author: null,
       shakeToShare: false,
-      name: null
+      name: null,
+      password: null,
+      email: null
     };
   }
 
@@ -151,17 +162,27 @@ export class Global {
   public static readonly BLANK_LIST: ITodoList = {
     uuid: null,
     name: null,
-    items: [],
+    externTodos: [],
     icon: null,
     order: 0,
     author: null
   };
 
+  public static getBlankTodo(): ITodoItem {
+    return {
+      uuid: null,
+      name: null,
+      desc: null,
+      author: null,
+      complete: false
+    };
+  }
+
   /**************************************************************************/
   /********************************* HELPER *********************************/
   /**************************************************************************/
 
-  public static precisionRound(number, precision): number {
+  public static precisionRound(number: number, precision: number): number {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
   }

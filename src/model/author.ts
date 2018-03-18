@@ -12,7 +12,7 @@ export interface IAuthor {
    * @type {string}
    * @memberof IAuthor
    */
-  displayName?: string;
+  displayName: string | null;
 
   /**
    * Email de l'autheur
@@ -20,7 +20,7 @@ export interface IAuthor {
    * @type {string}
    * @memberof IAuthor
    */
-  email?: string;
+  email: string | null;
 
   /**
    * Identifiant unique de l'autheur
@@ -28,7 +28,7 @@ export interface IAuthor {
    * @type {string}
    * @memberof IAuthor
    */
-  uuid?: string;
+  uuid: string | null;
 
   /**
    * Date à laquelle l'autheur à créer l'objet
@@ -36,7 +36,7 @@ export interface IAuthor {
    * @type {Date}
    * @memberof IAuthor
    */
-  timestamp?: Date;
+  timestamp: Date | null;
 
   /**
    * ville à laquelle l'objet à été créé
@@ -44,7 +44,7 @@ export interface IAuthor {
    * @type {string}
    * @memberof IAuthor
    */
-  city?: string;
+  city: string | null;
 
   /**
    * Position plus précise où à été réalisé l'objet
@@ -52,5 +52,5 @@ export interface IAuthor {
    * @type {firebase.firestore.GeoPoint}
    * @memberof IAuthor
    */
-  coord?: firebase.firestore.GeoPoint;
+  coord: firebase.firestore.GeoPoint | null;
 }

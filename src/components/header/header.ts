@@ -122,7 +122,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    *
    * @memberof HeaderComponent
    */
-  public presentPopover(myEvent): void {
+  public presentPopover(myEvent: any): void {
     const popover = this.popoverCtrl.create('PopoverOptionsPage');
     popover.present({
       ev: myEvent
@@ -184,7 +184,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * @param {any} event
    * @memberof HeaderComponent
    */
-  public search(event): void {
+  public search(event: any): void {
     if (event.target.value === '' || event.target.value == null) {
       this.evtCtrl.getSearchSubject().next('#');
     } else {

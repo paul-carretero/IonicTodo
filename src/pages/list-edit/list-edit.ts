@@ -121,6 +121,10 @@ export class ListEditPage extends GenericPage {
     if (this.listUUID != null) {
       header.subtitle = 'Menu édition';
       this.defineEditList(header);
+
+      this.deleteSub = this.todoService
+        .getDeleteSubject(this.listUUID)
+        .subscribe(() => this.hasBeenRemoved(true));
     } else {
       header.title = 'Nouvelle Liste';
       header.subtitle = 'Menu création';
@@ -135,6 +139,7 @@ export class ListEditPage extends GenericPage {
    */
   ionViewWillExit() {
     this.tryUnSub(this.listSub);
+    this.todoService.unsubDeleteSubject();
   }
 
   /**************************************************************************/
@@ -201,8 +206,9 @@ export class ListEditPage extends GenericPage {
       local: [local, Validators.required]
     });
 
-    if (!this.authCtrl.isConnected()) {
-      this.newList.get('local').disable();
+    const localForm = this.newList.get('local');
+    if (!this.authCtrl.isConnected() && localForm != null) {
+      localForm.disable();
     }
   }
 
@@ -243,8 +249,9 @@ export class ListEditPage extends GenericPage {
         local: [local, Validators.required]
       });
 
-      if (this.listType === ListType.SHARED) {
-        this.newList.get('local').disable();
+      const localForm = this.newList.get('local');
+      if (this.listType === ListType.SHARED && localForm != null) {
+        localForm.disable();
       }
     });
   }
@@ -254,12 +261,13 @@ export class ListEditPage extends GenericPage {
 
     let destType: ListType = this.listType;
 
+    const localForm = this.newList.get('local');
     if (
       this.authCtrl.isConnected() &&
-      this.newList.get('local') != null &&
+      localForm != null &&
       this.listType !== ListType.SHARED
     ) {
-      if (this.newList.get('local').value === true) {
+      if (localForm.value === true) {
         destType = ListType.LOCAL;
       } else {
         destType = ListType.PRIVATE;
@@ -270,10 +278,10 @@ export class ListEditPage extends GenericPage {
       {
         uuid: this.listUUID,
         name: this.newList.value.name,
-        items: this.currentList.items,
         icon: this.newList.value.icon,
         order: this.currentList.order,
-        author: this.currentList.author
+        author: this.currentList.author,
+        externTodos: this.currentList.externTodos
       },
       destType
     );
@@ -294,12 +302,9 @@ export class ListEditPage extends GenericPage {
     this.uiCtrl.showLoading('Création de la liste...');
 
     let destType: ListType = ListType.LOCAL;
+    const localForm = this.newList.get('local');
 
-    if (
-      this.authCtrl.isConnected() &&
-      this.newList.get('local') != null &&
-      this.newList.get('local').value === false
-    ) {
+    if (this.authCtrl.isConnected() && localForm != null && localForm.value === false) {
       destType = ListType.PRIVATE;
     }
 
@@ -307,10 +312,10 @@ export class ListEditPage extends GenericPage {
       {
         uuid: null,
         name: this.newList.value.name,
-        items: [],
         icon: this.newList.value.icon,
         author: null,
-        order: 0
+        order: 0,
+        externTodos: []
       },
       destType
     );

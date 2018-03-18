@@ -22,7 +22,7 @@ export interface ICloudSharedList {
    * @type {string}
    * @memberof ICloudSharedList
    */
-  password?: string;
+  password: string | null;
 
   /**
    * email du compte cible pour partage
@@ -30,7 +30,7 @@ export interface ICloudSharedList {
    * @type {string}
    * @memberof ICloudSharedList
    */
-  email?: string;
+  email: string | null;
 
   /**
    * Si vrai alors il s'agit d'une tentative de partage par shake (non sécurisé)
@@ -48,7 +48,7 @@ export interface ICloudSharedList {
    * @type {IAuthor}
    * @memberof ICloudSharedList
    */
-  author: IAuthor;
+  author: IAuthor | null;
 
   /**
    * Le nom de la liste for the sake of performance
@@ -56,5 +56,5 @@ export interface ICloudSharedList {
    * @type {string}
    * @memberof ICloudSharedList
    */
-  name: string;
+  name: string | null;
 }

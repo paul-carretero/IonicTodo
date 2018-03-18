@@ -18,7 +18,7 @@ import { GenericSharer } from './../generic-sharer';
   templateUrl: 'cloud-sender.html'
 })
 export class CloudSenderPage extends GenericSharer {
-  public password: string = null;
+  public password: string;
 
   private readonly shareData: ICloudSharedList;
 
@@ -75,10 +75,14 @@ export class CloudSenderPage extends GenericSharer {
   public shareWrapper(): void {
     if (this.contactList.size > 0) {
       for (const contact of this.contactList.values()) {
-        this.share(contact.email);
+        if (contact.email == null) {
+          this.share('');
+        } else {
+          this.share(contact.email);
+        }
       }
     } else {
-      this.share(null);
+      this.share('');
     }
   }
 

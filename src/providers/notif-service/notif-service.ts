@@ -10,7 +10,7 @@ export class NotifServiceProvider {
     private readonly alertCtrl: AlertController
   ) {
     this.plt.ready().then(readySource => {
-      this.localNotifications.on('click', (notification, state) => {
+      this.localNotifications.on('click', (notification: any, state: any) => {
         const json = JSON.parse(notification.data);
         const alert = this.alertCtrl.create({
           title: notification.title,

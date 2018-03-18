@@ -80,7 +80,6 @@
     <plugin name="cordova-plugin-device" spec="1.1.4" />
     <plugin name="cordova-plugin-splashscreen" spec="~4.0.1" />
     <plugin name="cordova-plugin-ionic-webview" spec="^1.1.11" />
-    <plugin name="cordova-plugin-firebase" spec="^0.1.25" />
     <plugin name="cordova-plugin-googleplus" spec="^5.2.1">
         <variable name="REVERSED_CLIENT_ID" value="60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com" />
     </plugin>
@@ -107,10 +106,11 @@
     <plugin name="cordova-plugin-camera-preview" spec="^0.9.0" />
     <plugin name="cordova-plugin-screen-orientation" spec="^3.0.1" />
     <plugin name="cordova-sqlite-storage" spec="^2.2.1" />
-    <engine name="android" spec="~7.0.0" />
     <plugin name="cordova-plugin-shake" spec="^0.6.0" />
     <plugin name="phonegap-nfc" spec="^0.7.1" />
     <plugin name="ionic-plugin-keyboard" spec="^2.2.1" />
     <plugin name="cordova-plugin-contacts" spec="^3.0.1" />
     <engine name="browser" spec="~5.0.3" />
+    <plugin name="cordova-plugin-firebase" spec="^0.1.25" />
+    <engine name="android" spec="~7.0.0" />
 </widget>

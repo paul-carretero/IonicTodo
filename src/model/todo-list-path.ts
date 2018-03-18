@@ -11,7 +11,7 @@ export interface ITodoListPath {
    * @type {string}
    * @memberof ITodoListPath
    */
-  userUUID: string;
+  userUUID: string | null;
 
   /**
    * Identifiant unique de la liste
@@ -19,7 +19,7 @@ export interface ITodoListPath {
    * @type {string}
    * @memberof ITodoListPath
    */
-  listUUID: string;
+  listUUID: string | null;
 
   /**
    * true si la liste doit être importé par référence (lien), false si l'on doit la cloner

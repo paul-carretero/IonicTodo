@@ -1,5 +1,6 @@
+import { DocumentReference } from '@firebase/firestore-types';
+
 import { IAuthor } from './author';
-import { ITodoItem } from './todo-item';
 
 /**
  * Représente une liste de tâches
@@ -14,7 +15,7 @@ export interface ITodoList {
    * @type {string}
    * @memberof ITodoList
    */
-  uuid: string;
+  uuid: string | null;
 
   /**
    * Nom de la liste
@@ -22,15 +23,15 @@ export interface ITodoList {
    * @type {string}
    * @memberof ITodoList
    */
-  name: string;
+  name: string | null;
 
   /**
    * Ensemble des Todo de cette liste
    *
-   * @type {ITodoItem[]}
+   * @type {DocumentReference}
    * @memberof ITodoList
    */
-  items: ITodoItem[];
+  externTodos: DocumentReference[];
 
   /**
    * Icone (Cordova) de cette liste
@@ -38,7 +39,7 @@ export interface ITodoList {
    * @type {string}
    * @memberof ITodoList
    */
-  icon: string;
+  icon: string | null;
 
   /**
    * Ordre de la liste par rapport aux autre liste (fonctionement similaire à un z-index)
@@ -46,7 +47,7 @@ export interface ITodoList {
    * @type {number}
    * @memberof ITodoList
    */
-  order: number;
+  order: number | null;
 
   /**
    * Autheur de cette liste
@@ -54,7 +55,7 @@ export interface ITodoList {
    * @type {IAuthor}
    * @memberof ITodoList
    */
-  author: IAuthor;
+  author: IAuthor | null;
 }
 
 /**

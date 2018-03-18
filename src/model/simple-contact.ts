@@ -8,7 +8,7 @@
 export interface ISimpleContact {
   displayName?: string;
 
-  mobile?: string;
+  mobile?: string | null;
 
   email?: string;
 

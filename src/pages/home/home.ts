@@ -176,8 +176,8 @@ export class HomePage extends GenericPage {
         this.todoList = [];
         this.todoListComplete = [];
         for (const list of lists) {
-          const isNotComplete =
-            this.getCompleted(list.items) < list.items.length || list.items.length === 0;
+          //const isNotComplete = this.getCompleted(list.items) < list.items.length || list.items.length === 0;
+          const isNotComplete = true;
           if (isNotComplete) {
             this.todoList.push(list);
           } else {
@@ -313,7 +313,10 @@ export class HomePage extends GenericPage {
    * @param {ITodoList[]} tab le tableau de référence (soit todoList, soit todoListComplete, soit TodoListLocal)
    * @memberof HomePage
    */
-  public async reorder(indexes, tab: ITodoList[]): Promise<void> {
+  public async reorder(
+    indexes: { from: number; to: number },
+    tab: ITodoList[]
+  ): Promise<void> {
     if (!this.orderableReady) {
       return;
     }

@@ -4,7 +4,7 @@
 
 <ion-content>
     <ion-list>
-        <ion-item-sliding *ngFor="let todo of todoItems|async">
+        <ion-item-sliding *ngFor="let todo of todoItems | async">
             <ion-item>
                 <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
                 <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>

@@ -12,12 +12,20 @@ export class AuthorDisplayComponent {
   constructor() {}
 
   get dateDiff(): string {
+    if (this.author.timestamp == null) {
+      return '';
+    }
+
     const now = new Date().getTime();
     const duration = moment.duration(now - this.author.timestamp.getTime());
     return duration.locale('fr').humanize();
   }
 
   get dateCalendar(): string {
+    if (this.author.timestamp == null) {
+      return '';
+    }
+
     return this.author.timestamp.toLocaleDateString();
   }
 }

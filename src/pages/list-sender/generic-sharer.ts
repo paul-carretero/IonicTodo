@@ -55,6 +55,14 @@ export class GenericSharer extends GenericPage {
     } else {
       this.choice = 'unlock';
     }
+
+    this.deleteSub = this.todoCtrl
+      .getDeleteSubject(this.listUUID)
+      .subscribe(() => this.hasBeenRemoved(true));
+  }
+
+  ionViewWillLeave() {
+    this.todoCtrl.unsubDeleteSubject();
   }
 
   get creatingLink(): boolean {

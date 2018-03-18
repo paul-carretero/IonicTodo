@@ -7,7 +7,7 @@ export interface ITodoItem {
    * @type {string}
    * @memberof TodoItem
    */
-  uuid?: string;
+  uuid: string | null;
 
   /**
    * Nom du todo
@@ -15,7 +15,7 @@ export interface ITodoItem {
    * @type {string}
    * @memberof TodoItem
    */
-  name: string;
+  name: string | null;
 
   /**
    * Description détaillé du todo
@@ -23,7 +23,7 @@ export interface ITodoItem {
    * @type {string}
    * @memberof TodoItem
    */
-  desc?: string;
+  desc: string | null;
 
   /**
    * Vrai si l'on doit envoyer une notification (native) avant que le todo n'arrive à la deadline
@@ -68,9 +68,9 @@ export interface ITodoItem {
   mediaLocation?: string;
 
   // date de complétion
-  complete?: boolean;
+  complete: boolean;
   dateCompleted?: string;
   deadline?: Date;
 
-  author?: IAuthor;
+  author: IAuthor | null;
 }

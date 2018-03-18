@@ -51,15 +51,25 @@ export class TodoListPage extends GenericPage {
    * @type {Observable<TodoItem[]>}
    * @memberof TodoListPage
    */
-  public readonly todoItems: Observable<ITodoItem[]>;
+  public todoItems: Observable<ITodoItem[]>;
 
-  public listAuthor: IAuthor;
+  /**
+   * Les todo exported de cette liste en observable
+   *
+   * @type {Observable<TodoItem[]>}
+   * @memberof TodoListPage
+   */
+  public exportedTodoItems: Observable<ITodoItem[]>;
+
+  public listAuthor: IAuthor | null;
 
   private readonly listType: ListType;
 
   public editable: boolean = true;
 
   public displayInfo: boolean = false;
+
+  private exportedSub: Subscription;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -104,10 +114,27 @@ export class TodoListPage extends GenericPage {
     pageData.searchable = true;
     pageData.subtitle = 'Détails des tâches';
     this.initDataList(pageData);
+
+    this.todoService.getPrivateTodos(this.listUUID).then(res => {
+      this.todoItems = res;
+    });
+
+    this.todoService.getExportedTodosObservables(this.listUUID).then(obsObs => {
+      this.exportedSub = obsObs.subscribe(res => {
+        this.exportedTodoItems = res;
+      });
+    });
+
+    this.deleteSub = this.todoService
+      .getDeleteSubject(this.listUUID)
+      .subscribe(() => this.hasBeenRemoved(true));
   }
 
   ionViewWillLeave() {
+    this.todoService.unsubscribeOfTodo();
+    this.todoService.unsubDeleteSubject();
     this.tryUnSub(this.listeSub);
+    this.tryUnSub(this.exportedSub);
   }
 
   /**************************************************************************/
@@ -145,7 +172,13 @@ export class TodoListPage extends GenericPage {
 
   private async importList(): Promise<void> {
     this.uiCtrl.showLoading('Import de la liste en cours');
-    const list: ITodoList = this.todoService.getAListSnapshot(this.listUUID);
+    const list: ITodoList | null = this.todoService.getAListSnapshot(this.listUUID);
+
+    if (list == null) {
+      this.uiCtrl.displayToast("impossible d'importer la liste");
+      return;
+    }
+
     await this.todoService.addList(list, ListType.PRIVATE);
     this.todoService.removeListLink(this.listUUID);
     this.navCtrl.popToRoot();
@@ -262,6 +295,11 @@ export class TodoListPage extends GenericPage {
   }
 
   public completeCheck(todo: ITodoItem): void {
+    if (todo.uuid == null) {
+      this.uiCtrl.displayToast('Unexpected error is unexpected');
+      return;
+    }
+
     if (todo.complete === false) {
       this.todoService.complete(this.listUUID, todo.uuid, true);
     } else {

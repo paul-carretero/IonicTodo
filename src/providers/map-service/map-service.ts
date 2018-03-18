@@ -1,11 +1,7 @@
-import { ILatLng } from '@ionic-native/google-maps';
 import { Injectable } from '@angular/core';
-import {
-  NativeGeocoder,
-  NativeGeocoderForwardResult,
-  NativeGeocoderReverseResult
-} from '@ionic-native/native-geocoder';
 import { Geolocation } from '@ionic-native/geolocation';
+import { ILatLng } from '@ionic-native/google-maps';
+import { NativeGeocoder } from '@ionic-native/native-geocoder';
 
 @Injectable()
 export class MapServiceProvider {
@@ -18,7 +14,7 @@ export class MapServiceProvider {
     const promise: Promise<string> = new Promise<string>((resolve, reject) => {
       this.nativeGeocoder
         .reverseGeocode(lat, long)
-        .then((res: NativeGeocoderReverseResult) => {
+        .then((res: any) => {
           resolve(
             res[0].subThoroughfare +
               ' ' +
@@ -42,7 +38,7 @@ export class MapServiceProvider {
     const promise: Promise<ILatLng> = new Promise<ILatLng>((resolve, reject) => {
       this.nativeGeocoder
         .forwardGeocode(address)
-        .then((res: NativeGeocoderForwardResult) => {
+        .then((res: any) => {
           resolve({
             lat: res[0].latitude,
             lng: res[0].longitude
@@ -65,7 +61,7 @@ export class MapServiceProvider {
     );
   }
 
-  public async getMyPosition(): Promise<ILatLng> {
+  public async getMyPosition(): Promise<ILatLng | null> {
     try {
       const geoPos = await this.geolocCtrl.getCurrentPosition({ timeout: 5000 });
       return { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };
@@ -75,12 +71,9 @@ export class MapServiceProvider {
     }
   }
 
-  public async getCity(coord: ILatLng): Promise<string> {
+  public async getCity(coord: ILatLng): Promise<string | null> {
     try {
-      const res: NativeGeocoderReverseResult = await this.nativeGeocoder.reverseGeocode(
-        coord.lat,
-        coord.lng
-      );
+      const res: any = await this.nativeGeocoder.reverseGeocode(coord.lat, coord.lng);
       return res[0].locality;
     } catch (error) {
       return null;

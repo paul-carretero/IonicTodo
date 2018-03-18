@@ -30,6 +30,7 @@ export class NfcSenderPage extends GenericSharer {
   }
 
   ionViewDidEnter() {
+    super.ionViewDidEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Exporter par NFC';
     pageData.subtitle = this.evtCtrl.getHeadeSubject().getValue().title;

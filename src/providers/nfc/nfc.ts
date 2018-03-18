@@ -24,7 +24,7 @@ export class NfcProvider {
         () => {
           console.log('successfully attached ndef listener');
         },
-        err => {
+        (err: any) => {
           console.log('error attaching ndef listener', err);
         }
       )

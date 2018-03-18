@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CollectionReference, DocumentSnapshot } from '@firebase/firestore-types';
+import { DocumentSnapshot } from '@firebase/firestore-types';
 import { ILatLng } from '@ionic-native/google-maps';
 import {
   AngularFirestore,
@@ -108,13 +108,11 @@ export class CloudServiceProvider {
    * @memberof CloudServiceProvider
    */
   public getCloudLists(): Observable<ICloudSharedList[]> {
-    const collection = this.firestoreCtrl.collection<ICloudSharedList>(
-      'cloud',
-      (ref: CollectionReference) =>
-        ref
-          .where('shakeToShare', '==', false)
-          .where('email', '==', null)
-          .orderBy('author.timestamp', 'desc')
+    const collection = this.firestoreCtrl.collection<ICloudSharedList>('cloud', ref =>
+      ref
+        .where('shakeToShare', '==', false)
+        .where('email', '==', null)
+        .orderBy('author.timestamp', 'desc')
     );
     return collection.valueChanges();
   }
@@ -145,7 +143,7 @@ export class CloudServiceProvider {
 
     const author = await this.authCtrl.getAuthor(true);
 
-    if (author.coord == null) {
+    if (author == null || author.coord == null) {
       this.uiCtrl.displayToast(
         'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
       );
@@ -217,7 +215,7 @@ export class CloudServiceProvider {
    * @returns {Promise<string>}
    * @memberof CloudServiceProvider
    */
-  public async getListName(list: ITodoListPath): Promise<string> {
+  public async getListName(list: ITodoListPath): Promise<string | null> {
     const doc = this.firestoreCtrl.doc<ITodoList>(
       'user/' + list.userUUID + '/list/' + list.listUUID
     );
@@ -237,16 +235,15 @@ export class CloudServiceProvider {
    * @memberof CloudServiceProvider
    */
   public async removeCloudList(listUUID: string): Promise<void> {
-    const collection = this.firestoreCtrl.collection<ICloudSharedList>(
-      'cloud',
-      (ref: CollectionReference) => ref.where('list.listUUID', '==', listUUID)
+    const collection = this.firestoreCtrl.collection<ICloudSharedList>('cloud', ref =>
+      ref.where('list.listUUID', '==', listUUID)
     );
 
     const sub: Subscription = collection
       .snapshotChanges()
-      .subscribe((dca: DocumentChangeAction[]) => {
-        for (const doc of dca) {
-          doc.payload.doc.ref.delete();
+      .subscribe((dcas: DocumentChangeAction[]) => {
+        for (const dca of dcas) {
+          dca.payload.doc.ref.delete();
         }
         sub.unsubscribe();
       });
@@ -270,13 +267,13 @@ export class CloudServiceProvider {
 
     const forCleanSTSCollection = this.firestoreCtrl.collection<ICloudSharedList>(
       'cloud',
-      (ref: CollectionReference) =>
+      ref =>
         ref.where('shakeToShare', '==', true).where('author.timestamp', '<', stsExpire)
     );
 
     const forCleanCloudCollection = this.firestoreCtrl.collection<ICloudSharedList>(
       'cloud',
-      (ref: CollectionReference) =>
+      ref =>
         ref.where('shakeToShare', '==', false).where('author.timestamp', '<', cloudExpire)
     );
 
@@ -328,7 +325,7 @@ export class CloudServiceProvider {
 
     const forSTSImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
       'cloud',
-      (ref: CollectionReference) => ref.where('shakeToShare', '==', true)
+      ref => ref.where('shakeToShare', '==', true)
     );
 
     this.availableSTSListsSub = forSTSImportCollection
@@ -360,7 +357,7 @@ export class CloudServiceProvider {
 
     const forImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
       'cloud',
-      (ref: CollectionReference) => ref.where('email', '==', this.authCtrl.getEmail())
+      ref => ref.where('email', '==', this.authCtrl.getEmail())
     );
 
     this.availableListsSub = forImportCollection
@@ -381,7 +378,7 @@ export class CloudServiceProvider {
   private async importByPassword(data: ICloudSharedList): Promise<void> {
     let pass: string = '';
     let hasCancel: boolean = true;
-    const name: string = await this.getListName(data.list as ITodoListPath);
+    const name: string | null = await this.getListName(data.list as ITodoListPath);
 
     while (pass !== data.password && !hasCancel) {
       try {
@@ -408,11 +405,15 @@ export class CloudServiceProvider {
    * @memberof CloudServiceProvider
    */
   private async importBySTS(data: ICloudSharedList): Promise<void> {
+    if (data == null) {
+      return;
+    }
+
     const stsEnabled: boolean =
       (await this.settingsCtrl.getSetting(Settings.ENABLE_STS)) === 'true';
 
     if (stsEnabled) {
-      let myPos: ILatLng = await this.mapCtrl.getMyPosition();
+      let myPos: ILatLng | null = await this.mapCtrl.getMyPosition();
 
       if (myPos == null) {
         this.uiCtrl.displayToast(
@@ -424,7 +425,12 @@ export class CloudServiceProvider {
       myPos = Global.roundILatLng(myPos);
       const myGeoPos = Global.getGeoPoint(myPos);
 
-      if (myGeoPos.isEqual(data.author.coord)) {
+      if (
+        data.author != null &&
+        data.author.coord != null &&
+        data.author.timestamp != null &&
+        myGeoPos.isEqual(data.author.coord)
+      ) {
         const now = await this.timestampAreCloseToNow(data.author.timestamp);
         if (now) {
           this.todoCtrl.importList(data.list);
@@ -448,6 +454,7 @@ export class CloudServiceProvider {
     if (
       data == null ||
       data.list == null ||
+      data.author == null ||
       data.author.uuid === this.authCtrl.getUserId()
     ) {
       return;

@@ -14,7 +14,8 @@
                         <ion-item-sliding *ngIf="areMatching(list,search)">
                             <ion-item (click)="selectTodoList(list.uuid)">
                                 <ion-icon name="{{list.icon}}" item-start></ion-icon>
-                                {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
+                                {{ list.name }}
+                                <!--({{getCompleted(list.items)}}/{{list.items.length}})-->
                                 <ion-icon *ngIf="isOneTodoLate(list)" name="alert" item-end></ion-icon>
                             </ion-item>
                             <ion-item-options side="left">
@@ -45,7 +46,8 @@
                         <ion-item-sliding *ngIf="areMatching(list,search)">
                             <ion-item (click)="selectTodoList(list.uuid)">
                                 <ion-icon name="{{list.icon}}" item-start></ion-icon>
-                                {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
+                                {{ list.name }}
+                                <!--({{getCompleted(list.items)}}/{{list.items.length}})-->
                             </ion-item>
                             <ion-item-options side="left">
                                 <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
@@ -74,7 +76,8 @@
                     <ion-item-sliding *ngIf="areMatching(list,search)">
                         <ion-item (click)="selectTodoList(list.uuid)">
                             <ion-icon name="{{list.icon}}" item-start></ion-icon>
-                            {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
+                            {{ list.name }}
+                            <!--({{getCompleted(list.items)}}/{{list.items.length}})-->
                         </ion-item>
                         <ion-item-options side="left">
                             <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
@@ -106,7 +109,8 @@
                     <ion-item-sliding *ngIf="areMatching(list,search)">
                         <ion-item (click)="selectTodoList(list.uuid)">
                             <ion-icon name="{{list.icon}}" item-start></ion-icon>
-                            {{ list.name }} ({{getCompleted(list.items)}}/{{list.items.length}})
+                            {{ list.name }}
+                            <!--({{getCompleted(list.items)}}/{{list.items.length}})-->
                         </ion-item>
                         <ion-item-options side="left">
                             <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">

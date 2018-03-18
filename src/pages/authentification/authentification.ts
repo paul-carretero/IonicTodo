@@ -72,11 +72,17 @@ export class AuthentificationPage extends GenericPage {
 
     this.settingCtrl.getSetting(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
       if (res != null && res !== '') {
-        this.authForm.get('email').setValue(res);
+        const email = this.authForm.get('email');
+        if (email != null) {
+          email.setValue('');
+        }
       }
     });
 
-    this.authForm.get('password').setValue('');
+    const pass = this.authForm.get('password');
+    if (pass != null) {
+      pass.setValue('');
+    }
   }
 
   ionViewWillLeave(): void {
@@ -86,7 +92,11 @@ export class AuthentificationPage extends GenericPage {
   }
 
   get isEmailValid(): boolean {
-    return this.authForm.get('email').valid;
+    const email = this.authForm.get('email');
+    if (email == null) {
+      return false;
+    }
+    return email.valid;
   }
 
   get isOffline(): boolean {
@@ -139,8 +149,13 @@ export class AuthentificationPage extends GenericPage {
   }
 
   public async firebaseLogin(): Promise<void> {
-    const email: string = this.authForm.get('email').value;
-    const password: string = this.authForm.get('password').value;
+    const emailForm = this.authForm.get('email');
+    const passForm = this.authForm.get('password');
+    if (emailForm == null || passForm == null) {
+      return;
+    }
+    const email: string = emailForm.value;
+    const password: string = passForm.value;
 
     this.settingCtrl.setSetting(Settings.LAST_FIRE_EMAIL_LOGIN, email);
 
@@ -168,8 +183,13 @@ export class AuthentificationPage extends GenericPage {
   }
 
   public async createCount(): Promise<void> {
-    const email: string = this.authForm.get('email').value;
-    const password: string = this.authForm.get('password').value;
+    const emailForm = this.authForm.get('email');
+    const passForm = this.authForm.get('password');
+    if (emailForm == null || passForm == null) {
+      return;
+    }
+    const email: string = emailForm.value;
+    const password: string = passForm.value;
 
     try {
       this.uiCtrl.showLoading('création du compte...');
