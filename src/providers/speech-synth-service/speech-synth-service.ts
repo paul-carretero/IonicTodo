@@ -14,6 +14,7 @@ export class SpeechSynthServiceProvider {
     private readonly evtCtrl: EventServiceProvider
   ) {
     this.synthQueue = [];
+    console.log("constructor speech-synth-service");
     this.listenForStop();
   }
 
@@ -29,7 +30,9 @@ export class SpeechSynthServiceProvider {
 
   private listenForStop(): void {
     this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
-      if (req.request === MenuRequestType.SPEECH_REC) {
+      console.log("evt menu");
+      if (req.request === MenuRequestType.SPEECH_SYNTH) {
+        console.log("speech synth");
         this.synthQueue = [];
         this.stop();
       }

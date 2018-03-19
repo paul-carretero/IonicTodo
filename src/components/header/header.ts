@@ -83,6 +83,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   ngOnInit(): void {
     // car  [ '' == false ]     (╯°□°）╯︵ ┻━┻
+    console.log("init de header");
     this.evtCtrl.getSearchSubject().next('#');
   }
 
@@ -128,6 +129,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * @memberof HeaderComponent
    */
   public startSpeechRec() {
+    console.log("envoit evt speech rec");
     this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.SPEECH_REC });
   }
 

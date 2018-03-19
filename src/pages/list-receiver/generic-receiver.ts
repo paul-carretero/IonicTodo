@@ -9,6 +9,7 @@ import { GenericPage } from '../../shared/generic-page';
 import { ListType } from './../../model/todo-list';
 import { ITodoListPath } from './../../model/todo-list-path';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
+import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 export abstract class GenericReceiver extends GenericPage {
   /**************************************************************************/
@@ -29,11 +30,12 @@ export abstract class GenericReceiver extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
   }
 
   /**************************************************************************/

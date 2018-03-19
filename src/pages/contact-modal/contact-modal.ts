@@ -13,6 +13,7 @@ import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ISimpleContact } from './../../model/simple-contact';
 import { Global } from './../../shared/global';
+import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 /**
  * Page orienté modal créée pour permettre de choisir plusieurs contacts parmis la listes des contacts du terminal.
@@ -97,13 +98,14 @@ export class ContactModalPage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly sprecCtrl: SpeechRecServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly viewCtrl: ViewController,
     private readonly contactsCtrl: Contacts
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
 
     this.exportedContacts = this.navParams.get('contacts');
 

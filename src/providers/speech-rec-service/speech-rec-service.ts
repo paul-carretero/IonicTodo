@@ -13,11 +13,14 @@ export class SpeechRecServiceProvider {
     private readonly evtCtrl: EventServiceProvider,
     private readonly uiCtrl: UiServiceProvider
   ) {
+    console.log("constructor speech-rec-service");
     this.listenForSpeechRequest();
   }
 
   private listenForSpeechRequest(): void {
+    console.log("av event");
     this.evtCtrl.getMenuRequestSubject().subscribe(req => {
+      console.log("dans listen for speech request");
       if (req.request === MenuRequestType.SPEECH_REC) {
         if (this.allOK) {
           this.startListening();
@@ -29,6 +32,7 @@ export class SpeechRecServiceProvider {
   }
 
   private startListening(): void {
+    console.log("dans start listening");
     this.speechRecognition.startListening().subscribe(
       (matches: string[]) => {
         this.uiCtrl.dismissLoading();
@@ -45,6 +49,7 @@ export class SpeechRecServiceProvider {
     this.uiCtrl.showLoading(
       'Veuillez patienter, préparation de le reconnaissance vocale'
     );
+    console.log("speech wrapper");
     this.speechRecognition.isRecognitionAvailable().then((available: boolean) => {
       if (available) {
         this.speechRecognition.hasPermission().then((hasPermission: boolean) => {

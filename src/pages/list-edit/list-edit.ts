@@ -15,6 +15,7 @@ import { EventServiceProvider } from './../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
+import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 /**
  * Présente la listes des todo d'une liste de todo.
@@ -98,13 +99,14 @@ export class ListEditPage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
+    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly formBuilder: FormBuilder,
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.currentList = Global.getBlankList();
     this.defineNewList();
