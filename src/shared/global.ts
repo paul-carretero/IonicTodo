@@ -188,7 +188,7 @@ export class Global {
       desc: null,
       deadline: null,
       address: null,
-      complete: true,
+      complete: false,
       notif: false,
       SMSBeforeDeadline: false,
       SMSNumber: null,

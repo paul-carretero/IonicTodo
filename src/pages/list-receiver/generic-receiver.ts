@@ -11,17 +11,43 @@ import { ITodoListPath } from './../../model/todo-list-path';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 
 export abstract class GenericReceiver extends GenericPage {
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of GenericReceiver.
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {TodoServiceProvider} todoCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @memberof GenericReceiver
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly todoCtrl: TodoServiceProvider,
+    protected readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * Tente d'importer la liste correspondant au chemin en la référencant sur le compte utilisateur
+   *
+   * @private
+   * @param {ITodoListPath} path
+   * @returns {Promise<boolean>}
+   * @memberof GenericReceiver
+   */
   private async listPathHandler(path: ITodoListPath): Promise<boolean> {
     const resConf: boolean = await this.uiCtrl.confirm(
       'Confirmation',
@@ -36,6 +62,14 @@ export abstract class GenericReceiver extends GenericPage {
     return true;
   }
 
+  /**
+   * Tente d'importer la liste correspondant au chemin en la clonant sur le compte utilisateur
+   *
+   * @private
+   * @param {ITodoListPath} path
+   * @returns {Promise<boolean>}
+   * @memberof GenericReceiver
+   */
   private async todoListHandler(path: ITodoListPath): Promise<boolean> {
     const data = await this.todoCtrl.getAListSnapshotFromPath(path);
     data.order = 0;
@@ -56,7 +90,20 @@ export abstract class GenericReceiver extends GenericPage {
     return true;
   }
 
-  public async importHandler(json: string): Promise<boolean> {
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * récupère un json sous forme de strin et tente de l'importer
+   * sur le compte courrant en temps que list (par valeur ou référence).
+   *
+   * @protected
+   * @param {string} json
+   * @returns {Promise<boolean>}
+   * @memberof GenericReceiver
+   */
+  protected async importHandler(json: string): Promise<boolean> {
     let listData: ITodoListPath;
     try {
       listData = JSON.parse(json);
@@ -73,18 +120,39 @@ export abstract class GenericReceiver extends GenericPage {
     }
   }
 
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
+
+  /**
+   * @param {IMenuRequest} req
+   * @memberof GenericReceiver
+   */
   public menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }
+
+  /**
+   * @returns {string}
+   * @memberof GenericReceiver
+   */
   public generateDescription(): string {
     throw new Error('Method not implemented.');
   }
 
+  /**
+   * @returns {boolean}
+   * @memberof GenericReceiver
+   */
   public loginAuthRequired(): boolean {
     return true;
   }
 
+  /**
+   * @returns {boolean}
+   * @memberof GenericReceiver
+   */
   public basicAuthRequired(): boolean {
     return true;
   }

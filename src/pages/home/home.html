@@ -45,7 +45,6 @@
                                     <ion-item (click)="selectTodoList(list.uuid)">
                                         <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                         {{ list.name }} ({{getCompleted(items)}}/{{items.length - 1}})
-                                        <ion-icon *ngIf="isOneTodoLate(list)" name="alert" item-end></ion-icon>
                                     </ion-item>
                                     <ion-item-options side="right">
                                         <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">

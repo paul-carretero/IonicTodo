@@ -1,3 +1,4 @@
+import { IMenuRequest } from './../../model/menu-request';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@firebase/auth-types';
@@ -31,6 +32,18 @@ import { Global } from './../../shared/global';
   templateUrl: 'authentification.html'
 })
 export class AuthentificationPage extends GenericPage {
+  /**************************** PRIVATE FIELDS ******************************/
+
+  /**
+   * défini la redirection vers l'accueil une fois connecté (mais permet de retourner sur cette page une fois connecté)
+   *
+   * @private
+   * @static
+   * @type {boolean}
+   * @memberof AuthentificationPage
+   */
+  private static autoRedirect: boolean = true;
+
   /**
    * Flux des connexions/déconnexion (notament pour les auto redirect)
    *
@@ -40,37 +53,38 @@ export class AuthentificationPage extends GenericPage {
    */
   private connSub: Subscription;
 
+  /***************************** PUBLIC FIELDS ******************************/
+
   /**
    * Formulaire de connexion
    *
+   * @protected
    * @type {FormGroup}
    * @memberof AuthentificationPage
    */
-  public authForm: FormGroup;
+  protected authForm: FormGroup;
 
   /**
    * Profile utilisateur firebase (si connecté)
    *
+   * @protected
    * @type {User}
    * @memberof AuthentificationPage
    */
-  public userProfile: User | null;
+  protected userProfile: User | null;
 
   /**
    * défini si l'on peut se connecté hors ligne
    *
+   * @protected
+   * @type {boolean}
    * @memberof AuthentificationPage
    */
-  public offlineDisabled = true;
+  protected offlineDisabled: boolean = true;
 
-  /**
-   * défini la redirection vers l'accueil une fois connecté (mais permet de retourner sur cette page une fois connecté)
-   *
-   * @private
-   * @static
-   * @memberof AuthentificationPage
-   */
-  private static autoRedirect = true;
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
 
   /**
    * Creates an instance of AuthentificationPage.
@@ -104,6 +118,10 @@ export class AuthentificationPage extends GenericPage {
     const time = moment().format('HHmmss');
     console.log('today is: ', data + ' and time: ', time);
   }
+
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
 
   /**
    * Gère les redirection automatique une fois connecté vers la page principale
@@ -140,12 +158,32 @@ export class AuthentificationPage extends GenericPage {
     }
   }
 
+  /**
+   * termine les subscription, notament à la connexion de l'utilisateur
+   *
+   * @memberof AuthentificationPage
+   */
   ionViewWillLeave(): void {
     if (this.connSub != null) {
       this.connSub.unsubscribe();
     }
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**************************************************************************/
+  /********************************* GETTER *********************************/
+  /**************************************************************************/
+
+  /**
+   * return true si l'email saisi dans le formulaire est valide
+   *
+   * @readonly
+   * @type {boolean}
+   * @memberof AuthentificationPage
+   */
   get isEmailValid(): boolean {
     const email = this.authForm.get('email');
     if (email == null) {
@@ -154,27 +192,29 @@ export class AuthentificationPage extends GenericPage {
     return email.valid;
   }
 
+  /**
+   * return true si l'application est utilisé en mode hors ligne
+   *
+   * @readonly
+   * @type {boolean}
+   * @memberof AuthentificationPage
+   */
   get isOffline(): boolean {
     return this.authCtrl.isOffline();
   }
 
-  public menuEventHandler(): void {
-    // nothing special to do
-  }
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
 
-  public loginAuthRequired(): boolean {
-    return false;
-  }
-
-  public basicAuthRequired(): boolean {
-    return false;
-  }
-
-  public generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  public async loginGooglePlus(): Promise<void> {
+  /**
+   * Tente de se connecter à firebase authomatiquement avec un compte Google
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof AuthentificationPage
+   */
+  protected async loginGooglePlus(): Promise<void> {
     try {
       this.uiCtrl.showLoading('tentative de login...');
       const result = await this.googlePlus.login({
@@ -203,7 +243,14 @@ export class AuthentificationPage extends GenericPage {
     }
   }
 
-  public async firebaseLogin(): Promise<void> {
+  /**
+   * Tente de se connecter à firebase avec un couple email-password du formulaire
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof AuthentificationPage
+   */
+  protected async firebaseLogin(): Promise<void> {
     const emailForm = this.authForm.get('email');
     const passForm = this.authForm.get('password');
     if (emailForm == null || passForm == null) {
@@ -229,7 +276,14 @@ export class AuthentificationPage extends GenericPage {
     }
   }
 
-  public async logout(): Promise<void> {
+  /**
+   * Si un utilisateur est connecté, le déconnecte
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof AuthentificationPage
+   */
+  protected async logout(): Promise<void> {
     if (this.authCtrl.isConnected()) {
       this.uiCtrl.showLoading('Déconnexion en cours');
       await this.authCtrl.logout();
@@ -237,7 +291,14 @@ export class AuthentificationPage extends GenericPage {
     }
   }
 
-  public async createCount(): Promise<void> {
+  /**
+   * Tente de créer un compte avec les informations du formulaire
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof AuthentificationPage
+   */
+  protected async createCount(): Promise<void> {
     const emailForm = this.authForm.get('email');
     const passForm = this.authForm.get('password');
     if (emailForm == null || passForm == null) {
@@ -273,12 +334,53 @@ export class AuthentificationPage extends GenericPage {
    * @returns {Promise<void>}
    * @memberof AuthentificationPage
    */
-  public async offlineMode(): Promise<void> {
+  protected async offlineMode(): Promise<void> {
     await this.logout();
     this.authCtrl.allowOffline();
     this.uiCtrl.displayToast(
       'Mode Hors Connexion activé: Certaines Fonctionalités ne seront pas disponible'
     );
     this.navCtrl.parent.select(Global.HOMEPAGE);
+  }
+
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
+
+  /**
+   * @protected
+   * @param {IMenuRequest} req
+   * @memberof AuthentificationPage
+   */
+  protected menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
+    }
+  }
+
+  /**
+   * @protected
+   * @returns {boolean}
+   * @memberof AuthentificationPage
+   */
+  protected loginAuthRequired(): boolean {
+    return false;
+  }
+
+  /**
+   * @protected
+   * @returns {boolean}
+   * @memberof AuthentificationPage
+   */
+  protected basicAuthRequired(): boolean {
+    return false;
+  }
+
+  /**
+   * @protected
+   * @returns {string}
+   * @memberof AuthentificationPage
+   */
+  protected generateDescription(): string {
+    throw new Error('Method not implemented.');
   }
 }

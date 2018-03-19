@@ -27,22 +27,7 @@ import { Global } from './../../shared/global';
   templateUrl: 'contact-modal.html'
 })
 export class ContactModalPage extends GenericPage {
-  /**
-   * Map (ID=>contact)
-   * Associe un id de contact à un objet de contact simplifié
-   *
-   * @type {Map<string, ISimpleContact>}
-   * @memberof ContactModalPage
-   */
-  public exportedContacts: Map<string, ISimpleContact>;
-
-  /**
-   * Ensemble des contacts du terminal
-   *
-   * @type {Promise<Contact[]>}
-   * @memberof ContactModalPage
-   */
-  public contactList: Promise<Contact[]>;
+  /**************************** PRIVATE FIELDS ******************************/
 
   /**
    * Optionnel, permet de spécifier s'il ne faut afficher que les contacts ayant un mobile
@@ -70,6 +55,25 @@ export class ContactModalPage extends GenericPage {
    * @memberof ContactModalPage
    */
   private lastHeader: IPageData;
+
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * Map (ID=>contact)
+   * Associe un id de contact à un objet de contact simplifié
+   *
+   * @type {Map<string, ISimpleContact>}
+   * @memberof ContactModalPage
+   */
+  protected exportedContacts: Map<string, ISimpleContact>;
+
+  /**
+   * Ensemble des contacts du terminal
+   *
+   * @type {Promise<Contact[]>}
+   * @memberof ContactModalPage
+   */
+  protected contactList: Promise<Contact[]>;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -132,6 +136,11 @@ export class ContactModalPage extends GenericPage {
     this.evtCtrl.setHeader(header);
   }
 
+  /**
+   * Redéfini le header comme il l'était avant (pas nécessairement utile...)
+   *
+   * @memberof ContactModalPage
+   */
   ionViewWillLeave() {
     this.evtCtrl.setHeader(this.lastHeader);
   }
@@ -143,10 +152,10 @@ export class ContactModalPage extends GenericPage {
   /**
    * Valide et termine la saisie des contacts
    *
-   * @public
+   * @protected
    * @memberof ContactModalPage
    */
-  public dismiss() {
+  protected dismiss() {
     const data = {};
     this.viewCtrl.dismiss(data);
   }
@@ -154,12 +163,12 @@ export class ContactModalPage extends GenericPage {
   /**
    * retourne true si le contact satisfait les critère de filtre (sms et/ou email)
    *
-   * @public
+   * @protected
    * @param {Contact} contact
    * @returns {boolean}
    * @memberof ContactModalPage
    */
-  public shouldDisplay(contact: Contact): boolean {
+  protected shouldDisplay(contact: Contact): boolean {
     if (this.onlyEmail && contact.emails == null) {
       return false;
     }
@@ -178,23 +187,23 @@ export class ContactModalPage extends GenericPage {
   /**
    * retourne true si le contact est selectionné
    *
-   * @public
+   * @protected
    * @param {Contact} contact
    * @returns {boolean}
    * @memberof ContactModalPage
    */
-  public isSelected(contact: Contact): boolean {
+  protected isSelected(contact: Contact): boolean {
     return this.exportedContacts.has(contact.id);
   }
 
   /**
    * permet de selectionné ou de déselectionné un contact
    *
-   * @public
+   * @protected
    * @param {Contact} contact
    * @memberof ContactModalPage
    */
-  public select(contact: Contact): void {
+  protected select(contact: Contact): void {
     if (this.isSelected(contact)) {
       this.exportedContacts.delete(contact.id);
     } else {
@@ -261,7 +270,7 @@ export class ContactModalPage extends GenericPage {
    * @param {IMenuRequest} req
    * @memberof ContactModalPage
    */
-  public menuEventHandler(req: IMenuRequest): void {
+  protected menuEventHandler(req: IMenuRequest): void {
     switch (req.request) {
       case MenuRequestType.VALIDATE:
         this.dismiss();
@@ -274,7 +283,7 @@ export class ContactModalPage extends GenericPage {
    * @returns {string}
    * @memberof ContactModalPage
    */
-  public generateDescription(): string {
+  protected generateDescription(): string {
     throw new Error('Method not implemented.');
   }
 
@@ -283,7 +292,7 @@ export class ContactModalPage extends GenericPage {
    * @returns {boolean}
    * @memberof ContactModalPage
    */
-  public loginAuthRequired(): boolean {
+  protected loginAuthRequired(): boolean {
     return false;
   }
 
@@ -292,7 +301,7 @@ export class ContactModalPage extends GenericPage {
    * @returns {boolean}
    * @memberof ContactModalPage
    */
-  public basicAuthRequired(): boolean {
+  protected basicAuthRequired(): boolean {
     return false;
   }
 }

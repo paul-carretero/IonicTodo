@@ -171,6 +171,14 @@ export class HomePage extends GenericPage {
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
 
+  /**
+   * ajoute dans une liste un observable de ses todos
+   *
+   * @private
+   * @param {ITodoList} list
+   * @returns {Promise<ITodoList>}
+   * @memberof HomePage
+   */
   private async renforceList(list: ITodoList): Promise<ITodoList> {
     if (list.uuid == null) {
       throw new Error('Identifiant de liste invalide');
@@ -179,6 +187,13 @@ export class HomePage extends GenericPage {
     return list;
   }
 
+  /**
+   * intialise et met à jour le tableau des listes privée
+   * ajoute également l'ensemble de leur todo.
+   *
+   * @private
+   * @memberof HomePage
+   */
   private initPrivateListSub(): void {
     this.listSub = this.todoService
       .getTodoList(ListType.PRIVATE)
@@ -193,6 +208,13 @@ export class HomePage extends GenericPage {
       });
   }
 
+  /**
+   * intialise et met à jour le tableau des listes locales
+   * ajoute également l'ensemble de leur todo.
+   *
+   * @private
+   * @memberof HomePage
+   */
   private initLocalListSub(): void {
     this.localListSub = this.todoService
       .getTodoList(ListType.LOCAL)
@@ -207,6 +229,13 @@ export class HomePage extends GenericPage {
       });
   }
 
+  /**
+   * intialise et met à jour le tableau des listes partagées
+   * ajoute également l'ensemble de leur todo.
+   *
+   * @private
+   * @memberof HomePage
+   */
   private initSharedListSub(): void {
     this.sharedListSub = this.todoService
       .getTodoList(ListType.SHARED)
@@ -248,10 +277,20 @@ export class HomePage extends GenericPage {
     return description;
   }
 
+  /**
+   * @protected
+   * @returns {boolean}
+   * @memberof HomePage
+   */
   protected loginAuthRequired(): boolean {
     return false;
   }
 
+  /**
+   * @protected
+   * @returns {boolean}
+   * @memberof HomePage
+   */
   protected basicAuthRequired(): boolean {
     return true;
   }
@@ -292,7 +331,7 @@ export class HomePage extends GenericPage {
     if (list == null) {
       return 0;
     }
-    let res = -1;
+    let res = 0;
     for (const item of list) {
       if (item != null && item.complete) {
         res++;
@@ -301,6 +340,14 @@ export class HomePage extends GenericPage {
     return res;
   }
 
+  /**
+   * return true si la liste contient des item non complété, false sinon
+   *
+   * @protected
+   * @param {ITodoItem[]} items
+   * @returns {boolean}
+   * @memberof HomePage
+   */
   protected isNotComplete(items: ITodoItem[]): boolean {
     if (items == null) {
       return true;

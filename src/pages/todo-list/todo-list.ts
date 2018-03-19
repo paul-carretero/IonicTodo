@@ -28,6 +28,8 @@ import { Global } from './../../shared/global';
   templateUrl: 'todo-list.html'
 })
 export class TodoListPage extends GenericPage {
+  /**************************** PRIVATE FIELDS ******************************/
+
   /**
    * Identifiant unique d'une liste
    *
@@ -36,6 +38,16 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   private readonly listUUID: string;
+
+  /**
+   * Type (courrant) de la liste affiché
+   * Le type dépend de l'utilisateur
+   *
+   * @private
+   * @type {ListType}
+   * @memberof TodoListPage
+   */
+  private listType: ListType;
 
   /**
    * Subscription pour update sur cette liste
@@ -57,15 +69,6 @@ export class TodoListPage extends GenericPage {
   private orderableReady: boolean = true;
 
   /**
-   * Les todo non terminée de cette liste en observable
-   *
-   * @protected
-   * @type {TodoItem[]}
-   * @memberof TodoListPage
-   */
-  protected todoItems: ITodoItem[];
-
-  /**
    * Subscription aux todos en cours
    *
    * @private
@@ -73,15 +76,6 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   private todoSub: Subscription;
-
-  /**
-   * les todo terminés de cette liste en obsersable
-   *
-   * @protected
-   * @type {ITodoItem[]}
-   * @memberof TodoListPage
-   */
-  protected completedTodoItem: ITodoItem[];
 
   /**
    * Subscription aux todo complété
@@ -93,15 +87,6 @@ export class TodoListPage extends GenericPage {
   private completedSub: Subscription;
 
   /**
-   * Les todo exported de cette liste en observable
-   *
-   * @protected
-   * @type {TodoItem[]}
-   * @memberof TodoListPage
-   */
-  protected exportedTodoItems: ITodoItem[];
-
-  /**
    * Subscription aux todos externes
    *
    * @private
@@ -109,6 +94,44 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   private exportedSub: Subscription;
+
+  /**
+   * subscription aux subscription aux todo externe à cette liste
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof TodoListPage
+   */
+  private exportedSubSub: Subscription;
+
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * Les todo non terminée de cette liste en observable
+   *
+   * @protected
+   * @type {TodoItem[]}
+   * @memberof TodoListPage
+   */
+  protected todoItems: ITodoItem[];
+
+  /**
+   * les todo terminés de cette liste en obsersable
+   *
+   * @protected
+   * @type {ITodoItem[]}
+   * @memberof TodoListPage
+   */
+  protected completedTodoItem: ITodoItem[];
+
+  /**
+   * Les todo exported de cette liste en observable
+   *
+   * @protected
+   * @type {TodoItem[]}
+   * @memberof TodoListPage
+   */
+  protected exportedTodoItems: ITodoItem[];
 
   /**
    * Signature de la liste affichée
@@ -120,16 +143,6 @@ export class TodoListPage extends GenericPage {
   protected listAuthor: IAuthor | null;
 
   /**
-   * Type (courrant) de la liste affiché
-   * Le type dépend de l'utilisateur
-   *
-   * @private
-   * @type {ListType}
-   * @memberof TodoListPage
-   */
-  private listType: ListType;
-
-  /**
    * true si la liste n'est pas partagée en readonly
    *
    * @protected
@@ -139,22 +152,14 @@ export class TodoListPage extends GenericPage {
   protected editable: boolean = true;
 
   /**
-   * subscription aux subscription aux todo externe à cette liste
-   *
-   * @private
-   * @type {Subscription}
-   * @memberof TodoListPage
-   */
-  private exportedSubSub: Subscription;
-
-  /**
    * flux des recherches utilisateur
    *
+   * @protected
    * @readonly
    * @type {Observable<string>}
    * @memberof HomePage
    */
-  public readonly search$: Observable<string>;
+  protected readonly search$: Observable<string>;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -338,8 +343,6 @@ export class TodoListPage extends GenericPage {
   /**************************************************************************/
 
   /**
-   *
-   *
    * @protected
    * @param {IMenuRequest} req
    * @returns {void}

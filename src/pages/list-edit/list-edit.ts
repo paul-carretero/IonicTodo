@@ -30,22 +30,7 @@ import { Global } from './../../shared/global';
   templateUrl: 'list-edit.html'
 })
 export class ListEditPage extends GenericPage {
-  /**
-   * Formulaire d'édition de liste
-   *
-   * @type {FormGroup}
-   * @memberof ListEditPage
-   */
-  public newList: FormGroup;
-
-  /**
-   * Identifiant unique de la liste déjà existante, null si la liste est à créer
-   *
-   * @readonly
-   * @type {string}
-   * @memberof ListEditPage
-   */
-  public readonly listUUID: string;
+  /**************************** PRIVATE FIELDS ******************************/
 
   /**
    * abonnment aux mises à jour de la liste
@@ -73,6 +58,25 @@ export class ListEditPage extends GenericPage {
    * @memberof ListEditPage
    */
   private currentList: ITodoList;
+
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * Formulaire d'édition de liste
+   *
+   * @type {FormGroup}
+   * @memberof ListEditPage
+   */
+  protected newList: FormGroup;
+
+  /**
+   * Identifiant unique de la liste déjà existante, null si la liste est à créer
+   *
+   * @readonly
+   * @type {string}
+   * @memberof ListEditPage
+   */
+  protected readonly listUUID: string;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -194,6 +198,13 @@ export class ListEditPage extends GenericPage {
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
 
+  /**
+   * Permet d'inicialier le formulaire pour une nouvelle liste.
+   * Verifie égalmement la possibilité de créer une liste en temps qu'utilisateur privé
+   *
+   * @private
+   * @memberof ListEditPage
+   */
   private defineNewList(): void {
     let local = false;
     if (!this.authCtrl.isConnected()) {
@@ -255,6 +266,14 @@ export class ListEditPage extends GenericPage {
     });
   }
 
+  /**
+   * Permet de tenter de mettre à jour les informations de la liste.
+   * Redirige vers la liste mise à jour (ou re-créée)
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof ListEditPage
+   */
   private async updateList(): Promise<void> {
     this.uiCtrl.showLoading('Mise à jour de la liste...');
 
@@ -297,7 +316,8 @@ export class ListEditPage extends GenericPage {
 
   /**
    * Permet de créer une nouvelle liste
-   * et de l'associer au compte courrant (si spécifié et si possible)
+   * et de l'associer au compte courrant (si spécifié et si possible).
+   * Redirige vers la liste nouvellement créée
    *
    * @private
    * @returns {Promise<void>}
@@ -346,6 +366,15 @@ export class ListEditPage extends GenericPage {
     return 'Mettre à jour cette liste';
   }
 
+  /**
+   * Permet de récupérer si il est possible de re-définir la liste comme privée-local
+   * pas de sens si shared
+   * pas possible si pas connecté
+   *
+   * @readonly
+   * @type {boolean}
+   * @memberof ListEditPage
+   */
   get localChoice(): boolean {
     return this.authCtrl.isConnected() && this.listType !== ListType.SHARED;
   }
@@ -354,6 +383,11 @@ export class ListEditPage extends GenericPage {
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/
 
+  /**
+   * Permet de tenter de créer ou de mettre à jour une liste en fonction de la validité du formulaire
+   *
+   * @memberof ListEditPage
+   */
   public defList(): void {
     if (this.newList.valid) {
       if (this.listUUID == null) {
