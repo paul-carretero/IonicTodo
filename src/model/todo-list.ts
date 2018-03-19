@@ -65,7 +65,7 @@ export interface ITodoList {
    * @type {Observable<ITodoItem[]>}
    * @memberof ITodoList
    */
-  items?: Observable<ITodoItem[]>;
+  items$?: Observable<ITodoItem[]>;
 }
 
 /**

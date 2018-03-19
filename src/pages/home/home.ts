@@ -29,7 +29,7 @@ import { Subscription } from 'rxjs';
 export class HomePage extends GenericPage {
   /***************************** PUBLIC FIELDS ******************************/
   /**
-   * Observable des liste privée de l'utilisateur connecté non terminée
+   * Observable des liste privée de l'utilisateur connecté
    *
    * @protected
    * @public
@@ -37,16 +37,6 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   protected todoList: ITodoList[];
-
-  /**
-   * Observable des liste privée de l'utilisateur connecté terminée
-   *
-   * @protected
-   * @public
-   * @type {ITodoList[]}
-   * @memberof HomePage
-   */
-  protected todoListComplete: ITodoList[];
 
   /**
    * Liste partagé sur la machine courrante
@@ -64,7 +54,7 @@ export class HomePage extends GenericPage {
    * @type {Observable<ITodoList[]>}
    * @memberof HomePage
    */
-  protected sharedTodoList: Observable<ITodoList[]>;
+  protected sharedTodoList: ITodoList[];
 
   /**
    * flux des recherches utilisateur
@@ -95,6 +85,15 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   private localListSub: Subscription;
+
+  /**
+   * abonnement aux listes partagée
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof HomePage
+   */
+  private sharedListSub: Subscription;
 
   /**
    * true si aucune opération de ré-ordonement est en cours, false sinon
@@ -130,7 +129,6 @@ export class HomePage extends GenericPage {
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoList = [];
-    this.todoListComplete = [];
     this.localTodoList = [];
     this.search$ = this.evtCtrl.getSearchSubject();
   }
@@ -155,7 +153,7 @@ export class HomePage extends GenericPage {
 
     this.initPrivateListSub();
     this.initLocalListSub();
-    this.sharedTodoList = this.todoService.getTodoList(ListType.SHARED);
+    this.initSharedListSub();
   }
 
   /**
@@ -166,26 +164,32 @@ export class HomePage extends GenericPage {
   ionViewWillLeave() {
     this.tryUnSub(this.listSub);
     this.tryUnSub(this.localListSub);
+    this.tryUnSub(this.sharedListSub);
   }
 
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
 
+  private async renforceList(list: ITodoList): Promise<ITodoList> {
+    if (list.uuid == null) {
+      throw new Error('Identifiant de liste invalide');
+    }
+    list.items$ = await this.todoService.getTodoDataFromList(list.uuid);
+    return list;
+  }
+
   private initPrivateListSub(): void {
     this.listSub = this.todoService
       .getTodoList(ListType.PRIVATE)
       .subscribe((lists: ITodoList[]) => {
-        this.todoList = [];
-        this.todoListComplete = [];
+        const todoListP: Promise<ITodoList>[] = [];
         for (const list of lists) {
-          const isNotComplete = true;
-          if (isNotComplete) {
-            this.todoList.push(list);
-          } else {
-            this.todoListComplete.push(list);
-          }
+          todoListP.push(this.renforceList(list));
         }
+        Promise.all(todoListP).then(res => {
+          this.todoList = res;
+        });
       });
   }
 
@@ -193,10 +197,27 @@ export class HomePage extends GenericPage {
     this.localListSub = this.todoService
       .getTodoList(ListType.LOCAL)
       .subscribe((lists: ITodoList[]) => {
-        this.localTodoList = [];
+        const localtodoListP: Promise<ITodoList>[] = [];
         for (const list of lists) {
-          this.localTodoList.push(list);
+          localtodoListP.push(this.renforceList(list));
         }
+        Promise.all(localtodoListP).then(res => {
+          this.localTodoList = res;
+        });
+      });
+  }
+
+  private initSharedListSub(): void {
+    this.sharedListSub = this.todoService
+      .getTodoList(ListType.SHARED)
+      .subscribe((lists: ITodoList[]) => {
+        const sharedtodoListP: Promise<ITodoList>[] = [];
+        for (const list of lists) {
+          sharedtodoListP.push(this.renforceList(list));
+        }
+        Promise.all(sharedtodoListP).then(res => {
+          this.sharedTodoList = res;
+        });
       });
   }
 
@@ -268,13 +289,23 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   protected getCompleted(list: ITodoItem[]): Number {
-    let res = 0;
+    if (list == null) {
+      return 0;
+    }
+    let res = -1;
     for (const item of list) {
-      if (item.complete) {
+      if (item != null && item.complete) {
         res++;
       }
     }
     return res;
+  }
+
+  protected isNotComplete(items: ITodoItem[]): boolean {
+    if (items == null) {
+      return true;
+    }
+    return items.length <= 1 || this.getCompleted(items) < items.length - 1;
   }
 
   /**

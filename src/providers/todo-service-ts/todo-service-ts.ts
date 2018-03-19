@@ -1269,17 +1269,19 @@ export class TodoServiceProvider {
    * @returns {Promise<Observable<ITodoItem[]>>}
    * @memberof TodoServiceProvider
    */
-  public async getTodoDocsFromList(listUuid: string): Promise<Observable<ITodoItem[]>> {
-    const completedObsP = this.getPrivateTodos(listUuid, true);
-    const uncompleteObsP = this.getPrivateTodos(listUuid, false);
-    const extsRefs = await this.getAListSnapshot(listUuid).externTodos;
-    const extObsTab: Observable<ITodoItem>[] = [];
-    for (const ref of extsRefs) {
-      extObsTab.push(new AngularFirestoreDocument<ITodoItem>(ref as any).valueChanges());
+  public async getTodoDataFromList(listUuid: string): Promise<Observable<ITodoItem[]>> {
+    const list = await this.getFirestoreDocument(listUuid);
+    const obsTab: Observable<ITodoItem>[] = [];
+    const refs = await list.collection('todo').ref.get();
+
+    for (const doc of refs.docs) {
+      obsTab.push(new AngularFirestoreDocument<ITodoItem>(doc.ref).valueChanges());
     }
-    const extObs: Observable<ITodoItem[]> = Observable.combineLatest(extObsTab);
-    const completeObs = await completedObsP;
-    const uncompleteObs = await uncompleteObsP;
-    return Observable.merge(extObs, completeObs, uncompleteObs);
+    const extsRefs = this.getAListSnapshot(listUuid).externTodos;
+    for (const ref of extsRefs) {
+      obsTab.push(new AngularFirestoreDocument<ITodoItem>(ref as any).valueChanges());
+    }
+    obsTab.push(Observable.of(Global.getBlankTodo())); // cause [] == false (ノಠ益ಠ)ノ彡┻━┻
+    return Observable.combineLatest(obsTab);
   }
 }
