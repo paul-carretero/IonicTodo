@@ -31,47 +31,50 @@ export class HomePage extends GenericPage {
   /**
    * Observable des liste privée de l'utilisateur connecté non terminée
    *
+   * @protected
    * @public
    * @type {ITodoList[]}
    * @memberof HomePage
    */
-  public todoList: ITodoList[];
+  protected todoList: ITodoList[];
 
   /**
    * Observable des liste privée de l'utilisateur connecté terminée
    *
+   * @protected
    * @public
    * @type {ITodoList[]}
    * @memberof HomePage
    */
-  public todoListComplete: ITodoList[];
+  protected todoListComplete: ITodoList[];
 
   /**
    * Liste partagé sur la machine courrante
    *
-   * @public
+   * @protected
    * @type {ITodoList[]}
    * @memberof HomePage
    */
-  public localTodoList: ITodoList[];
+  protected localTodoList: ITodoList[];
 
   /**
    * Liste des listes partagés avec cet utilisateur
    *
-   * @public
+   * @protected
    * @type {Observable<ITodoList[]>}
    * @memberof HomePage
    */
-  public sharedTodoList: Observable<ITodoList[]>;
+  protected sharedTodoList: Observable<ITodoList[]>;
 
   /**
    * flux des recherches utilisateur
    *
+   * @protected
    * @readonly
    * @type {Observable<string>}
    * @memberof HomePage
    */
-  public readonly search$: Observable<string>;
+  protected readonly search$: Observable<string>;
 
   /**************************** PRIVATE FIELDS ******************************/
 
@@ -176,7 +179,6 @@ export class HomePage extends GenericPage {
         this.todoList = [];
         this.todoListComplete = [];
         for (const list of lists) {
-          //const isNotComplete = this.getCompleted(list.items) < list.items.length || list.items.length === 0;
           const isNotComplete = true;
           if (isNotComplete) {
             this.todoList.push(list);
@@ -208,7 +210,7 @@ export class HomePage extends GenericPage {
    * @param {IMenuRequest} req
    * @memberof HomePage
    */
-  public menuEventHandler(req: IMenuRequest): void {
+  protected menuEventHandler(req: IMenuRequest): void {
     switch (req) {
     }
   }
@@ -219,17 +221,17 @@ export class HomePage extends GenericPage {
    * @returns {string}
    * @memberof HomePage
    */
-  public generateDescription(): string {
+  protected generateDescription(): string {
     let description = 'Voici vos liste de tâches en cours:';
     description += 'Voici vos liste de tâches terminé:';
     return description;
   }
 
-  public loginAuthRequired(): boolean {
+  protected loginAuthRequired(): boolean {
     return false;
   }
 
-  public basicAuthRequired(): boolean {
+  protected basicAuthRequired(): boolean {
     return true;
   }
 
@@ -253,7 +255,7 @@ export class HomePage extends GenericPage {
    * @returns {boolean} true si au moins un todo est en retard
    * @memberof HomePage
    */
-  public isOneTodoLate(): boolean {
+  protected isOneTodoLate(): boolean {
     return true;
     //TODO
   }
@@ -265,7 +267,7 @@ export class HomePage extends GenericPage {
    * @returns {Number} le nombre de todo complété dans un tableaud do todo
    * @memberof HomePage
    */
-  public getCompleted(list: ITodoItem[]): Number {
+  protected getCompleted(list: ITodoItem[]): Number {
     let res = 0;
     for (const item of list) {
       if (item.complete) {
@@ -281,7 +283,7 @@ export class HomePage extends GenericPage {
    * @param {string} uuid
    * @memberof HomePage
    */
-  public selectTodoList(uuid: string): void {
+  protected selectTodoList(uuid: string): void {
     this.navCtrl.push('TodoListPage', { uuid: uuid });
   }
 
@@ -290,7 +292,7 @@ export class HomePage extends GenericPage {
    *
    * @memberof HomePage
    */
-  public createTodoList(): void {
+  protected createTodoList(): void {
     this.navCtrl.push('ListEditPage', { uuid: null });
   }
 
@@ -300,7 +302,7 @@ export class HomePage extends GenericPage {
    * @param {string} uuid
    * @memberof HomePage
    */
-  public deleteTodoList(uuid: string): void {
+  protected deleteTodoList(uuid: string): void {
     this.todoService.deleteList(uuid);
   }
 
@@ -313,7 +315,7 @@ export class HomePage extends GenericPage {
    * @param {ITodoList[]} tab le tableau de référence (soit todoList, soit todoListComplete, soit TodoListLocal)
    * @memberof HomePage
    */
-  public async reorder(
+  protected async reorder(
     indexes: { from: number; to: number },
     tab: ITodoList[]
   ): Promise<void> {

@@ -17,18 +17,73 @@ import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { GenericPage } from './../../shared/generic-page';
 import { Global } from './../../shared/global';
 
+/**
+ * Offre une interface et des méthodes pour créer un compte et se connecter à l'application.
+ * (╯°□°)╯︵ ʞooqǝɔɐɟ
+ *
+ * @export
+ * @class AuthentificationPage
+ * @extends {GenericPage}
+ */
 @IonicPage()
 @Component({
   selector: 'page-authentification',
   templateUrl: 'authentification.html'
 })
 export class AuthentificationPage extends GenericPage {
+  /**
+   * Flux des connexions/déconnexion (notament pour les auto redirect)
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof AuthentificationPage
+   */
   private connSub: Subscription;
+
+  /**
+   * Formulaire de connexion
+   *
+   * @type {FormGroup}
+   * @memberof AuthentificationPage
+   */
   public authForm: FormGroup;
-  public userProfile: User;
+
+  /**
+   * Profile utilisateur firebase (si connecté)
+   *
+   * @type {User}
+   * @memberof AuthentificationPage
+   */
+  public userProfile: User | null;
+
+  /**
+   * défini si l'on peut se connecté hors ligne
+   *
+   * @memberof AuthentificationPage
+   */
   public offlineDisabled = true;
+
+  /**
+   * défini la redirection vers l'accueil une fois connecté (mais permet de retourner sur cette page une fois connecté)
+   *
+   * @private
+   * @static
+   * @memberof AuthentificationPage
+   */
   private static autoRedirect = true;
 
+  /**
+   * Creates an instance of AuthentificationPage.
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {GooglePlus} googlePlus
+   * @param {FormBuilder} formBuilder
+   * @param {SettingServiceProvider} settingCtrl
+   * @memberof AuthentificationPage
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,

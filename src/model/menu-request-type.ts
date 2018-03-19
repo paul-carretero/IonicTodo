@@ -14,5 +14,7 @@ export enum MenuRequestType {
   SPEECH_REC,
   SPEECH_SYNTH,
   VALIDATE,
-  SHAKE
+  SHAKE,
+  COPY,
+  PASTE
 }

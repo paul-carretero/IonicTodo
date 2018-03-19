@@ -68,7 +68,9 @@ export class Global {
       validable: false,
       searchable: false,
       importable: false,
-      searchPlaceholders: 'Rechercher'
+      searchPlaceholders: 'Rechercher',
+      copiable: false,
+      pastable: false
     };
   }
 
@@ -88,12 +90,15 @@ export class Global {
       validable: true,
       searchable: false,
       importable: false,
-      searchPlaceholders: 'Rechercher'
+      searchPlaceholders: 'Rechercher',
+      copiable: false,
+      pastable: false
     };
   }
 
   /**
-   * Page éditable, partageable et non validable
+   * Page éditable, partageable et non validable.
+   * Utilisable pour afficher une liste
    *
    * @static
    * @returns {IPageData}
@@ -108,18 +113,21 @@ export class Global {
       validable: false,
       searchable: false,
       importable: false,
-      searchPlaceholders: 'Rechercher'
+      searchPlaceholders: 'Rechercher',
+      copiable: false,
+      pastable: true
     };
   }
 
   /**
-   * Page éditable, non partageable et non validable
+   * Page éditable, copiable, non partageable et non validable.
+   * Utilisable pour afficher un todo
    *
    * @static
    * @returns {IPageData}
    * @memberof Global
    */
-  public static getOnlyEditPageData(): IPageData {
+  public static getEditCopyPageData(): IPageData {
     return {
       title: '',
       subtitle: '',
@@ -128,7 +136,9 @@ export class Global {
       validable: false,
       searchable: false,
       importable: false,
-      searchPlaceholders: 'Rechercher'
+      searchPlaceholders: 'Rechercher',
+      copiable: true,
+      pastable: false
     };
   }
 
@@ -173,10 +183,20 @@ export class Global {
   public static getBlankTodo(): ITodoItem {
     return {
       uuid: null,
+      ref: null,
       name: null,
       desc: null,
+      deadline: null,
+      address: null,
+      complete: false,
+      notif: false,
+      SMSBeforeDeadline: false,
+      SMSNumber: null,
+      SMSOnDone: false,
+      picture: null,
+      order: 0,
       author: null,
-      complete: false
+      completeAuthor: null
     };
   }
 

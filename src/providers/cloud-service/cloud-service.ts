@@ -535,13 +535,14 @@ export class CloudServiceProvider {
    * @returns {Promise<string>}
    * @memberof CloudServiceProvider
    */
-  private presentPrompt(message: string): Promise<string> {
-    return this.uiCtrl.presentPrompt('Liste protégée', message, [
+  private async presentPrompt(message: string): Promise<string> {
+    const res = await this.uiCtrl.presentPrompt('Liste protégée', message, [
       {
         name: 'password',
         placeholder: 'Password',
         type: 'password'
       }
     ]);
+    return res.password;
   }
 }

@@ -177,23 +177,39 @@ export abstract class GenericPage {
     return date.toLocaleDateString();
   }
 
+  /**
+   * retourne si la recherche correspond à une liste.
+   * Regarde le nom de la liste et le nom et l'email de l'autheur si il sont renseignés
+   *
+   * @protected
+   * @param {ITodoList} list
+   * @param {string} search
+   * @returns {boolean}
+   * @memberof GenericPage
+   */
   protected areMatching(list: ITodoList, search: string): boolean {
-    if (
-      list.name == null ||
-      list.author == null ||
-      list.author.email == null ||
-      list.author.displayName == null
-    ) {
+    if (search == null || search === '' || search === '#') {
+      return true;
+    }
+    if (list == null || list.name == null) {
       return false;
     }
-    return (
-      list.name.toUpperCase().includes(search) ||
-      list.author.email.toUpperCase().includes(search) ||
-      list.author.displayName.toUpperCase().includes(search) ||
-      search === '' ||
-      search === '#' ||
-      search == null
-    );
+    if (list.name.toUpperCase().includes(search)) {
+      return true;
+    }
+    if (list.author == null) {
+      return false;
+    }
+    if (list.author.email != null && list.author.email.toUpperCase().includes(search)) {
+      return true;
+    }
+    if (
+      list.author.displayName != null &&
+      list.author.displayName.toUpperCase().includes(search)
+    ) {
+      return true;
+    }
+    return false;
   }
 
   protected hasBeenRemoved(isList: boolean): void {

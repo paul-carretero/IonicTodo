@@ -1,3 +1,4 @@
+import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Injectable } from '@angular/core';
 import { Shake } from '@ionic-native/shake';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -7,6 +8,7 @@ import { IPageData } from '../../model/page-data';
 import { INavRequest } from './../../model/nav-request';
 import { Global } from './../../shared/global';
 import { MenuRequestType } from '../../model/menu-request-type';
+import { DocumentReference } from '@firebase/firestore-types';
 
 /**
  * Après analyse, il a été préférer d'implémenter une classe d'Event plutôt que d'utiliser le service Ionic native Events
@@ -26,6 +28,15 @@ export class EventServiceProvider {
    * @memberof EventServiceProvider
    */
   private readonly headerData: IPageData;
+
+  /**
+   * Reference vers un todo que l'utilisateur à copier
+   *
+   * @private
+   * @type {DocumentReference}
+   * @memberof EventServiceProvider
+   */
+  private copiedTodoRef: DocumentReference | null;
 
   /**
    * Flux des commandes menu de l'utilisateur pour les pages intéressées
@@ -57,17 +68,44 @@ export class EventServiceProvider {
    */
   private readonly searchSubject: BehaviorSubject<string>;
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
   /**
    * Creates an instance of EventServiceProvider.
    * @param {Shake} shakeCtrl
+   * @param {AuthServiceProvider} authCtrl
    * @memberof EventServiceProvider
    */
-  constructor(private readonly shakeCtrl: Shake) {
+  constructor(
+    private readonly shakeCtrl: Shake,
+    private readonly authCtrl: AuthServiceProvider
+  ) {
     this.headerData = Global.getDefaultPageData();
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
     this.searchSubject = new BehaviorSubject<string>('#');
     this.shakeDetect();
+    this.listenForResetCopiedTodo();
+  }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * réinitialise la référence d'un document copier lors de chaque déconnexion
+   *
+   * @private
+   * @memberof EventServiceProvider
+   */
+  private listenForResetCopiedTodo() {
+    this.authCtrl.getConnexionSubject().subscribe(user => {
+      if (user == null) {
+        this.copiedTodoRef = null;
+      }
+    });
   }
 
   /**
@@ -82,6 +120,24 @@ export class EventServiceProvider {
     });
   }
 
+  /**************************************************************************/
+  /************************ METHODES PUBLIQUE/GETTER ************************/
+  /**************************************************************************/
+
+  /**
+   * retourne la référence vers le dernier todo copié
+   *
+   * @returns {DocumentReference | null}
+   * @memberof EventServiceProvider
+   */
+  public getCopiedTodoRef(): DocumentReference | null {
+    return this.copiedTodoRef;
+  }
+
+  public setCopiedTodoRef(ref: DocumentReference): void {
+    this.copiedTodoRef = ref;
+  }
+
   /**
    * retourne le header
    *
@@ -92,6 +148,12 @@ export class EventServiceProvider {
     return this.headerData;
   }
 
+  /**
+   * permet de redéfinir les données du header
+   *
+   * @param {IPageData} newHeader
+   * @memberof EventServiceProvider
+   */
   public setHeader(newHeader: IPageData): void {
     this.headerData.editable = newHeader.editable;
     this.headerData.importable = newHeader.importable;
@@ -101,6 +163,8 @@ export class EventServiceProvider {
     this.headerData.subtitle = newHeader.subtitle;
     this.headerData.title = newHeader.title;
     this.headerData.validable = newHeader.validable;
+    this.headerData.copiable = newHeader.copiable;
+    this.headerData.pastable = newHeader.pastable;
   }
 
   /**

@@ -147,7 +147,7 @@ export class UiServiceProvider {
     title: string,
     message: string,
     inputs: AlertInputOptions[]
-  ): Promise<string> {
+  ): Promise<any> {
     return new Promise<string>((resolve, reject) => {
       const alert = this.alertCtrl.create({
         title: title,
@@ -164,7 +164,7 @@ export class UiServiceProvider {
           {
             text: 'Valider',
             handler: data => {
-              resolve(data.password);
+              resolve(data);
             }
           }
         ]

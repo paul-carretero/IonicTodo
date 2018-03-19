@@ -950,16 +950,23 @@ export class TodoServiceProvider {
   /**************************************************************************/
 
   /**
-   * reconfigure le sujet de suppression de liste/todo pour l'identifiant de todo et
-   * de liste passé en paramètre et retoune le sujet
+   * reconfigure le sujet de suppression de liste/todo pour la reference de todo
+   * passé en paramètre et retoune le sujet
    *
-   * @param {string} listUuid
-   * @param {string} todoUuid
+   * @param {DocumentReference} ref
    * @returns {Subject<void>}
    * @memberof TodoServiceProvider
    */
-  public getTodoDeleteSubject(listUuid: string, todoUuid: string): Subject<void> {
-    this.subscribeForDelete(listUuid, todoUuid);
+  public getTodoDeleteSubject(ref: DocumentReference): Subject<void> {
+    const doc = new AngularFirestoreDocument(ref as any);
+    this.tryUnsub(this.deleteSub);
+
+    this.deleteSub = doc.snapshotChanges().subscribe(snap => {
+      if (!snap.payload.exists) {
+        this.deleteSubject.next();
+        this.tryUnsub(this.deleteSub);
+      }
+    });
     return this.deleteSubject;
   }
 
@@ -968,10 +975,14 @@ export class TodoServiceProvider {
    *
    * @private
    * @param {string} listUuid
+   * @param {boolean} completed true si l'on recherche les todo completed, false sinon
    * @returns {Promise<Observable<ITodoItem>>}
    * @memberof TodoServiceProvider
    */
-  public async getPrivateTodos(listUuid: string): Promise<Observable<ITodoItem[]>> {
+  public async getPrivateTodos(
+    listUuid: string,
+    completed: boolean
+  ): Promise<Observable<ITodoItem[]>> {
     let listBase: AngularFirestoreDocument<ITodoList>;
     try {
       listBase = await this.getFirestoreDocument(listUuid);
@@ -979,11 +990,16 @@ export class TodoServiceProvider {
       return Observable.of([]);
     }
 
-    return listBase.collection<ITodoItem>('todo').valueChanges();
+    return listBase
+      .collection<ITodoItem>('todo', ref =>
+        ref.where('complete', '==', completed).orderBy('order')
+      )
+      .valueChanges();
   }
 
-  /**
-   * permet de récupérer un observable d'observable (a refaire...) des todo originaire d'autre listes
+  /**extTodoSubject
+   * permet de récupérer un observable d'observable (a refaire...) des todo originaire d'autre listes.
+   * Supprime également les référence invalides
    *
    * @param {string} listUuid
    * @returns {Promise<Observable<Observable<ITodoItem[]>>>}
@@ -1003,12 +1019,22 @@ export class TodoServiceProvider {
 
     this.todoSub = listBase.valueChanges().subscribe((list: ITodoList) => {
       const afDocs: Observable<ITodoItem>[] = [];
+      const promises: Promise<void>[] = [];
       for (const extTodo of list.externTodos) {
-        afDocs.push(
-          new AngularFirestoreDocument<ITodoItem>(extTodo as any).valueChanges()
-        );
+        const promise = extTodo.get().then(extTodoDoc => {
+          if (extTodoDoc.exists) {
+            afDocs.push(
+              new AngularFirestoreDocument<ITodoItem>(extTodo as any).valueChanges()
+            );
+          } else {
+            this.removeTodoRef(listUuid, extTodo);
+          }
+        });
+        promises.push(promise);
       }
-      this.extTodoSubject.next(Observable.combineLatest(afDocs));
+      Promise.all(promises).then(() =>
+        this.extTodoSubject.next(Observable.combineLatest(afDocs))
+      );
     });
 
     return this.extTodoSubject;
@@ -1026,78 +1052,63 @@ export class TodoServiceProvider {
   /**
    * Permet de récupérer un observable sur un todo unique
    *
-   * @param {string} listUuid
-   * @param {string} todoUuid
-   * @returns {Observable<ITodoItem>}
+   * @param {DocumentReference} ref
+   * @returns {Promise<Observable<ITodoItem>>}
    * @memberof TodoServiceProvider
    */
-  public async getTodo(
-    listUuid: string,
-    todoUuid: string
-  ): Promise<Observable<ITodoItem>> {
-    let list: AngularFirestoreDocument<ITodoList>;
-    try {
-      list = await this.getFirestoreDocument(listUuid);
-    } catch (error) {
-      return Observable.of(Global.getBlankTodo());
-    }
-
-    const doc = list.collection('todo').doc<ITodoItem>(todoUuid);
+  public getTodo(ref: DocumentReference): Observable<ITodoItem> {
+    const doc = new AngularFirestoreDocument<ITodoItem>(ref as any);
     return doc.valueChanges();
   }
 
   /**
    * permet de préciser le status d'un todo dans une liste (fini ou non)
    *
-   * @param {string} listUuid
-   * @param {string} todoUuid
+   * @param {DocumentReference} todoRef
    * @param {boolean} status
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async complete(
-    listUuid: string,
-    todoUuid: string,
-    status: boolean
-  ): Promise<void> {
-    let listDoc: AngularFirestoreDocument<ITodoList>;
+  public async complete(todoRef: DocumentReference, status: boolean): Promise<void> {
+    const doc = new AngularFirestoreDocument<ITodoItem>(todoRef as any);
+    let auth: IAuthor | null = null;
+    if (status) {
+      auth = await this.authCtrl.getAuthor(false);
+    }
     try {
-      listDoc = await this.getFirestoreDocument(listUuid);
+      await doc.update({
+        complete: status,
+        completeAuthor: auth,
+        order: 0
+      });
     } catch (error) {
       return;
     }
-
-    const doc = listDoc.collection('todo').doc<ITodoItem>(todoUuid);
-    await doc.update({
-      complete: status
-    });
   }
 
   /**
    * permet de modifier un todo
    *
-   * @param {string} listUuid
+   * @param {DocumentReference} ref référence vers le todo à éditer
    * @param {ITodoItem} editedItem
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async editTodo(listUuid: string, editedItem: ITodoItem): Promise<void> {
-    if (editedItem == null || editedItem.uuid == null) {
+  public async editTodo(ref: DocumentReference, editedItem: ITodoItem): Promise<void> {
+    if (ref == null || editedItem == null) {
       return;
     }
 
-    let listDoc: AngularFirestoreDocument<ITodoList>;
+    const todoDoc = new AngularFirestoreDocument<ITodoItem>(ref as any);
     try {
-      listDoc = await this.getFirestoreDocument(listUuid);
+      await todoDoc.update({
+        name: editedItem.name
+        // a completer une fois fini
+      });
     } catch (error) {
+      console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
       return;
     }
-
-    const doc = listDoc.collection('todo').doc<ITodoItem>(editedItem.uuid);
-    await doc.update({
-      name: editedItem.name
-      // a complete une fois fini
-    });
   }
 
   /**
@@ -1108,7 +1119,50 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async addTodo(listUuid: string, newItem: ITodoItem): Promise<void> {
+  public async addTodo(
+    listUuid: string,
+    newItem: ITodoItem
+  ): Promise<DocumentReference | null> {
+    let listDoc: AngularFirestoreDocument<ITodoList>;
+    try {
+      listDoc = await this.getFirestoreDocument(listUuid);
+    } catch (error) {
+      return null;
+    }
+
+    const todoUuid = uuid();
+    newItem.uuid = todoUuid;
+    newItem.author = await this.authCtrl.getAuthor(false);
+    const doc = listDoc.collection('todo').doc<ITodoItem>(todoUuid);
+    newItem.ref = doc.ref as DocumentReference;
+    await doc.set(newItem);
+    return newItem.ref;
+  }
+
+  /**
+   * Permet de supprimer un todo
+   *
+   * @param {DocumentReference} ref référence vers le todo à supprimer
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  public async deleteTodo(ref: DocumentReference): Promise<void> {
+    if (ref == null) {
+      return;
+    }
+    const list = new AngularFirestoreDocument(ref as any);
+    try {
+      await list.delete();
+    } catch (error) {
+      console.log('Impossible de supprimer la tâche, tâche inexistante ?');
+    }
+  }
+
+  public async removeTodoRef(listUuid: string, ref: DocumentReference): Promise<void> {
+    if (ref == null || listUuid == null) {
+      return;
+    }
+
     let listDoc: AngularFirestoreDocument<ITodoList>;
     try {
       listDoc = await this.getFirestoreDocument(listUuid);
@@ -1116,33 +1170,15 @@ export class TodoServiceProvider {
       return;
     }
 
-    const todoUuid = uuid();
-    newItem.uuid = todoUuid;
-    newItem.author = await this.authCtrl.getAuthor(false);
-    const doc = listDoc.collection('todo').doc<ITodoItem>(todoUuid);
-    await doc.set(newItem);
-  }
+    const currentExtRef = this.getAListSnapshot(listUuid).externTodos;
+    const index = currentExtRef.findIndex(r => r.path === ref.path);
 
-  /**
-   * Permet de supprimer un todo
-   *
-   * @param {string} listUuid
-   * @param {string} todoUuid
-   * @returns {Promise<void>}
-   * @memberof TodoServiceProvider
-   */
-  public async deleteTodo(listUuid: string, todoUuid: string): Promise<void> {
-    let list: AngularFirestoreDocument<ITodoList>;
-    try {
-      list = await this.getFirestoreDocument(listUuid);
-    } catch (error) {
-      return;
+    if (index !== -1) {
+      currentExtRef.splice(index, 1);
+      await listDoc.update({
+        externTodos: currentExtRef
+      });
     }
-
-    await list
-      .collection('todo')
-      .doc<ITodoItem>(todoUuid)
-      .delete();
   }
 
   /**
@@ -1173,31 +1209,77 @@ export class TodoServiceProvider {
 
   /**
    * Permet de lier un todo à une liste par référence.
-   * Note: on récupère les document de manière concurrente
    *
-   * @param {string} listUuidSrc identifiant de la liste source contenant le todo de manière standard
-   * @param {string} listUuidDest identifiant de la liste destination
-   * @param {string} todoUuid identifiant unique du todo
+   * @param {string} listUuid la liste dans laquelle lié un todo
+   * @param {DocumentReference} todoRef une référence de todo
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async addTodoLink(
-    listUuidSrc: string,
-    listUuidDest: string,
-    todoUuid: string
-  ): Promise<void> {
-    const _srcList = this.getFirestoreDocument(listUuidSrc);
-    const _destList = this.getFirestoreDocument(listUuidDest);
-
-    const destSnap = this.getAListSnapshot(listUuidDest);
-    if (destSnap == null) {
+  public async addTodoLink(listUuid: string, todoRef: DocumentReference): Promise<void> {
+    let destList: AngularFirestoreDocument<ITodoList>;
+    try {
+      destList = await this.getFirestoreDocument(listUuid);
+    } catch (error) {
       return;
     }
-    const todoRef = (await _srcList).collection('todo').doc(todoUuid).ref;
-    destSnap.externTodos.push(todoRef as DocumentReference);
 
-    await (await _destList).update({
+    const destSnap = this.getAListSnapshot(listUuid);
+    if (destSnap == null || todoRef == null) {
+      return;
+    }
+
+    destSnap.externTodos.push(todoRef);
+    await destList.update({
       externTodos: destSnap.externTodos
     });
+  }
+
+  /**
+   * Tente de mettre à jour l'ordre d'une tâche
+   *
+   * @param {(DocumentReference | null)} ref
+   * @param {number} order
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  public async updateTodoOrder(
+    ref: DocumentReference | null,
+    order: number
+  ): Promise<void> {
+    if (ref == null || order == null) {
+      return;
+    }
+    const todoDoc = new AngularFirestoreDocument<ITodoItem>(ref as any);
+    try {
+      await todoDoc.update({
+        order: order
+      });
+    } catch (error) {
+      console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
+      return;
+    }
+  }
+
+  /**
+   *
+   * Permet de récupérer un flux de ITodoItem pour une liste
+   * Know bug: les todo externe ne sont pas mis à jour en cas de suppression-ajout :/
+   *
+   * @param {string} listUuid
+   * @returns {Promise<Observable<ITodoItem[]>>}
+   * @memberof TodoServiceProvider
+   */
+  public async getTodoDocsFromList(listUuid: string): Promise<Observable<ITodoItem[]>> {
+    const completedObsP = this.getPrivateTodos(listUuid, true);
+    const uncompleteObsP = this.getPrivateTodos(listUuid, false);
+    const extsRefs = await this.getAListSnapshot(listUuid).externTodos;
+    const extObsTab: Observable<ITodoItem>[] = [];
+    for (const ref of extsRefs) {
+      extObsTab.push(new AngularFirestoreDocument<ITodoItem>(ref as any).valueChanges());
+    }
+    const extObs: Observable<ITodoItem[]> = Observable.combineLatest(extObsTab);
+    const completeObs = await completedObsP;
+    const uncompleteObs = await uncompleteObsP;
+    return Observable.merge(extObs, completeObs, uncompleteObs);
   }
 }

@@ -1,5 +1,5 @@
+import { DocumentReference } from '@firebase/firestore-types';
 import { IAuthor } from './author';
-import { ILatLng } from '@ionic-native/google-maps';
 export interface ITodoItem {
   /**
    * Identifieur unique du todo
@@ -8,6 +8,15 @@ export interface ITodoItem {
    * @memberof TodoItem
    */
   uuid: string | null;
+
+  /**
+   * Reference vers ce document;
+   * Défini à la création puis readonly...
+   *
+   * @type {(DocumentReference | null)}
+   * @memberof ITodoItem
+   */
+  ref: DocumentReference | null;
 
   /**
    * Nom du todo
@@ -20,8 +29,8 @@ export interface ITodoItem {
   /**
    * Description détaillé du todo
    *
-   * @type {string}
-   * @memberof TodoItem
+   * @type {(string | null)}
+   * @memberof ITodoItem
    */
   desc: string | null;
 
@@ -31,7 +40,7 @@ export interface ITodoItem {
    * @type {boolean}
    * @memberof TodoItem
    */
-  notif?: boolean;
+  notif: boolean;
 
   /**
    * Vrai si l'on doit envoyer un SMS lorsque la tâche est réalisée
@@ -39,38 +48,77 @@ export interface ITodoItem {
    * @type {boolean}
    * @memberof TodoItem
    */
-  SMSOnDone?: boolean;
+  SMSOnDone: boolean;
 
   /**
    * Vrai si l'on doit envoyer un SMS en même temps que la notification de deadline
    *
    * @type {boolean}
-   * @memberof TodoItem
+   * @memberof ITodoItem
    */
-  SMSBeforeDeadline?: boolean;
+  SMSBeforeDeadline: boolean;
 
   /**
    * SMS auquel envoyer les notifications
    *
-   * @type {string}
+   * @type {{string | null}}
    * @memberof ITodoItem
    */
-  SMSNumber?: string;
+  SMSNumber: string | null;
 
-  // emplacement du todo
-  posCreated?: ILatLng;
-  posCompleted?: ILatLng;
+  /**
+   * image en base64 de l'image
+   *
+   * @type {(string | null)}
+   * @memberof ITodoItem
+   */
+  picture: string | null;
 
-  // image en base64 du todo
-  picture?: string;
-
-  // enregistrement audio
-  mediaLocation?: string;
-
-  // date de complétion
+  /**
+   * true si le todo est complété, false sinon
+   *
+   * @type {boolean}
+   * @memberof ITodoItem
+   */
   complete: boolean;
-  dateCompleted?: string;
-  deadline?: Date;
 
+  /**
+   * Deadline optionelle du todo, passé cette date il sera considéré comme en retard si pas complété
+   *
+   * @type {(Date | null)}
+   * @memberof ITodoItem
+   */
+  deadline: Date | null;
+
+  /**
+   * addresse optionelle ou le todo doit être fait
+   *
+   * @type {(string | null)}
+   * @memberof ITodoItem
+   */
+  address: string | null;
+
+  /**
+   * Défini l'ordre d'affichage des todo dans une liste (ssi ils appartiennent à cette liste)
+   *
+   * @type {number}
+   * @memberof ITodoItem
+   */
+  order: number;
+
+  /**
+   * Signature de création du todo
+   *
+   * @type {(IAuthor | null)}
+   * @memberof ITodoItem
+   */
   author: IAuthor | null;
+
+  /**
+   * signature de complétion
+   *
+   * @type {(IAuthor | null)}
+   * @memberof ITodoItem
+   */
+  completeAuthor: IAuthor | null;
 }

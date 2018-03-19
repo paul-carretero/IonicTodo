@@ -14,6 +14,8 @@ export class PopoverOptionsPage {
   public editable: boolean;
   public shareable: boolean;
   public importable: boolean;
+  public pastable: boolean;
+  public copiable: boolean;
 
   /**
    * Creates an instance of PopoverOptionsPage.
@@ -32,9 +34,10 @@ export class PopoverOptionsPage {
     this.editable = this.evtCtrl.getHeader().editable;
     this.shareable = this.evtCtrl.getHeader().shareable;
     this.importable = this.evtCtrl.getHeader().importable;
+    this.copiable = this.evtCtrl.getHeader().copiable;
+    this.pastable =
+      this.evtCtrl.getHeader().pastable && this.evtCtrl.getCopiedTodoRef != null;
   }
-
-  ionViewWillUnload() {}
 
   private openSendMenu(): void {
     const actionSheet = this.actionSheetCtrl.create({
@@ -164,5 +167,15 @@ export class PopoverOptionsPage {
   public import() {
     this.viewCtrl.dismiss();
     this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.IMPORT });
+  }
+
+  public copy() {
+    this.viewCtrl.dismiss();
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.COPY });
+  }
+
+  public paste() {
+    this.viewCtrl.dismiss();
+    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.PASTE });
   }
 }

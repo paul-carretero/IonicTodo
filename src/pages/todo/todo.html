@@ -1,22 +1,37 @@
 <ion-header>
-
-    <ion-navbar>
-        <ion-title>
-            <ion-grid>
-                <ion-row *ngIf="todo | async; let todo">
-                    <ion-col col-10>
-                        {{todo.name}}
-                    </ion-col>
-                    <ion-col col-2>
-                        <ion-icon name="md-hammer" (click)="edit(todo.uuid)"></ion-icon>
-                    </ion-col>
-                </ion-row>
-            </ion-grid>
-        </ion-title>
-    </ion-navbar>
-
+    <HeaderComponent></HeaderComponent>
 </ion-header>
 
+<ion-content padding>
+    <ng-container *ngIf="todo | async; let todo">
+        <ion-card *ngIf="todo.desc != null">
+            <ion-card-header>
+                Descriptif de la tâche {{todo.name}}
+            </ion-card-header>
+            <ion-card-content>
+                {{todo.desc}}
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card *ngIf="todo.author != null">
+            <ion-card-header icon-start>
+                <ion-icon name="information-circle"></ion-icon>
+                La tâche à été créée:
+            </ion-card-header>
+            <author-display [author]="todo.author"></author-display>
+        </ion-card>
+
+        <ion-card *ngIf="todo.completeAuthor != null">
+            <ion-card-header icon-start>
+                <ion-icon name="information-circle"></ion-icon>
+                La tâche à été réalisée:
+            </ion-card-header>
+            <author-display [author]="todo.author"></author-display>
+        </ion-card>
+    </ng-container>
+</ion-content>
+
+<!--
 <ion-content padding>
     <ion-card *ngIf="todo | async; let todo">
         <ion-card-header>
@@ -31,3 +46,4 @@
         </ion-item>
     </ion-card>
 </ion-content>
+-->

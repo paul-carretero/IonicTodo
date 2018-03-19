@@ -1,3 +1,4 @@
+import { DocumentReference } from '@firebase/firestore-types';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
@@ -19,10 +20,12 @@ import { MenuRequestType } from '../../model/menu-request-type';
   templateUrl: 'todo-edit.html'
 })
 export class TodoEditPage extends GenericPage {
-  private readonly todoUUID: string;
-  private readonly listUUID: string;
+  private readonly todoRef: DocumentReference | null;
+
+  private readonly listUuid: string | null;
 
   public todo: ITodoItem;
+
   public todoForm: FormGroup;
 
   constructor(
@@ -37,11 +40,15 @@ export class TodoEditPage extends GenericPage {
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
-    this.todoUUID = this.navParams.get('todoUUID');
-    this.listUUID = this.navParams.get('listUUID');
+    this.todoRef = this.navParams.get('todoRef');
+    this.listUuid = this.navParams.get('listUUID');
     this.todo = Global.getBlankTodo();
 
-    if (this.listUUID == null) {
+    if (this.todoRef == null && this.listUuid == null) {
+      throw new Error('Invalid Parameters for todoEdit task');
+    }
+
+    if (this.isInCreation) {
       this.initBlankForm();
     } else {
       this.initForm(this.todo);
@@ -55,10 +62,11 @@ export class TodoEditPage extends GenericPage {
   ionViewDidEnter(): void {
     const header = Global.getValidablePageData();
 
-    if (this.todoUUID != null) {
+    if (this.todoRef != null) {
       header.subtitle = 'Menu édition';
+
       this.deleteSub = this.todoService
-        .getTodoDeleteSubject(this.listUUID, this.todoUUID)
+        .getTodoDeleteSubject(this.todoRef)
         .subscribe(() => this.hasBeenRemoved(false));
     } else {
       header.title = 'Nouvelle Tâche';
@@ -80,11 +88,11 @@ export class TodoEditPage extends GenericPage {
   }
 
   get isInCreation(): boolean {
-    return this.todoUUID == null;
+    return this.todoRef == null;
   }
 
   get submitText(): string {
-    if (this.listUUID == null) {
+    if (this.isInCreation) {
       return 'Créer une nouvelle tâche';
     }
     return 'Mettre à jour cette tâche';
@@ -108,6 +116,32 @@ export class TodoEditPage extends GenericPage {
     throw new Error('Method not implemented.');
   }
 
+  private async defNewTodo(): Promise<void> {
+    if (this.listUuid == null) {
+      return;
+    }
+
+    this.uiCtrl.showLoading('Création de la tâche...');
+    const newTodoRef = await this.todoService.addTodo(this.listUuid, this.todo);
+    if (newTodoRef == null) {
+      this.uiCtrl.displayToast('unexpected error is unexpected');
+      this.navCtrl.popToRoot();
+    } else {
+      this.navCtrl.pop();
+      this.navCtrl.push('TodoPage', { todoRef: newTodoRef });
+    }
+  }
+
+  private async editTodo(): Promise<void> {
+    if (this.todoRef == null) {
+      return;
+    }
+
+    this.uiCtrl.showLoading('Mise à jour de la tâche...');
+    await this.todoService.editTodo(this.todoRef, this.todo);
+    this.navCtrl.pop();
+  }
+
   public validate(): void {
     if (!this.todoForm.valid) {
       this.uiCtrl.displayToast('Opération impossible, veuillez vérifier le formulaire');
@@ -116,24 +150,17 @@ export class TodoEditPage extends GenericPage {
 
     const name = this.todoForm.get('name');
     const desc = this.todoForm.get('desc');
-
     if (name == null || desc == null) {
       return;
     }
+    this.todo.name = name.value;
+    this.todo.desc = desc.value;
 
     if (this.isInCreation) {
-      this.todo = {
-        name: name.value,
-        desc: desc.value,
-        uuid: null,
-        author: null,
-        complete: false
-      };
-      this.todoService.addTodo(this.listUUID, this.todo);
+      this.defNewTodo();
     } else {
-      this.todoService.editTodo(this.listUUID, this.todo);
+      this.editTodo();
     }
-    this.navCtrl.pop();
   }
 
   protected loginAuthRequired(): boolean {

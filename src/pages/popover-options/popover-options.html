@@ -5,13 +5,19 @@
   <button *ngIf="editable" ion-item (click)="edit()" icon-start>
     <ion-icon name="create"></ion-icon>Editer</button>
   <button *ngIf="shareable && editable" ion-item (click)="share()" icon-start>
-    <ion-icon name="link"></ion-icon>Partager
+    <ion-icon name="share"></ion-icon>Partager
   </button>
   <button *ngIf="shareable && editable" ion-item (click)="send()" icon-start>
-    <ion-icon name="copy"></ion-icon>Envoyer
+    <ion-icon name="send"></ion-icon>Envoyer
   </button>
   <button *ngIf="importable" ion-item (click)="import()" icon-start>
     <ion-icon name="cloud-download"></ion-icon>Importer
+  </button>
+  <button *ngIf="pastable && editable" ion-item (click)="paste()" icon-start>
+    <ion-icon name="link"></ion-icon>Coller
+  </button>
+  <button *ngIf="copiable" ion-item (click)="copy()" icon-start>
+    <ion-icon name="link"></ion-icon>Copier
   </button>
   <button ion-item (click)="help()" icon-start>
     <ion-icon name="help"></ion-icon>Aide

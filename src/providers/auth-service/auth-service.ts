@@ -51,15 +51,15 @@ export class AuthServiceProvider {
     });
   }
 
-  public getUserId(): string {
+  public getUserId(): string | null {
     const user = this.connexionSubject.getValue();
     if (user == null) {
-      throw new Error('Utilisateur non connecté');
+      return null;
     }
     return user.uid;
   }
 
-  public getMachineId(): Promise<any> {
+  public getMachineId(): Promise<string> {
     return this.devideIdCtrl.get();
   }
 

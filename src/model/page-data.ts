@@ -14,4 +14,6 @@ export interface IPageData {
   searchable: boolean;
   subtitle: string;
   searchPlaceholders: string;
+  copiable: boolean;
+  pastable: boolean;
 }
