@@ -18,10 +18,11 @@ import { UiServiceProvider } from './../../providers/ui-service/ui-service';
   templateUrl: 'tabs.html'
 })
 export class TabsPage {
-  public readonly tab1Root = 'HomePage';
-  public readonly tab2Root = 'AuthentificationPage';
-  public readonly tab3Root = 'SettingsPage';
-  public JeVoisBien = false;
+  protected readonly tab1Root = 'HomePage';
+  protected readonly tab2Root = 'AuthentificationPage';
+  protected readonly tab3Root = 'SettingsPage';
+  protected JeVoisBien = false;
+  protected netStatus: boolean;
   @ViewChild('navTabs') tabRef: Tabs;
 
   constructor(
@@ -29,7 +30,12 @@ export class TabsPage {
     private readonly flashlight: Flashlight,
     private readonly authCtrl: AuthServiceProvider,
     private readonly uiCtrl: UiServiceProvider
-  ) {}
+  ) {
+    this.netStatus = this.evtCtrl.getNetStatus();
+    this.evtCtrl.getNetStatusObs().subscribe(res => {
+      this.netStatus = res;
+    });
+  }
 
   get allowNavigate(): boolean {
     return this.authCtrl.navAllowed();

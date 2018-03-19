@@ -21,6 +21,7 @@ import { ITodoList, ListType } from '../../model/todo-list';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Subscription, Subject, Observable } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
+import { EventServiceProvider } from '../event/event-service';
 
 @Injectable()
 export class TodoServiceProvider {
@@ -213,7 +214,8 @@ export class TodoServiceProvider {
    */
   constructor(
     private readonly firestoreCtrl: AngularFirestore,
-    private readonly authCtrl: AuthServiceProvider
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly evtCtrl: EventServiceProvider
   ) {
     this.todoLists = new BehaviorSubject<ITodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
@@ -227,8 +229,25 @@ export class TodoServiceProvider {
     this.updateLocalDBLink();
   }
 
+  /**
+   * permet au service de cloud de s'enregistrer sur ce service
+   *
+   * @param {CloudServiceProvider} c
+   * @memberof TodoServiceProvider
+   */
   public cloudRegister(c: CloudServiceProvider): void {
     this.cloudCtrl = c;
+  }
+
+  /**
+   * retourne le status de la connexion au réseau
+   *
+   * @readonly
+   * @type {boolean}
+   * @memberof TodoServiceProvider
+   */
+  get online(): boolean {
+    return this.evtCtrl.getNetStatus();
   }
 
   /**************************************************************************/
@@ -543,7 +562,10 @@ export class TodoServiceProvider {
       listsPathTab.splice(toDelete);
 
       try {
-        await this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab });
+        const p = this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab });
+        if (this.online) {
+          await p;
+        }
       } catch (error) {
         this.currentUserDataDoc.set({
           todoListSharedWithMe: listsPathTab
@@ -569,7 +591,10 @@ export class TodoServiceProvider {
     const listData = await this.getAListSnapshotFromPath(path);
     listData.uuid = null;
     listData.order = 0;
-    await this.addList(listData);
+    const p = this.addList(listData);
+    if (this.online) {
+      await p;
+    }
   }
 
   /**
@@ -605,7 +630,7 @@ export class TodoServiceProvider {
       author = await this.authCtrl.getAuthor(false);
     }
 
-    await dbCollection.doc<ITodoList>(newUuid).set({
+    const p = dbCollection.doc<ITodoList>(newUuid).set({
       uuid: newUuid,
       name: data.name,
       icon: data.icon,
@@ -613,6 +638,9 @@ export class TodoServiceProvider {
       author: author,
       externTodos: []
     });
+    if (this.online) {
+      await p;
+    }
 
     return newUuid;
   }
@@ -646,10 +674,13 @@ export class TodoServiceProvider {
 
     // si on ne change pas la liste de place
     if (destType == null || destType === curListType) {
-      await doc.update({
+      const p = doc.update({
         name: data.name,
         icon: data.icon
       });
+      if (this.online) {
+        await p;
+      }
     } else if (destType === ListType.PRIVATE || destType === ListType.LOCAL) {
       // on ajoute la liste à la collection de destination et on supprime la liste de la collection source
       const newUuid: string = await this.addList(data, destType);
@@ -929,7 +960,10 @@ export class TodoServiceProvider {
     if (type === ListType.SHARED) {
       this.removeListLink(listUuid);
     } else {
-      await this.cleanUpTodos(listUuid);
+      const p = this.cleanUpTodos(listUuid);
+      if (this.online) {
+        await p;
+      }
 
       let doc: AngularFirestoreDocument<ITodoList>;
       try {
@@ -1076,11 +1110,15 @@ export class TodoServiceProvider {
       auth = await this.authCtrl.getAuthor(false);
     }
     try {
-      await doc.update({
+      const p = doc.update({
         complete: status,
         completeAuthor: auth,
         order: 0
       });
+
+      if (this.online) {
+        await p;
+      }
     } catch (error) {
       return;
     }
@@ -1101,10 +1139,13 @@ export class TodoServiceProvider {
 
     const todoDoc = new AngularFirestoreDocument<ITodoItem>(ref as any);
     try {
-      await todoDoc.update({
+      const p = todoDoc.update({
         name: editedItem.name
         // a completer une fois fini
       });
+      if (this.online) {
+        await p;
+      }
     } catch (error) {
       console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
       return;
@@ -1135,7 +1176,10 @@ export class TodoServiceProvider {
     newItem.author = await this.authCtrl.getAuthor(false);
     const doc = listDoc.collection('todo').doc<ITodoItem>(todoUuid);
     newItem.ref = doc.ref as DocumentReference;
-    await doc.set(newItem);
+    const p = doc.set(newItem);
+    if (this.online) {
+      await p;
+    }
     return newItem.ref;
   }
 
@@ -1152,7 +1196,10 @@ export class TodoServiceProvider {
     }
     const list = new AngularFirestoreDocument(ref as any);
     try {
-      await list.delete();
+      const p = list.delete();
+      if (this.online) {
+        await p;
+      }
     } catch (error) {
       console.log('Impossible de supprimer la tâche, tâche inexistante ?');
     }
@@ -1175,9 +1222,12 @@ export class TodoServiceProvider {
 
     if (index !== -1) {
       currentExtRef.splice(index, 1);
-      await listDoc.update({
+      const p = listDoc.update({
         externTodos: currentExtRef
       });
+      if (this.online) {
+        await p;
+      }
     }
   }
 
@@ -1229,9 +1279,12 @@ export class TodoServiceProvider {
     }
 
     destSnap.externTodos.push(todoRef);
-    await destList.update({
+    const p = destList.update({
       externTodos: destSnap.externTodos
     });
+    if (this.online) {
+      await p;
+    }
   }
 
   /**
@@ -1251,9 +1304,12 @@ export class TodoServiceProvider {
     }
     const todoDoc = new AngularFirestoreDocument<ITodoItem>(ref as any);
     try {
-      await todoDoc.update({
+      const p = todoDoc.update({
         order: order
       });
+      if (this.online) {
+        await p;
+      }
     } catch (error) {
       console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
       return;
@@ -1283,5 +1339,25 @@ export class TodoServiceProvider {
     }
     obsTab.push(Observable.of(Global.getBlankTodo())); // cause [] == false (ノಠ益ಠ)ノ彡┻━┻
     return Observable.combineLatest(obsTab);
+  }
+
+  /**
+   * Permet de cloner les todos d'une liste vers une autre liste
+   *
+   * @param {string} listUuidSrc
+   * @param {string} userUuidSrc
+   * @param {string} listUuidDest
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  public async cloneTodo(
+    listUuidSrc: string,
+    userUuidSrc: string,
+    listUuidDest: string
+  ): Promise<void> {
+    // A FAIRE NOW!!!
+    listUuidDest;
+    listUuidSrc;
+    userUuidSrc;
   }
 }

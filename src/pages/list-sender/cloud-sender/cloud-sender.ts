@@ -112,4 +112,14 @@ export class CloudSenderPage extends GenericSharer {
       this.sendPartage[2]
     );
   }
+
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof CloudSenderPage
+   */
+  protected networkRequired(): boolean {
+    return true;
+  }
 }

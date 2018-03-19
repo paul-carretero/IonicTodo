@@ -88,17 +88,27 @@ export class CloudSpacePage extends GenericPage {
   /******************************* OVERRIDES ********************************/
   /**************************************************************************/
 
-  public menuEventHandler(req: IMenuRequest): void {
+  protected menuEventHandler(req: IMenuRequest): void {
     switch (req.request) {
     }
   }
-  public generateDescription(): string {
+  protected generateDescription(): string {
     throw new Error('Method not implemented.');
   }
-  public loginAuthRequired(): boolean {
+  protected loginAuthRequired(): boolean {
     return true;
   }
-  public basicAuthRequired(): boolean {
+  protected basicAuthRequired(): boolean {
+    return true;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof CloudSenderPage
+   */
+  protected networkRequired(): boolean {
     return true;
   }
 }
