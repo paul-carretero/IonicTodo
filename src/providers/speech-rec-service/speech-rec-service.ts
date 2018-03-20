@@ -46,29 +46,9 @@ export class SpeechRecServiceProvider {
               if(s.includes("créer") && !trouve){ 
                 if(s.includes("liste")){
                   trouve = true;
-                  const nomListe : string = s.slice(s.indexOf("liste") + 6 );
-                  console.log("Trouvé liste");
-                  console.log("nom de la liste :" + nomListe);
-
-                  const destType: ListType = ListType.LOCAL;
-                  console.log("type" + destType);
-
-                  const iconList = "Default";
-
-                  const data : ITodoList = {
-                    uuid: null,
-                    name: nomListe,
-                    icon: iconList,
-                    author: null,
-                    order: 0,
-                    externTodos: []
-                  }
-                  
-                  console.log("data : " + data);
-                  const nextUuid = await this.todoService.addList(data, destType);
-                  console.log("uuid : " + nextUuid);
+                  this.creerListe(s);
                 }
-              } 
+              }  
             }
             );
       },
@@ -78,6 +58,30 @@ export class SpeechRecServiceProvider {
       }
     );
   }
+
+  private async creerListe(s : String) : Promise<void> {
+        const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+        console.log("Trouvé liste");
+        console.log("nom de la liste :" + nomListe);
+
+        const destType: ListType = ListType.LOCAL;
+        console.log("type" + destType);
+
+        const iconList = "Default";
+
+        const data : ITodoList = {
+          uuid: null,
+          name: nomListe,
+          icon: iconList,
+          author: null,
+          order: 0,
+          externTodos: []
+        }
+        console.log("data : " + data);
+        const nextUuid = await this.todoService.addList(data, destType);
+        console.log("uuid : " + nextUuid);
+  }
+
 
   private speechWrapper(): void {
     this.uiCtrl.showLoading(
