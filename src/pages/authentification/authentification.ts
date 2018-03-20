@@ -11,7 +11,7 @@ import { Subscription } from 'rxjs/Rx';
 import { FirebaseCredentials } from '../../app/firebase.credentials';
 import { Settings } from '../../model/settings';
 import { EventServiceProvider } from '../../providers/event/event-service';
-import { SettingServiceProvider } from '../../providers/setting/setting-service';
+import { DBServiceProvider } from '../../providers/db/db-service';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
@@ -95,7 +95,7 @@ export class AuthentificationPage extends GenericPage {
    * @param {UiServiceProvider} uiCtrl
    * @param {GooglePlus} googlePlus
    * @param {FormBuilder} formBuilder
-   * @param {SettingServiceProvider} settingCtrl
+   * @param {DBServiceProvider} settingCtrl
    * @memberof AuthentificationPage
    */
   constructor(
@@ -106,7 +106,7 @@ export class AuthentificationPage extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider,
     private readonly googlePlus: GooglePlus,
     private readonly formBuilder: FormBuilder,
-    private readonly settingCtrl: SettingServiceProvider
+    private readonly settingCtrl: DBServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.authForm = this.formBuilder.group({
@@ -139,16 +139,14 @@ export class AuthentificationPage extends GenericPage {
       }
     });
 
-    this.settingCtrl.getSetting(Settings.DISABLE_OFFLINE).then((res: string) => {
-      this.offlineDisabled = res === 'true';
+    this.settingCtrl.getSetting(Settings.DISABLE_OFFLINE).then((res: boolean) => {
+      this.offlineDisabled = res;
     });
 
-    this.settingCtrl.getSetting(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
-      if (res != null && res !== '') {
-        const email = this.authForm.get('email');
-        if (email != null) {
-          email.setValue('');
-        }
+    this.settingCtrl.getSettingStr(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
+      const email = this.authForm.get('email');
+      if (email != null) {
+        email.setValue(res);
       }
     });
 
@@ -222,9 +220,7 @@ export class AuthentificationPage extends GenericPage {
         offline: false
       });
       if (result) {
-        const googleCredential = firebase.auth.GoogleAuthProvider.credential(
-          result.idToken
-        );
+        const googleCredential = firebase.auth.GoogleAuthProvider.credential(result.idToken);
         firebase
           .auth()
           .signInWithCredential(googleCredential)
@@ -309,9 +305,7 @@ export class AuthentificationPage extends GenericPage {
 
     try {
       this.uiCtrl.showLoading('création du compte...');
-      const result = await firebase
-        .auth()
-        .createUserWithEmailAndPassword(email, password);
+      const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
       if (result) {
         this.uiCtrl.displayToast('Création de votre compte effectuée avec succès!', 1000);
         //firebase.auth().currentUser.updateProfile();

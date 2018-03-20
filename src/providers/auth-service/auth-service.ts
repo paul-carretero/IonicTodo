@@ -12,7 +12,7 @@ import { Settings } from './../../model/settings';
 import { Global } from './../../shared/global';
 import { EventServiceProvider } from './../event/event-service';
 import { MapServiceProvider } from './../map-service/map-service';
-import { SettingServiceProvider } from './../setting/setting-service';
+import { DBServiceProvider } from './../db/db-service';
 
 @Injectable()
 export class AuthServiceProvider {
@@ -23,7 +23,7 @@ export class AuthServiceProvider {
   constructor(
     private readonly firebaseAuth: AngularFireAuth,
     private readonly devideIdCtrl: UniqueDeviceID,
-    private readonly settingCtrl: SettingServiceProvider,
+    private readonly settingCtrl: DBServiceProvider,
     private readonly firestoreCtrl: AngularFirestore,
     private readonly mapCtrl: MapServiceProvider
   ) {
@@ -36,8 +36,8 @@ export class AuthServiceProvider {
   }
 
   private async applyAutoLoginSetting(): Promise<void> {
-    const autoLogin: string = await this.settingCtrl.getSetting(Settings.AUTO_LOG_IN);
-    if (autoLogin === 'true') {
+    const autoLogin: boolean = await this.settingCtrl.getSetting(Settings.AUTO_LOG_IN);
+    if (autoLogin) {
       this.listenForUpdate();
     } else {
       this.logout().then(() => {

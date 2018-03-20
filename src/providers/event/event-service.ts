@@ -1,3 +1,4 @@
+import { ITodoItem } from './../../model/todo-item';
 import { Network } from '@ionic-native/network';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Injectable } from '@angular/core';
@@ -80,6 +81,15 @@ export class EventServiceProvider {
    */
   private readonly netSubject: BehaviorSubject<boolean>;
 
+  /**
+   * dernière snapshot de l'ensemble des items
+   *
+   * @private
+   * @type {BehaviorSubject<ITodoItem>}
+   * @memberof EventServiceProvider
+   */
+  private readonly lastTodosSnap: BehaviorSubject<ITodoItem[]>;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -102,9 +112,10 @@ export class EventServiceProvider {
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
     this.searchSubject = new BehaviorSubject<string>('#');
+    this.lastTodosSnap = new BehaviorSubject<ITodoItem[]>([]);
     this.netSubject = new BehaviorSubject<boolean>(this.netCtrl.type !== 'none');
     this.shakeDetect();
-    this.listenForResetCopiedTodo();
+    this.listenForResetAuth();
     this.listenForNetworkChange();
   }
 
@@ -131,14 +142,16 @@ export class EventServiceProvider {
 
   /**
    * réinitialise la référence d'un document copier lors de chaque déconnexion
+   * réinitialise la dernière snapshot des todos lors d'une déconnexion
    *
    * @private
    * @memberof EventServiceProvider
    */
-  private listenForResetCopiedTodo() {
+  private listenForResetAuth() {
     this.authCtrl.getConnexionSubject().subscribe(user => {
       if (user == null) {
         this.copiedTodoRef = null;
+        this.lastTodosSnap.next([]);
       }
     });
   }
@@ -264,5 +277,16 @@ export class EventServiceProvider {
    */
   public getSearchSubject(): BehaviorSubject<string> {
     return this.searchSubject;
+  }
+
+  /**
+   * retourne le sujet contenant la dernière snapshot de l'ensemble des todos
+   *
+   * @public
+   * @returns {BehaviorSubject<ITodoItem[]>}
+   * @memberof EventServiceProvider
+   */
+  public getLastTodosSnapSub(): BehaviorSubject<ITodoItem[]> {
+    return this.lastTodosSnap;
   }
 }

@@ -183,7 +183,7 @@ export class HomePage extends GenericPage {
     if (list.uuid == null) {
       throw new Error('Identifiant de liste invalide');
     }
-    list.items$ = await this.todoService.getTodoDataFromList(list.uuid);
+    list.metadata = await this.todoService.getListMetaData(list.uuid);
     return list;
   }
 

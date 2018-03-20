@@ -31,7 +31,7 @@ import { CloudServiceProvider } from '../providers/cloud-service/cloud-service';
 import { MapServiceProvider } from '../providers/map-service/map-service';
 import { NfcProvider } from '../providers/nfc/nfc';
 import { NotifServiceProvider } from '../providers/notif-service/notif-service';
-import { SettingServiceProvider } from '../providers/setting/setting-service';
+import { DBServiceProvider } from '../providers/db/db-service';
 import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
@@ -73,7 +73,7 @@ import { FirebaseCredentials } from './firebase.credentials';
     NativeGeocoder,
     QRScanner,
     UniqueDeviceID,
-    SettingServiceProvider,
+    DBServiceProvider,
     NgxQRCodeModule,
     CameraPreview,
     ScreenOrientation,

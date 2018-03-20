@@ -20,7 +20,7 @@ import { Global } from './../../shared/global';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { EventServiceProvider } from './../event/event-service';
 import { MapServiceProvider } from './../map-service/map-service';
-import { SettingServiceProvider } from './../setting/setting-service';
+import { DBServiceProvider } from './../db/db-service';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../ui-service/ui-service';
 
@@ -72,7 +72,7 @@ export class CloudServiceProvider {
    * Creates an instance of CloudServiceProvider.
    * @param {AngularFirestore} firestoreCtrl
    * @param {AuthServiceProvider} authCtrl
-   * @param {SettingServiceProvider} settingsCtrl
+   * @param {DBServiceProvider} settingsCtrl
    * @param {MapServiceProvider} mapCtrl
    * @param {TodoServiceProvider} todoCtrl
    * @param {EventServiceProvider} evtCtrl
@@ -82,7 +82,7 @@ export class CloudServiceProvider {
   constructor(
     private readonly firestoreCtrl: AngularFirestore,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly settingsCtrl: SettingServiceProvider,
+    private readonly settingsCtrl: DBServiceProvider,
     private readonly mapCtrl: MapServiceProvider,
     private readonly todoCtrl: TodoServiceProvider,
     private readonly evtCtrl: EventServiceProvider,
@@ -267,14 +267,12 @@ export class CloudServiceProvider {
 
     const forCleanSTSCollection = this.firestoreCtrl.collection<ICloudSharedList>(
       'cloud',
-      ref =>
-        ref.where('shakeToShare', '==', true).where('author.timestamp', '<', stsExpire)
+      ref => ref.where('shakeToShare', '==', true).where('author.timestamp', '<', stsExpire)
     );
 
     const forCleanCloudCollection = this.firestoreCtrl.collection<ICloudSharedList>(
       'cloud',
-      ref =>
-        ref.where('shakeToShare', '==', false).where('author.timestamp', '<', cloudExpire)
+      ref => ref.where('shakeToShare', '==', false).where('author.timestamp', '<', cloudExpire)
     );
 
     const subSTS = forCleanSTSCollection
@@ -355,9 +353,8 @@ export class CloudServiceProvider {
     }
     this.cleanUp();
 
-    const forImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
-      'cloud',
-      ref => ref.where('email', '==', this.authCtrl.getEmail())
+    const forImportCollection = this.firestoreCtrl.collection<ICloudSharedList>('cloud', ref =>
+      ref.where('email', '==', this.authCtrl.getEmail())
     );
 
     this.availableListsSub = forImportCollection
@@ -409,8 +406,7 @@ export class CloudServiceProvider {
       return;
     }
 
-    const stsEnabled: boolean =
-      (await this.settingsCtrl.getSetting(Settings.ENABLE_STS)) === 'true';
+    const stsEnabled: boolean = await this.settingsCtrl.getSetting(Settings.ENABLE_STS);
 
     if (stsEnabled) {
       let myPos: ILatLng | null = await this.mapCtrl.getMyPosition();
@@ -522,9 +518,7 @@ export class CloudServiceProvider {
     } else {
       await this.todoCtrl.importList(list);
     }
-    this.uiCtrl.displayToast(
-      'Une nouvelle liste partagée est disponible sur votre compte'
-    );
+    this.uiCtrl.displayToast('Une nouvelle liste partagée est disponible sur votre compte');
   }
 
   /**

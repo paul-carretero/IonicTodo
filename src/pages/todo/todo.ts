@@ -24,13 +24,15 @@ import { IPageData } from '../../model/page-data';
 export class TodoPage extends GenericPage {
   private readonly todoRef: DocumentReference;
 
-  private readonly fromListUuid: string;
+  private readonly fromListUuid: string | null;
 
   private readonly isExternal: boolean;
 
   private todoSub: Subscription;
 
-  public todo: Observable<ITodoItem>;
+  protected todo: ITodoItem;
+
+  private todoObs: Observable<ITodoItem>;
 
   private isMine: boolean = false;
 
@@ -46,18 +48,20 @@ export class TodoPage extends GenericPage {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
     this.fromListUuid = this.navParams.get('listUuid');
-    this.isExternal = this.navParams.get('isExternal');
+    if (this.navParams.get('isExternal') == null) {
+      this.isExternal = false;
+    } else {
+      this.isExternal = this.navParams.get('isExternal');
+    }
   }
 
   ionViewDidEnter() {
     if (this.todoRef == null) {
       this.navCtrl.popToRoot();
-      this.uiCtrl.displayToast(
-        'Une erreur est survenue pendant le chargement de la tâche'
-      );
+      this.uiCtrl.displayToast('Une erreur est survenue pendant le chargement de la tâche');
     }
 
-    this.todo = this.todoCtrl.getTodo(this.todoRef);
+    this.todoObs = this.todoCtrl.getTodo(this.todoRef);
     const pageData = Global.getEditCopyPageData();
     pageData.subtitle = 'Détail de la tâche';
     this.initPage(pageData);
@@ -77,7 +81,8 @@ export class TodoPage extends GenericPage {
   }
 
   private async initPage(pageData: IPageData): Promise<void> {
-    this.todoSub = this.todo.subscribe((todo: ITodoItem) => {
+    this.todoSub = this.todoObs.subscribe((todo: ITodoItem) => {
+      this.todo = todo;
       this.defIsMine(todo);
       if (todo != null) {
         if (todo.name != null) {
@@ -95,10 +100,12 @@ export class TodoPage extends GenericPage {
   protected menuEventHandler(req: IMenuRequest): void {
     switch (req.request) {
       case MenuRequestType.DELETE: {
-        if (this.isExternal && !this.isMine) {
+        if (this.fromListUuid != null && this.isExternal && !this.isMine) {
           this.todoCtrl.removeTodoRef(this.fromListUuid, this.todoRef);
         } else {
-          this.todoCtrl.deleteTodo(this.todoRef);
+          if (this.todo.uuid != null) {
+            this.todoCtrl.deleteTodo(this.todoRef, this.todo.uuid);
+          }
         }
         this.navCtrl.pop();
         break;
