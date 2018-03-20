@@ -17,7 +17,6 @@ import { SpeechSynthServiceProvider } from './../../providers/speech-synth-servi
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { GenericPage } from './../../shared/generic-page';
 import { Global } from './../../shared/global';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 /**
  * Offre une interface et des méthodes pour créer un compte et se connecter à l'application.
@@ -103,14 +102,13 @@ export class AuthentificationPage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly googlePlus: GooglePlus,
     private readonly formBuilder: FormBuilder,
     private readonly settingCtrl: SettingServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
     this.authForm = this.formBuilder.group({
       email: ['', Validators.email],
       password: ['', Validators.required]

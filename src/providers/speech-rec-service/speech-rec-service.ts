@@ -37,6 +37,17 @@ export class SpeechRecServiceProvider {
       (matches: string[]) => {
         this.uiCtrl.dismissLoading();
         console.log(matches);
+        if(matches.includes("créer")){ console.log("Trouvé créer");}
+        if(matches.includes("créer liste")){
+          console.log("Trouvé créer liste");
+
+        } 
+        matches.forEach(
+            s => { 
+              if(s.includes("liste")){
+                console.log("Trouvé liste");
+              } }
+            );
       },
       () => {
         this.uiCtrl.alert('Erreur', 'une erreur inattendue est survenue');

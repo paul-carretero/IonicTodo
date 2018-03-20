@@ -9,7 +9,6 @@ import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-servic
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ITodoListPath } from './../../model/todo-list-path';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 export class GenericSharer extends GenericPage {
   /**
@@ -34,12 +33,11 @@ export class GenericSharer extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = navParams.get('uuid');
     this.request = navParams.get('request');
     this.sendListHandler();

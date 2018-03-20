@@ -9,7 +9,6 @@ import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/sp
 import { INavRequest } from './../model/nav-request';
 import { AuthServiceProvider } from './../providers/auth-service/auth-service';
 import { UiServiceProvider } from './../providers/ui-service/ui-service';
-import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
 
 export abstract class GenericPage {
   /**
@@ -66,7 +65,6 @@ export abstract class GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider
   ) {}

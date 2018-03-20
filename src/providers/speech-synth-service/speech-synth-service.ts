@@ -31,7 +31,7 @@ export class SpeechSynthServiceProvider {
   private listenForStop(): void {
     this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
       console.log("evt menu");
-      if (req.request === MenuRequestType.SPEECH_SYNTH) {
+      if (req.request === MenuRequestType.SPEECH_REC) {
         console.log("speech synth");
         this.synthQueue = [];
         this.stop();

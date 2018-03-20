@@ -15,7 +15,6 @@ import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { IPageData } from '../../model/page-data';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 @IonicPage()
 @Component({
@@ -39,13 +38,12 @@ export class TodoPage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly navParams: NavParams,
     private readonly todoCtrl: TodoServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
     this.fromListUuid = this.navParams.get('listUuid');
     this.isExternal = this.navParams.get('isExternal');

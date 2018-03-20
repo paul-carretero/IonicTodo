@@ -13,7 +13,6 @@ import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-serv
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
 import { MenuRequestType } from '../../model/menu-request-type';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 @IonicPage()
 @Component({
@@ -33,14 +32,13 @@ export class TodoEditPage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly navParams: NavParams,
     private readonly todoService: TodoServiceProvider,
     private readonly formBuilder: FormBuilder
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
     this.todoRef = this.navParams.get('todoRef');
     this.listUuid = this.navParams.get('listUUID');

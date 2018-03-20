@@ -8,7 +8,6 @@ import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { GenericSharer } from './../generic-sharer';
 import { Global } from '../../../shared/global';
-import { SpeechRecServiceProvider } from '../../../providers/speech-rec-service/speech-rec-service';
 
 @IonicPage()
 @Component({
@@ -21,12 +20,11 @@ export class QrcodeGeneratePage extends GenericSharer {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider
   ) {
-    super(navParams, navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,todoCtrl, authCtrl, uiCtrl);
+    super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
 
   ionViewDidEnter() {

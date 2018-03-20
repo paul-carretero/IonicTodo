@@ -12,7 +12,6 @@ import { ICloudSharedList } from './../../../model/cloud-shared-list';
 import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { Global } from '../../../shared/global';
-import { SpeechRecServiceProvider } from '../../../providers/speech-rec-service/speech-rec-service';
 
 @IonicPage()
 @Component({
@@ -44,13 +43,12 @@ export class CloudSpacePage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     public readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.cloudList$ = this.cloudCtrl.getCloudLists();
     this.search$ = this.evtCtrl.getSearchSubject();
   }

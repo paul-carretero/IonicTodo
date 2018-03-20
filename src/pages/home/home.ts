@@ -13,7 +13,6 @@ import { EventServiceProvider } from './../../providers/event/event-service';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
 import { Subscription } from 'rxjs';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 /**
  * Page principale de l'application.
@@ -124,12 +123,11 @@ export class HomePage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
     this.todoList = [];
     this.localTodoList = [];
     this.search$ = this.evtCtrl.getSearchSubject();

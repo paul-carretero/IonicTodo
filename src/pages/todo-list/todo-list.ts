@@ -21,7 +21,6 @@ import { ITodoItem } from './../../model/todo-item';
 import { ITodoList, ListType } from './../../model/todo-list';
 import { CloudServiceProvider } from './../../providers/cloud-service/cloud-service';
 import { Global } from './../../shared/global';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 @IonicPage()
 @Component({
@@ -183,7 +182,6 @@ export class TodoListPage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly sprecCtrl: SpeechRecServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider,
@@ -191,7 +189,7 @@ export class TodoListPage extends GenericPage {
     private readonly settingCtrl: SettingServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, sprecCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.todoItems = [];
     this.completedTodoItem = [];
