@@ -37,16 +37,18 @@ export class SpeechRecServiceProvider {
       (matches: string[]) => {
         this.uiCtrl.dismissLoading();
         console.log(matches);
-        if(matches.includes("créer")){ console.log("Trouvé créer");}
-        if(matches.includes("créer liste")){
-          console.log("Trouvé créer liste");
-
-        } 
+        let trouve : boolean = false;
         matches.forEach(
-            s => { 
-              if(s.includes("liste")){
-                console.log("Trouvé liste");
-              } }
+            s => {
+              if(s.includes("créer") && !trouve){ 
+                if(s.includes("liste")){
+                  trouve = true;
+                  const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+                  console.log("Trouvé liste");
+                  console.log("nom de la liste :" + nomListe);
+                }
+              } 
+            }
             );
       },
       () => {
