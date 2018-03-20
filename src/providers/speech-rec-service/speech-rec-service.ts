@@ -3,6 +3,8 @@ import { EventServiceProvider } from './../event/event-service';
 import { Injectable } from '@angular/core';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { MenuRequestType } from '../../model/menu-request-type';
+import { ListType, ITodoList } from '../../model/todo-list';
+import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
 
 @Injectable()
 export class SpeechRecServiceProvider {
@@ -11,6 +13,7 @@ export class SpeechRecServiceProvider {
   constructor(
     private readonly speechRecognition: SpeechRecognition,
     private readonly evtCtrl: EventServiceProvider,
+    private readonly todoService : TodoServiceProvider,
     private readonly uiCtrl: UiServiceProvider
   ) {
     console.log("constructor speech-rec-service");
@@ -31,7 +34,7 @@ export class SpeechRecServiceProvider {
     });
   }
 
-  private startListening(): void {
+  private async startListening(): Promise<void> {
     console.log("dans start listening");
     this.speechRecognition.startListening().subscribe(
       (matches: string[]) => {
@@ -39,13 +42,31 @@ export class SpeechRecServiceProvider {
         console.log(matches);
         let trouve : boolean = false;
         matches.forEach(
-            s => {
+            async s => {
               if(s.includes("créer") && !trouve){ 
                 if(s.includes("liste")){
                   trouve = true;
                   const nomListe : string = s.slice(s.indexOf("liste") + 6 );
                   console.log("Trouvé liste");
                   console.log("nom de la liste :" + nomListe);
+
+                  const destType: ListType = ListType.LOCAL;
+                  console.log("type" + destType);
+
+                  const iconList = "Default";
+
+                  const data : ITodoList = {
+                    uuid: null,
+                    name: nomListe,
+                    icon: iconList,
+                    author: null,
+                    order: 0,
+                    externTodos: []
+                  }
+                  
+                  console.log("data : " + data);
+                  const nextUuid = await this.todoService.addList(data, destType);
+                  console.log("uuid : " + nextUuid);
                 }
               } 
             }
