@@ -3,7 +3,8 @@ import {
   AlertController,
   LoadingController,
   Loading,
-  ToastController
+  ToastController,
+  Alert
 } from 'ionic-angular';
 import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
 
@@ -126,7 +127,7 @@ export class UiServiceProvider {
    */
   public displayToast(message: string, duration?: number): void {
     if (duration == null) {
-      duration = 3000;
+      duration = 4000;
     }
     this.toastCtrl
       .create({ message: message, duration: duration, position: 'bottom' })
@@ -171,5 +172,9 @@ export class UiServiceProvider {
       });
       alert.present();
     });
+  }
+
+  public getBasicAlert(): Alert {
+    return this.alertCtrl.create();
   }
 }

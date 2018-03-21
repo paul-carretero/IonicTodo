@@ -2,16 +2,15 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 
-import { IMenuRequest } from '../../../model/menu-request';
 import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
 import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
 import { GenericPage } from '../../../shared/generic-page';
+import { Global } from '../../../shared/global';
 import { ICloudSharedList } from './../../../model/cloud-shared-list';
 import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-service';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
-import { Global } from '../../../shared/global';
 
 @IonicPage()
 @Component({
@@ -67,10 +66,6 @@ export class CloudSpacePage extends GenericPage {
   }
 
   /**************************************************************************/
-  /*********************** METHODES PRIVATES/INTERNES ***********************/
-  /**************************************************************************/
-
-  /**************************************************************************/
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/
 
@@ -81,23 +76,25 @@ export class CloudSpacePage extends GenericPage {
   }
 
   /**************************************************************************/
-  /********************************* GETTER *********************************/
-  /**************************************************************************/
-
-  /**************************************************************************/
   /******************************* OVERRIDES ********************************/
   /**************************************************************************/
 
-  protected menuEventHandler(req: IMenuRequest): void {
-    switch (req.request) {
-    }
-  }
-  protected generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof CloudSpacePage
+   */
   protected loginAuthRequired(): boolean {
     return true;
   }
+
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof CloudSpacePage
+   */
   protected basicAuthRequired(): boolean {
     return true;
   }

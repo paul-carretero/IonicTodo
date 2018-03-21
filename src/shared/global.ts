@@ -1,12 +1,12 @@
-import { ILatLng } from '../model/latlng';
+import { ILatLng } from '@ionic-native/google-maps';
+import * as firebase from 'firebase';
 
+import { IListMetadata } from '../model/list-metadata';
+import { ITodoItem } from '../model/todo-item';
 import { ITodoList } from '../model/todo-list';
 import { ITodoListPath } from '../model/todo-list-path';
 import { ICloudSharedList } from './../model/cloud-shared-list';
 import { IPageData } from './../model/page-data';
-import * as firebase from 'firebase';
-import { ITodoItem } from '../model/todo-item';
-import { IListMetadata } from '../model/list-metadata';
 
 /**
  * Contient des structure de données constante (ou semi constante)
@@ -71,7 +71,8 @@ export class Global {
       importable: false,
       searchPlaceholders: 'Rechercher',
       copiable: false,
-      pastable: false
+      pastable: false,
+      isList: false
     };
   }
 
@@ -93,7 +94,8 @@ export class Global {
       importable: false,
       searchPlaceholders: 'Rechercher',
       copiable: false,
-      pastable: false
+      pastable: false,
+      isList: false
     };
   }
 
@@ -116,7 +118,8 @@ export class Global {
       importable: false,
       searchPlaceholders: 'Rechercher',
       copiable: false,
-      pastable: true
+      pastable: true,
+      isList: false
     };
   }
 
@@ -139,7 +142,8 @@ export class Global {
       importable: false,
       searchPlaceholders: 'Rechercher',
       copiable: true,
-      pastable: false
+      pastable: false,
+      isList: false
     };
   }
 

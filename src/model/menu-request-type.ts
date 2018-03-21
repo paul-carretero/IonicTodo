@@ -16,5 +16,6 @@ export enum MenuRequestType {
   VALIDATE,
   SHAKE,
   COPY,
-  PASTE
+  PASTE,
+  OCR
 }

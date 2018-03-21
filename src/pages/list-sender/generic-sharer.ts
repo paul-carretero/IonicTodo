@@ -18,22 +18,22 @@ export class GenericSharer extends GenericPage {
    * @type {string}
    * @memberof GenericSharer
    */
-  public readonly listUUID: string;
+  protected readonly listUUID: string;
 
-  public readonly request: IMenuRequest;
+  protected readonly request: IMenuRequest;
 
-  public listShare: ITodoListPath;
+  protected listShare: ITodoListPath;
 
-  public listSend: ITodoListPath;
+  protected listSend: ITodoListPath;
 
-  public choice: 'lock' | 'unlock' | 'send';
+  protected choice: 'lock' | 'unlock' | 'send';
 
   constructor(
     public readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly todoCtrl: TodoServiceProvider,
+    protected readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider
   ) {
@@ -106,19 +106,23 @@ export class GenericSharer extends GenericPage {
     this.listSend.shareByReference = false;
   }
 
-  public menuEventHandler(req: IMenuRequest): void {
-    switch (req) {
-    }
-  }
-  public generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  public loginAuthRequired(): boolean {
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof GenericSharer
+   */
+  protected loginAuthRequired(): boolean {
     return true;
   }
 
-  public basicAuthRequired(): boolean {
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof GenericSharer
+   */
+  protected basicAuthRequired(): boolean {
     return true;
   }
 }

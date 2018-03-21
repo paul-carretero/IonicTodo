@@ -113,19 +113,17 @@ export abstract class GenericPage {
       .getNavRequestSubject()
       .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page, navReq.data));
 
-    this.menuEvtSub = this.evtCtrl
-      .getMenuRequestSubject()
-      .subscribe((req: IMenuRequest) => {
-        switch (req.request) {
-          case MenuRequestType.SPEECH_SYNTH:
-            this.ttsCtrl.synthText(this.generateDescription());
-            break;
-          case MenuRequestType.HELP:
-            this.uiCtrl.alert('Aide sur la page', this.generateHelp());
-            break;
-        }
-        this.menuEventHandler(req);
-      });
+    this.menuEvtSub = this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
+      switch (req.request) {
+        case MenuRequestType.SPEECH_SYNTH:
+          this.ttsCtrl.synthText(this.generateDescription());
+          break;
+        case MenuRequestType.HELP:
+          this.uiCtrl.alert('Aide sur la page', this.generateHelp());
+          break;
+      }
+      this.menuEventHandler(req);
+    });
   }
 
   /**
@@ -255,8 +253,8 @@ export abstract class GenericPage {
   /**
    * Retourne un text html décrivant l'utilisation et la compréhention de la page
    * Devrait être overriden par les page étendant la page générique
+   * Overiddable éventuellement
    *
-   * @abstract
    * @protected
    * @returns {string}
    * @memberof GenericPage
@@ -268,6 +266,7 @@ export abstract class GenericPage {
   /**
    * méthode overridable par les page ayant besoin du réseau pour leur logique métier.
    * Si le réseau n'est pas disponible alors lors du chargement on pop une page
+   * Overiddable éventuellement
    *
    * @protected
    * @returns {boolean}
@@ -279,41 +278,50 @@ export abstract class GenericPage {
 
   /**
    * Permet de gérer les actions a réaliser en fonction de la page et du type de requête menu
+   * Overiddable éventuellement
    *
    * @protected
-   * @abstract
    * @param {IMenuRequest} req
    * @memberof GenericPage
    */
-  protected abstract menuEventHandler(req: IMenuRequest): void;
+  protected menuEventHandler(req: IMenuRequest): void {
+    if (req == null) {
+      return;
+    }
+  }
 
   /**
    * Permet de générer une description de la page, notament pour la synthèse vocale
    *
    * @protected
-   * @abstract
    * @returns {string} une description textuelle de la page
    * @memberof GenericPage
    */
-  protected abstract generateDescription(): string;
+  protected generateDescription(): string {
+    return "Désolé mais aucune description de la page n'est disponible";
+  }
 
   /**
    * Permet de gérer la confidentialités des pages
+   * Overiddable éventuellement
    *
    * @protected
-   * @abstract
    * @returns {boolean} true si la page ne doit être accéssible qu'une fois loggué avec un compte, false sinon
    * @memberof GenericPage
    */
-  protected abstract loginAuthRequired(): boolean;
+  protected loginAuthRequired(): boolean {
+    return false;
+  }
 
   /**
-   * Permet de gérer l'accéssibilité des pages
+   * Permet de gérer l'accéssibilité des pages.
+   * Overiddable éventuellement
    *
    * @protected
-   * @abstract
    * @returns {boolean} true si il faux naviguer en mode hors connexion ou connecté, false sinon
    * @memberof GenericPage
    */
-  protected abstract basicAuthRequired(): boolean;
+  protected basicAuthRequired(): boolean {
+    return true;
+  }
 }

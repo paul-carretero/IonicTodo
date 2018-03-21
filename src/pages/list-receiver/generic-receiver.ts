@@ -1,6 +1,5 @@
 import { NavController } from 'ionic-angular';
 
-import { IMenuRequest } from '../../model/menu-request';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
@@ -77,9 +76,7 @@ export abstract class GenericReceiver extends GenericPage {
 
     const resConf: boolean = await this.uiCtrl.confirm(
       'Confirmation',
-      'Etes vous sur de vouloir copier cette liste ( ' +
-        data.name +
-        ' ) sur votre compte ?'
+      'Etes vous sur de vouloir copier cette liste ( ' + data.name + ' ) sur votre compte ?'
     );
     this.uiCtrl.showLoading('Import de la liste en cours');
     if (resConf === false) {
@@ -125,35 +122,22 @@ export abstract class GenericReceiver extends GenericPage {
   /**************************************************************************/
 
   /**
-   * @param {IMenuRequest} req
-   * @memberof GenericReceiver
-   */
-  public menuEventHandler(req: IMenuRequest): void {
-    switch (req) {
-    }
-  }
-
-  /**
-   * @returns {string}
-   * @memberof GenericReceiver
-   */
-  public generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  /**
+   * @override
+   * @protected
    * @returns {boolean}
    * @memberof GenericReceiver
    */
-  public loginAuthRequired(): boolean {
+  protected loginAuthRequired(): boolean {
     return true;
   }
 
   /**
+   * @override
+   * @protected
    * @returns {boolean}
    * @memberof GenericReceiver
    */
-  public basicAuthRequired(): boolean {
+  protected basicAuthRequired(): boolean {
     return true;
   }
 }

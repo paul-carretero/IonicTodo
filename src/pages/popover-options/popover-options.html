@@ -1,8 +1,8 @@
 <ion-list>
   <ion-list-header>Options</ion-list-header>
-  <button *ngIf="editable" ion-item (click)="delete()" icon-start>
+  <button *ngIf="editable" ion-item (click)="basicRequest(request.DELETE)" icon-start>
     <ion-icon name="trash"></ion-icon>Supprimer</button>
-  <button *ngIf="editable" ion-item (click)="edit()" icon-start>
+  <button *ngIf="editable" ion-item (click)="basicRequest(request.EDIT)" icon-start>
     <ion-icon name="create"></ion-icon>Editer</button>
   <button *ngIf="shareable && editable" ion-item (click)="share()" icon-start>
     <ion-icon name="share"></ion-icon>Partager
@@ -10,16 +10,19 @@
   <button *ngIf="shareable && editable" ion-item (click)="send()" icon-start>
     <ion-icon name="send"></ion-icon>Envoyer
   </button>
-  <button *ngIf="importable" ion-item (click)="import()" icon-start>
+  <button *ngIf="importable" ion-item (click)="basicRequest(request.IMPORT)" icon-start>
     <ion-icon name="cloud-download"></ion-icon>Importer
   </button>
-  <button *ngIf="pastable && editable" ion-item (click)="paste()" icon-start>
+  <button *ngIf="pastable && editable" ion-item (click)="basicRequest(request.PASTE)" icon-start>
     <ion-icon name="link"></ion-icon>Coller
   </button>
-  <button *ngIf="copiable" ion-item (click)="copy()" icon-start>
+  <button *ngIf="copiable" ion-item (click)="basicRequest(request.COPY)" icon-start>
     <ion-icon name="link"></ion-icon>Copier
   </button>
-  <button ion-item (click)="help()" icon-start>
+  <button *ngIf="editable && isList" ion-item (click)="basicRequest(request.OCR)" icon-start>
+    <ion-icon name="camera"></ion-icon>OCR de Tâches
+  </button>
+  <button ion-item (click)="basicRequest(request.HELP)" icon-start>
     <ion-icon name="help"></ion-icon>Aide
   </button>
   <button ion-item (click)="close()" icon-start>

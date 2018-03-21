@@ -25,7 +25,7 @@
     <button *ngIf="data.validable" ion-button round (click)="valid()" class="icon-sized">
       <ion-icon name="checkmark"></ion-icon>
     </button>
-    <button ion-button round class="icon-sized" (click)="startSpeechRec()">
+    <button *ngIf="netStatus | async" ion-button round class="icon-sized" (click)="startSpeechRec()">
       <ion-icon name="mic"></ion-icon>
     </button>
     <button ion-button round class="icon-sized" (click)="startTTS()">

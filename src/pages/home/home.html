@@ -19,7 +19,7 @@
                                     <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
                                 </ion-item>
                                 <ion-item-options side="right">
-                                    <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
+                                    <button ion-button color="danger" (click)="deleteTodoList(list.uuid, todoList)">
                                         <ion-icon name="trash">
                                             supprimer
                                         </ion-icon>
@@ -44,7 +44,7 @@
                                     {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                                 </ion-item>
                                 <ion-item-options side="right">
-                                    <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
+                                    <button ion-button color="danger" (click)="deleteTodoList(list.uuid, todoList)">
                                         <ion-icon name="trash">
                                             supprimer
                                         </ion-icon>
@@ -70,7 +70,7 @@
                                 <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
                             </ion-item>
                             <ion-item-options side="right">
-                                <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
+                                <button ion-button color="danger" (click)="deleteTodoList(list.uuid, todoList)">
                                     <ion-icon name="trash">
                                         supprimer
                                     </ion-icon>
@@ -97,7 +97,7 @@
                             <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
                         </ion-item>
                         <ion-item-options side="right">
-                            <button ion-button color="danger" (click)="deleteTodoList(list.uuid)">
+                            <button ion-button color="danger" (click)="deleteTodoList(list.uuid, todoList)">
                                 <ion-icon name="trash">
                                     supprimer
                                 </ion-icon>

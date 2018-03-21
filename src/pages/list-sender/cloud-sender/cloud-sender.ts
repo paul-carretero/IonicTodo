@@ -22,14 +22,14 @@ export class CloudSenderPage extends GenericSharer {
 
   private readonly shareData: ICloudSharedList;
 
-  private readonly contactList: Map<string, ISimpleContact>;
+  private readonly contactList: ISimpleContact[];
 
   constructor(
     public readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly todoCtrl: TodoServiceProvider,
+    protected readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider,
@@ -37,7 +37,7 @@ export class CloudSenderPage extends GenericSharer {
   ) {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
     this.shareData = Global.getDefaultCloudShareData();
-    this.contactList = new Map();
+    this.contactList = [];
   }
 
   ionViewDidEnter() {
@@ -73,8 +73,8 @@ export class CloudSenderPage extends GenericSharer {
   }
 
   public shareWrapper(): void {
-    if (this.contactList.size > 0) {
-      for (const contact of this.contactList.values()) {
+    if (this.contactList.length > 0) {
+      for (const contact of this.contactList) {
         if (contact.email == null) {
           this.share('');
         } else {
@@ -95,7 +95,7 @@ export class CloudSenderPage extends GenericSharer {
   }
 
   get textContact(): string {
-    if (this.contactList.size === 0) {
+    if (this.contactList.length === 0) {
       return (
         'Cette opération est facultative.<br/> ' +
         'Les contacts choisis seront automatiquement <br/> ' +
@@ -106,10 +106,7 @@ export class CloudSenderPage extends GenericSharer {
       );
     }
     return (
-      'Vous avez associé ' +
-      this.contactList.size +
-      ' contacts à ce ' +
-      this.sendPartage[2]
+      'Vous avez associé ' + this.contactList.length + ' contacts à ce ' + this.sendPartage[2]
     );
   }
 

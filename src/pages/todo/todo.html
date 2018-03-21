@@ -3,30 +3,32 @@
 </ion-header>
 
 <ion-content padding>
-    <ion-card *ngIf="todo.desc != null">
-        <ion-card-header>
-            Descriptif de la tâche {{todo.name}}
-        </ion-card-header>
-        <ion-card-content>
-            {{todo.desc}}
-        </ion-card-content>
-    </ion-card>
+    <ng-container *ngIf="todo != null">
+        <ion-card *ngIf="todo.desc != null">
+            <ion-card-header>
+                Descriptif de la tâche {{todo.name}}
+            </ion-card-header>
+            <ion-card-content>
+                {{todo.desc}}
+            </ion-card-content>
+        </ion-card>
 
-    <ion-card *ngIf="todo.author != null">
-        <ion-card-header icon-start>
-            <ion-icon name="information-circle"></ion-icon>
-            La tâche à été créée:
-        </ion-card-header>
-        <author-display [author]="todo.author"></author-display>
-    </ion-card>
+        <ion-card *ngIf="todo.author != null">
+            <ion-card-header icon-start>
+                <ion-icon name="information-circle"></ion-icon>
+                La tâche à été créée:
+            </ion-card-header>
+            <author-display [author]="todo.author"></author-display>
+        </ion-card>
 
-    <ion-card *ngIf="todo.completeAuthor != null">
-        <ion-card-header icon-start>
-            <ion-icon name="information-circle"></ion-icon>
-            La tâche à été réalisée:
-        </ion-card-header>
-        <author-display [author]="todo.author"></author-display>
-    </ion-card>
+        <ion-card *ngIf="todo.completeAuthor != null">
+            <ion-card-header icon-start>
+                <ion-icon name="information-circle"></ion-icon>
+                La tâche à été réalisée:
+            </ion-card-header>
+            <author-display [author]="todo.author"></author-display>
+        </ion-card>
+    </ng-container>
 </ion-content>
 
 <!--
