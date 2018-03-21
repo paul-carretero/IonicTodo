@@ -1,7 +1,5 @@
-import { Global } from './../../shared/global';
-import { MapServiceProvider } from './../map-service/map-service';
-import { IAuthor } from './../../model/author';
 import { Injectable } from '@angular/core';
+import { ILatLng } from '@ionic-native/google-maps';
 import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFirestore } from 'angularfire2/firestore';
@@ -9,14 +7,18 @@ import * as firebase from 'firebase';
 import { User } from 'firebase/app';
 import { BehaviorSubject } from 'rxjs';
 
+import { IAuthor } from './../../model/author';
 import { Settings } from './../../model/settings';
+import { Global } from './../../shared/global';
+import { EventServiceProvider } from './../event/event-service';
+import { MapServiceProvider } from './../map-service/map-service';
 import { SettingServiceProvider } from './../setting/setting-service';
-import { ILatLng } from '@ionic-native/google-maps';
 
 @Injectable()
 export class AuthServiceProvider {
   private useHorsConnexion = false;
   private readonly connexionSubject: BehaviorSubject<User | null>;
+  private evtCtrl: EventServiceProvider;
 
   constructor(
     private readonly firebaseAuth: AngularFireAuth,
@@ -27,6 +29,10 @@ export class AuthServiceProvider {
   ) {
     this.connexionSubject = new BehaviorSubject<User | null>(null);
     this.applyAutoLoginSetting();
+  }
+
+  public registerEvtCtrl(e: EventServiceProvider): void {
+    this.evtCtrl = e;
   }
 
   private async applyAutoLoginSetting(): Promise<void> {
@@ -139,7 +145,7 @@ export class AuthServiceProvider {
    * @memberof AuthServiceProvider
    */
   public async getAuthor(roundUp: boolean): Promise<IAuthor | null> {
-    if (!this.isConnected()) {
+    if (!this.isConnected() || !this.evtCtrl.getNetStatus()) {
       return null;
     }
 

@@ -47,6 +47,15 @@ export abstract class GenericPage {
    */
   protected deleteSub: Subscription;
 
+  /**
+   * Connexion aux évenements de réseau (connexion-déconnexion)
+   *
+   * @protected
+   * @type {Subscription}
+   * @memberof GenericPage
+   */
+  protected netSub: Subscription;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -80,6 +89,7 @@ export abstract class GenericPage {
    */
   ionViewDidLoad(): void {
     this.securePage();
+    this.checkNet();
   }
 
   /**
@@ -90,6 +100,7 @@ export abstract class GenericPage {
   ionViewWillUnload(): void {
     this.tryUnSub(this.secureAuthSub);
     this.tryUnSub(this.deleteSub);
+    this.tryUnSub(this.netSub);
   }
 
   /**
@@ -131,6 +142,22 @@ export abstract class GenericPage {
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
+
+  /**
+   * pop une page en cas de déconnexion
+   *
+   * @private
+   * @memberof GenericPage
+   */
+  private checkNet(): void {
+    if (this.networkRequired()) {
+      this.netSub = this.evtCtrl.getNetStatusObs().subscribe(status => {
+        if (!status) {
+          this.navCtrl.pop();
+        }
+      });
+    }
+  }
 
   /**
    * vérifie l'authorisation d'afficher la page en fonction de la connexione et des données renseignée par la page
@@ -237,6 +264,18 @@ export abstract class GenericPage {
    */
   protected generateHelp(): string {
     return 'Aucune aide disponible pour cette page :/';
+  }
+
+  /**
+   * méthode overridable par les page ayant besoin du réseau pour leur logique métier.
+   * Si le réseau n'est pas disponible alors lors du chargement on pop une page
+   *
+   * @protected
+   * @returns {boolean}
+   * @memberof GenericPage
+   */
+  protected networkRequired(): boolean {
+    return false;
   }
 
   /**

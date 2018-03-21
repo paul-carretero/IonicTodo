@@ -18,7 +18,7 @@
                 <ion-icon small name="qr-scanner"></ion-icon>
                 Recevoir une liste (QR Code)
             </button>
-            <button [disabled]="!canLogOut" ion-item menuClose="menu-left" detail-none (click)="showCloudPage()" icon-start>
+            <button [disabled]="!canLogOut || !netStatus" ion-item menuClose="menu-left" detail-none (click)="showCloudPage()" icon-start>
                 <ion-icon small name="cloud-download"></ion-icon>
                 Récupérer une liste
             </button>

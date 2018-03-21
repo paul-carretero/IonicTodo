@@ -8,6 +8,7 @@ import { GooglePlus } from '@ionic-native/google-plus';
 import { Keyboard } from '@ionic-native/keyboard';
 import { LocalNotifications } from '@ionic-native/local-notifications';
 import { NativeGeocoder } from '@ionic-native/native-geocoder';
+import { Network } from '@ionic-native/network';
 import { Ndef, NFC } from '@ionic-native/nfc';
 import { QRScanner } from '@ionic-native/qr-scanner';
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
@@ -34,10 +35,10 @@ import { SettingServiceProvider } from '../providers/setting/setting-service';
 import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from '../providers/ui-service/ui-service';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-import { UiServiceProvider } from '../providers/ui-service/ui-service';
 
 @NgModule({
   declarations: [MyApp],
@@ -85,7 +86,8 @@ import { UiServiceProvider } from '../providers/ui-service/ui-service';
     Geolocation,
     Keyboard,
     Contacts,
-    UiServiceProvider
+    UiServiceProvider,
+    Network
   ]
 })
 export class AppModule {}

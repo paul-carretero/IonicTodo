@@ -1,7 +1,8 @@
+import { Network } from '@ionic-native/network';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Injectable } from '@angular/core';
 import { Shake } from '@ionic-native/shake';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Subject, Observable } from 'rxjs';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { IPageData } from '../../model/page-data';
@@ -9,6 +10,7 @@ import { INavRequest } from './../../model/nav-request';
 import { Global } from './../../shared/global';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { DocumentReference } from '@firebase/firestore-types';
+import { UiServiceProvider } from '../ui-service/ui-service';
 
 /**
  * Après analyse, il a été préférer d'implémenter une classe d'Event plutôt que d'utiliser le service Ionic native Events
@@ -68,6 +70,16 @@ export class EventServiceProvider {
    */
   private readonly searchSubject: BehaviorSubject<string>;
 
+  /**
+   * True si on dispose d'une connexion aux intertubes, faux sinon
+   *
+   * @readonly
+   * @private
+   * @type {boolean}
+   * @memberof EventServiceProvider
+   */
+  private readonly netSubject: BehaviorSubject<boolean>;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -76,23 +88,46 @@ export class EventServiceProvider {
    * Creates an instance of EventServiceProvider.
    * @param {Shake} shakeCtrl
    * @param {AuthServiceProvider} authCtrl
+   * @param {Network} netCtrl
    * @memberof EventServiceProvider
    */
   constructor(
     private readonly shakeCtrl: Shake,
-    private readonly authCtrl: AuthServiceProvider
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly netCtrl: Network,
+    private readonly uiCtrl: UiServiceProvider
   ) {
+    this.authCtrl.registerEvtCtrl(this);
     this.headerData = Global.getDefaultPageData();
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
     this.searchSubject = new BehaviorSubject<string>('#');
+    this.netSubject = new BehaviorSubject<boolean>(this.netCtrl.type !== 'none');
     this.shakeDetect();
     this.listenForResetCopiedTodo();
+    this.listenForNetworkChange();
   }
 
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
+
+  private listenForNetworkChange(): void {
+    this.netCtrl.onConnect().subscribe(() => {
+      this.netSubject.next(true);
+      this.uiCtrl.displayToast(
+        'vous êtes maintenant connecté aux intertubes en "' +
+          this.netCtrl.type +
+          '". Certaines fonctionalités sont de nouveau disponibles!'
+      );
+    });
+    this.netCtrl.onDisconnect().subscribe(() => {
+      this.netSubject.next(false);
+      this.uiCtrl.displayToast(
+        "vous n'êtes plus connecté aux intertubes, certaines fonctionalités sont désactivées :/"
+      );
+    });
+  }
 
   /**
    * réinitialise la référence d'un document copier lors de chaque déconnexion
@@ -125,8 +160,30 @@ export class EventServiceProvider {
   /**************************************************************************/
 
   /**
+   * retourne un observable sur status de la connexion (true si online, false sinon)
+   *
+   * @public
+   * @returns {Observable<boolean>}
+   * @memberof EventServiceProvider
+   */
+  public getNetStatusObs(): Observable<boolean> {
+    return this.netSubject.asObservable();
+  }
+
+  /**
+   * Donne le status de la connexion instantané
+   *
+   * @returns {boolean}
+   * @memberof EventServiceProvider
+   */
+  public getNetStatus(): boolean {
+    return this.netSubject.getValue();
+  }
+
+  /**
    * retourne la référence vers le dernier todo copié
    *
+   * @public
    * @returns {DocumentReference | null}
    * @memberof EventServiceProvider
    */
@@ -134,6 +191,13 @@ export class EventServiceProvider {
     return this.copiedTodoRef;
   }
 
+  /**
+   * défini le todo en suspens d'être coller
+   *
+   * @public
+   * @param {DocumentReference} ref
+   * @memberof EventServiceProvider
+   */
   public setCopiedTodoRef(ref: DocumentReference): void {
     this.copiedTodoRef = ref;
   }
@@ -141,6 +205,7 @@ export class EventServiceProvider {
   /**
    * retourne le header
    *
+   * @public
    * @returns {BehaviorSubject<IPageData>}
    * @memberof EventServiceProvider
    */
@@ -151,6 +216,7 @@ export class EventServiceProvider {
   /**
    * permet de redéfinir les données du header
    *
+   * @public
    * @param {IPageData} newHeader
    * @memberof EventServiceProvider
    */
@@ -170,6 +236,7 @@ export class EventServiceProvider {
   /**
    * retourne le sujet de requête menu utilisateur
    *
+   * @public
    * @returns {Subject<IMenuRequest>}
    * @memberof EventServiceProvider
    */
@@ -180,6 +247,7 @@ export class EventServiceProvider {
   /**
    * retourne le sujet requetes de navigation interne
    *
+   * @public
    * @returns {Subject<INavRequest>}
    * @memberof EventServiceProvider
    */
@@ -190,6 +258,7 @@ export class EventServiceProvider {
   /**
    * retourne le sujet de recherche utilisateur
    *
+   * @public
    * @returns {Subject<string>}
    * @memberof EventServiceProvider
    */
