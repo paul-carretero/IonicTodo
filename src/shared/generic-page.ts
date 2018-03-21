@@ -112,7 +112,7 @@ export abstract class GenericPage {
   ionViewWillEnter() {
     this.navSub = this.evtCtrl
       .getNavRequestSubject()
-      .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page));
+      .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page, navReq.data));
 
     this.menuEvtSub = this.evtCtrl
       .getMenuRequestSubject()

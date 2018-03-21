@@ -1,4 +1,4 @@
-import { ILatLng } from '@ionic-native/google-maps';
+import { ILatLng } from '../model/latlng';
 
 import { ITodoList } from '../model/todo-list';
 import { ITodoListPath } from '../model/todo-list-path';
@@ -6,6 +6,7 @@ import { ICloudSharedList } from './../model/cloud-shared-list';
 import { IPageData } from './../model/page-data';
 import * as firebase from 'firebase';
 import { ITodoItem } from '../model/todo-item';
+import { IListMetadata } from '../model/list-metadata';
 
 /**
  * Contient des structure de données constante (ou semi constante)
@@ -176,7 +177,8 @@ export class Global {
       externTodos: [],
       icon: null,
       order: 0,
-      author: null
+      author: null,
+      metadata: Global.getBlankMetaData()
     };
   }
 
@@ -189,14 +191,20 @@ export class Global {
       deadline: null,
       address: null,
       complete: false,
-      notif: false,
-      SMSBeforeDeadline: false,
-      SMSNumber: null,
-      SMSOnDone: false,
+      notif: null,
+      SMSNumbers: [],
       picture: null,
       order: 0,
       author: null,
       completeAuthor: null
+    };
+  }
+
+  public static getBlankMetaData(): IListMetadata {
+    return {
+      todoComplete: 0,
+      todoTotal: 0,
+      atLeastOneLate: false
     };
   }
 

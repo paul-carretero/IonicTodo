@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Geolocation } from '@ionic-native/geolocation';
-import { ILatLng } from '@ionic-native/google-maps';
+import { ILatLng } from '../../model/latlng';
 import { NativeGeocoder } from '@ionic-native/native-geocoder';
 
 @Injectable()

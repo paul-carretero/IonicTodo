@@ -12,8 +12,8 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     <preference name="ScrollEnabled" value="false" />
-    <preference name="android-minSdkVersion" value="16" />
-    <preference name="android-targetSdkVersion" value="24" />
+    <preference name="android-minSdkVersion" value="21" />
+    <preference name="android-targetSdkVersion" value="26" />
     <preference name="BackupWebStorage" value="none" />
     <preference name="SplashMaintainAspectRatio" value="true" />
     <preference name="FadeSplashScreenDuration" value="300" />
@@ -83,23 +83,14 @@
     <plugin name="cordova-plugin-googleplus" spec="^5.2.1">
         <variable name="REVERSED_CLIENT_ID" value="60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com" />
     </plugin>
-    <allow-navigation href="http://192.168.1.76:8100" />
     <plugin name="cordova-plugin-geolocation" spec="^4.0.1">
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="position todo" />
     </plugin>
     <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.1" />
-    <plugin name="cordova-plugin-googlemaps" spec="^2.2.5">
-        <variable name="API_KEY_FOR_ANDROID" value="AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE" />
-        <variable name="API_KEY_FOR_IOS" value="AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE" />
-        <variable name="PLAY_SERVICES_VERSION" value="11.8.0" />
-        <variable name="ANDROID_SUPPORT_V4_VERSION" value="24.1.0" />
-    </plugin>
     <plugin name="cordova-plugin-local-notification" spec="^0.9.0-beta.2" />
     <plugin name="cordova-plugin-speechrecognition" spec="^1.2.0" />
-    <allow-navigation href="http://192.168.0.6:8101" />
     <plugin name="cordova-plugin-flashlight" spec="^3.2.0" />
-    <plugin name="cordova-plugin-nativegeocoder" spec="^3.1.1" />
     <plugin name="cordova-plugin-tts" spec="^0.2.3" />
     <plugin name="cordova-plugin-uniquedeviceid" spec="^1.3.2" />
     <plugin name="cordova-plugin-qrscanner" spec="^2.5.0" />
@@ -110,8 +101,11 @@
     <plugin name="phonegap-nfc" spec="^0.7.1" />
     <plugin name="ionic-plugin-keyboard" spec="^2.2.1" />
     <plugin name="cordova-plugin-contacts" spec="^3.0.1" />
-    <engine name="browser" spec="~5.0.3" />
     <plugin name="cordova-plugin-firebase" spec="^0.1.25" />
-    <engine name="android" spec="~7.0.0" />
     <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
+    <plugin name="cordova-plugin-nativegeocoder" spec="^3.1.1" />
+    <allow-navigation href="http://192.168.1.76:8100" />
+    <allow-navigation href="http://192.168.0.6:8101" />
+    <engine name="browser" spec="^5.0.3" />
+    <engine name="android" spec="~7.1.0" />
 </widget>

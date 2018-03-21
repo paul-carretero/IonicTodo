@@ -42,14 +42,6 @@
       <ion-label>Désactiver notifications:</ion-label>
       <ion-toggle [(ngModel)]="disableNotification" (ionChange)="defSetting($event,setting.DISABLE_NOTIF)"></ion-toggle>
     </ion-item>
-    <ion-item>
-      <ion-label color="dark">Quand?:</ion-label>
-      <ion-select [(ngModel)]="notifWhen" (ionChange)="defSettingNotif()">
-        <ion-option value="0">Lors de la deadline</ion-option>
-        <ion-option value="1">1H avant</ion-option>
-        <ion-option value="24">24H avant</ion-option>
-      </ion-select>
-    </ion-item>
     <ion-item-divider color="light">
       Divers
     </ion-item-divider>

@@ -35,36 +35,20 @@ export interface ITodoItem {
   desc: string | null;
 
   /**
-   * Vrai si l'on doit envoyer une notification (native) avant que le todo n'arrive à la deadline
+   * contient optionelement une date à laquelle envoyer une notification
    *
-   * @type {boolean}
+   * @type {{Date | null}}
    * @memberof TodoItem
    */
-  notif: boolean;
+  notif: Date | null;
 
   /**
-   * Vrai si l'on doit envoyer un SMS lorsque la tâche est réalisée
+   * numéro auxquel envoyer un sms une fois la tâche complétée
    *
-   * @type {boolean}
-   * @memberof TodoItem
-   */
-  SMSOnDone: boolean;
-
-  /**
-   * Vrai si l'on doit envoyer un SMS en même temps que la notification de deadline
-   *
-   * @type {boolean}
+   * @type {string}
    * @memberof ITodoItem
    */
-  SMSBeforeDeadline: boolean;
-
-  /**
-   * SMS auquel envoyer les notifications
-   *
-   * @type {{string | null}}
-   * @memberof ITodoItem
-   */
-  SMSNumber: string | null;
+  SMSNumbers: string[];
 
   /**
    * image en base64 de l'image

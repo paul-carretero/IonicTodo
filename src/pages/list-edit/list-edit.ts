@@ -302,7 +302,8 @@ export class ListEditPage extends GenericPage {
         icon: this.newList.value.icon,
         order: this.currentList.order,
         author: this.currentList.author,
-        externTodos: this.currentList.externTodos
+        externTodos: this.currentList.externTodos,
+        metadata: this.currentList.metadata
       },
       destType
     );
@@ -340,7 +341,8 @@ export class ListEditPage extends GenericPage {
         icon: this.newList.value.icon,
         author: null,
         order: 0,
-        externTodos: []
+        externTodos: [],
+        metadata: Global.getBlankMetaData()
       },
       destType
     );

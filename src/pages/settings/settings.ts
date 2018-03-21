@@ -1,9 +1,10 @@
+import { NotifServiceProvider } from './../../providers/notif-service/notif-service';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { Component } from '@angular/core';
 import { IonicPage } from 'ionic-angular';
 
 import { Settings } from '../../model/settings';
-import { SettingServiceProvider } from './../../providers/setting/setting-service';
+import { DBServiceProvider } from './../../providers/db/db-service';
 
 @IonicPage()
 @Component({
@@ -11,56 +12,48 @@ import { SettingServiceProvider } from './../../providers/setting/setting-servic
   templateUrl: 'settings.html'
 })
 export class SettingsPage {
-  public autoLogIn: boolean = false;
-  public disableOffline: boolean = false;
-  public disableSMS: boolean = false;
-  public disableNotification: boolean = false;
-  public autoReadAlert: boolean = false;
-  public autoImport: boolean = false;
-  public enableSTS: boolean = false;
-  public notifWhen: string = '0';
-  public setting = Settings;
+  protected autoLogIn: boolean = false;
+  protected disableOffline: boolean = false;
+  protected disableSMS: boolean = false;
+  protected disableNotification: boolean = false;
+  protected autoReadAlert: boolean = false;
+  protected autoImport: boolean = false;
+  protected enableSTS: boolean = false;
+  protected setting = Settings;
 
   constructor(
-    private readonly settingCtrl: SettingServiceProvider,
-    private readonly authCtrl: AuthServiceProvider
+    private readonly settingCtrl: DBServiceProvider,
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly notifCtrl: NotifServiceProvider
   ) {}
 
   ionViewDidLoad() {
     this.settingCtrl.getSetting(Settings.AUTO_LOG_IN).then(res => {
-      this.autoLogIn = res === 'true';
+      this.autoLogIn = res;
     });
 
     this.settingCtrl.getSetting(Settings.AUTO_READ_ALERT).then(res => {
-      this.autoReadAlert = res === 'true';
-    });
-
-    this.settingCtrl.getSetting(Settings.NOTIF_DELAY).then(res => {
-      if (res !== '') {
-        this.notifWhen = res;
-      } else {
-        this.notifWhen = '0';
-      }
+      this.autoReadAlert = res;
     });
 
     this.settingCtrl.getSetting(Settings.DISABLE_OFFLINE).then(res => {
-      this.disableOffline = res === 'true';
+      this.disableOffline = res;
     });
 
     this.settingCtrl.getSetting(Settings.DISABLE_NOTIF).then(res => {
-      this.disableNotification = res === 'true';
+      this.disableNotification = res;
     });
 
     this.settingCtrl.getSetting(Settings.DISABLE_SMS).then(res => {
-      this.disableSMS = res === 'true';
+      this.disableSMS = res;
     });
 
     this.settingCtrl.getSetting(Settings.AUTO_IMPORT).then(res => {
-      this.autoImport = res === 'true';
+      this.autoImport = res;
     });
 
     this.settingCtrl.getSetting(Settings.ENABLE_STS).then(res => {
-      this.enableSTS = res === 'true';
+      this.enableSTS = res;
     });
   }
 
@@ -68,16 +61,15 @@ export class SettingsPage {
     return this.authCtrl.isConnected();
   }
 
-  public defSetting(event: any, setting: Settings): void {
-    this.settingCtrl.setSetting(setting, event.value);
+  protected async defSetting(event: any, setting: Settings): Promise<void> {
+    await this.settingCtrl.setSetting(setting, event.value);
+    if (setting === Settings.DISABLE_NOTIF) {
+      this.notifCtrl.redefNotifStatus();
+    }
   }
 
-  public defSettingNotif(): void {
-    this.settingCtrl.setSetting(Settings.NOTIF_DELAY, this.notifWhen.toString());
-  }
-
-  public reset(): void {
-    this.settingCtrl.reset();
+  protected async reset(): Promise<void> {
+    await this.settingCtrl.resetSettings();
     this.ionViewDidLoad();
   }
 }

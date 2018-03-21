@@ -1,8 +1,7 @@
 import { DocumentReference } from '@firebase/firestore-types';
 
 import { IAuthor } from './author';
-import { Observable } from 'rxjs/Observable';
-import { ITodoItem } from './todo-item';
+import { IListMetadata } from './list-metadata';
 
 /**
  * Représente une liste de tâches
@@ -60,12 +59,12 @@ export interface ITodoList {
   author: IAuthor | null;
 
   /**
-   * Par simplicité, n'est pas sauvegardé et n'est utilisé que sur la page home pour le détail des todo fait/àfaire dans la liste.
+   * metadata static de la liste pour affichage
    *
-   * @type {Observable<ITodoItem[]>}
+   * @type {(IListMetadata | null)}
    * @memberof ITodoList
    */
-  items$?: Observable<ITodoItem[]>;
+  metadata: IListMetadata;
 }
 
 /**

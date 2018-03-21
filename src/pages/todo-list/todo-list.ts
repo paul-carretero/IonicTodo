@@ -10,7 +10,7 @@ import { MenuRequestType } from '../../model/menu-request-type';
 import { Settings } from '../../model/settings';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
-import { SettingServiceProvider } from '../../providers/setting/setting-service';
+import { DBServiceProvider } from '../../providers/db/db-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
@@ -174,7 +174,7 @@ export class TodoListPage extends GenericPage {
    * @param {UiServiceProvider} uiCtrl
    * @param {TodoServiceProvider} todoService
    * @param {NavParams} navParams
-   * @param {SettingServiceProvider} settingCtrl
+   * @param {DBServiceProvider} settingCtrl
    * @param {CloudServiceProvider} cloudCtrl
    * @memberof TodoListPage
    */
@@ -186,7 +186,7 @@ export class TodoListPage extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams,
-    private readonly settingCtrl: SettingServiceProvider,
+    private readonly settingCtrl: DBServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
@@ -374,8 +374,8 @@ export class TodoListPage extends GenericPage {
         break;
       case MenuRequestType.SHAKE:
         {
-          this.settingCtrl.getSetting(Settings.ENABLE_STS).then((res: string) => {
-            if (res === 'true') {
+          this.settingCtrl.getSetting(Settings.ENABLE_STS).then((res: boolean) => {
+            if (res) {
               this.cloudCtrl.stsExport(this.listUUID);
             }
           });
@@ -470,14 +470,14 @@ export class TodoListPage extends GenericPage {
    * @returns {Promise<void>}
    * @memberof TodoListPage
    */
-  protected async deleteTodo(todoRef: DocumentReference, ext: boolean): Promise<void> {
-    if (todoRef == null) {
+  protected async deleteTodo(todo: ITodoItem, ext: boolean): Promise<void> {
+    if (todo == null || todo.ref == null || todo.uuid == null) {
       return;
     }
     if (ext) {
-      this.todoService.removeTodoRef(this.listUUID, todoRef);
+      this.todoService.removeTodoRef(this.listUUID, todo.ref);
     } else {
-      this.todoService.deleteTodo(todoRef);
+      this.todoService.deleteTodo(todo.ref, todo.uuid);
     }
   }
 

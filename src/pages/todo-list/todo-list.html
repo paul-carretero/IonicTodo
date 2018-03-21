@@ -18,12 +18,12 @@
                             <ion-icon *ngIf="true" name="alert" item-end></ion-icon>
                         </ion-item>
                         <ion-item-options side="right" *ngIf="editable">
-                            <button (click)="deleteTodo(todo.ref, false)" ion-button color="danger">
+                            <button (click)="deleteTodo(todo, false)" ion-button color="danger">
                                 <ion-icon name="trash">supprimer</ion-icon>
                             </button>
                         </ion-item-options>
                         <ion-item-options side="left" *ngIf="editable">
-                            <button (click)="deleteTodo(todo.ref, false)" ion-button color="danger">
+                            <button (click)="deleteTodo(todo, false)" ion-button color="danger">
                                 <ion-icon name="trash">supprimer</ion-icon>
                             </button>
                         </ion-item-options>
@@ -44,12 +44,12 @@
                         <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
                     </ion-item>
                     <ion-item-options side="right" *ngIf="editable">
-                        <button (click)="deleteTodo(todo.ref, false)" ion-button color="danger">
+                        <button (click)="deleteTodo(todo, false)" ion-button color="danger">
                             <ion-icon name="trash">supprimer</ion-icon>
                         </button>
                     </ion-item-options>
                     <ion-item-options side="left" *ngIf="editable">
-                        <button (click)="deleteTodo(todo.ref, false)" ion-button color="danger">
+                        <button (click)="deleteTodo(todo, false)" ion-button color="danger">
                             <ion-icon name="trash">supprimer</ion-icon>
                         </button>
                     </ion-item-options>
@@ -71,12 +71,12 @@
                             <h2 (click)="selectTodo(todo.ref, true)">{{todo.name}}</h2>
                         </ion-item>
                         <ion-item-options side="right" *ngIf="editable">
-                            <button (click)="deleteTodo(todo.ref, true)" ion-button color="danger">
+                            <button (click)="deleteTodo(todo, true)" ion-button color="danger">
                                 <ion-icon name="trash">supprimer</ion-icon>
                             </button>
                         </ion-item-options>
                         <ion-item-options side="left" *ngIf="editable">
-                            <button (click)="deleteTodo(todo.ref, true)" ion-button color="danger">
+                            <button (click)="deleteTodo(todo, true)" ion-button color="danger">
                                 <ion-icon name="trash">supprimer</ion-icon>
                             </button>
                         </ion-item-options>

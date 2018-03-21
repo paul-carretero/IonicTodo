@@ -1,3 +1,4 @@
+import { NotifServiceProvider } from './../providers/notif-service/notif-service';
 import { Component } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
@@ -17,7 +18,8 @@ export class MyApp {
     statusBar: StatusBar,
     splashScreen: SplashScreen,
     private readonly cloudCtrl: CloudServiceProvider,
-    private readonly nfcCtrl: NfcProvider
+    private readonly nfcCtrl: NfcProvider,
+    private readonly notifCtrl: NotifServiceProvider
   ) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
@@ -33,5 +35,6 @@ export class MyApp {
   private startListeners(): void {
     this.cloudCtrl.listenForUpdate();
     this.nfcCtrl.listenForEvents();
+    this.notifCtrl.listenForEvents();
   }
 }

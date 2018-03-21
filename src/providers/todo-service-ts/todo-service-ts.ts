@@ -1,5 +1,6 @@
+import { NotifServiceProvider } from './../notif-service/notif-service';
 import { Global } from './../../shared/global';
-import { DocumentReference } from '@firebase/firestore-types';
+import { DocumentReference, DocumentSnapshot } from '@firebase/firestore-types';
 import { CloudServiceProvider } from './../cloud-service/cloud-service';
 import { IAuthor } from './../../model/author';
 import { ITodoItem } from './../../model/todo-item';
@@ -22,6 +23,7 @@ import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Subscription, Subject, Observable } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
 import { EventServiceProvider } from '../event/event-service';
+import { IListMetadata } from '../../model/list-metadata';
 
 @Injectable()
 export class TodoServiceProvider {
@@ -215,7 +217,8 @@ export class TodoServiceProvider {
   constructor(
     private readonly firestoreCtrl: AngularFirestore,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly evtCtrl: EventServiceProvider
+    private readonly evtCtrl: EventServiceProvider,
+    private readonly notifCtrl: NotifServiceProvider
   ) {
     this.todoLists = new BehaviorSubject<ITodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
@@ -282,11 +285,9 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   private userPublisher(): void {
-    this.userDataSub = this.currentUserDataDoc
-      .valueChanges()
-      .subscribe((data: IAppUser) => {
-        this.currentUserData.next(data);
-      });
+    this.userDataSub = this.currentUserDataDoc.valueChanges().subscribe((data: IAppUser) => {
+      this.currentUserData.next(data);
+    });
   }
 
   /**
@@ -337,13 +338,11 @@ export class TodoServiceProvider {
       obsArray.push(doc.valueChanges());
     }
 
-    this.sharedListSub = Observable.combineLatest(obsArray).subscribe(
-      (lists: ITodoList[]) => {
-        if (lists != null) {
-          this.sharedTodoLists.next(lists);
-        }
+    this.sharedListSub = Observable.combineLatest(obsArray).subscribe((lists: ITodoList[]) => {
+      if (lists != null) {
+        this.sharedTodoLists.next(lists);
       }
-    );
+    });
   }
 
   /**
@@ -535,11 +534,9 @@ export class TodoServiceProvider {
   public async addListLink(path: ITodoListPath): Promise<void> {
     const listsPathTab = this.getSharedListPathSnapchot();
     listsPathTab.push(path);
-    await this.currentUserDataDoc
-      .update({ todoListSharedWithMe: listsPathTab })
-      .catch(() => {
-        this.currentUserDataDoc.set({ todoListSharedWithMe: [path] });
-      });
+    await this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab }).catch(() => {
+      this.currentUserDataDoc.set({ todoListSharedWithMe: [path] });
+    });
   }
 
   /**
@@ -636,7 +633,8 @@ export class TodoServiceProvider {
       icon: data.icon,
       order: data.order,
       author: author,
-      externTodos: []
+      externTodos: [],
+      metadata: data.metadata
     });
     if (this.online) {
       await p;
@@ -884,9 +882,7 @@ export class TodoServiceProvider {
       if (todoUuid == null) {
         doc = await this.getFirestoreDocument(listUuid);
       } else {
-        doc = (await this.getFirestoreDocument(listUuid))
-          .collection('todo')
-          .doc(todoUuid);
+        doc = (await this.getFirestoreDocument(listUuid)).collection('todo').doc(todoUuid);
       }
     } catch (error) {
       return;
@@ -1159,6 +1155,7 @@ export class TodoServiceProvider {
       if (this.online) {
         await p;
       }
+      this.notifCtrl.onTodoUpdate(editedItem);
     } catch (error) {
       console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
       return;
@@ -1193,6 +1190,7 @@ export class TodoServiceProvider {
     if (this.online) {
       await p;
     }
+    this.notifCtrl.onTodoUpdate(newItem);
     return newItem.ref;
   }
 
@@ -1203,7 +1201,7 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async deleteTodo(ref: DocumentReference): Promise<void> {
+  public async deleteTodo(ref: DocumentReference, todoUuid: string): Promise<void> {
     if (ref == null) {
       return;
     }
@@ -1213,6 +1211,7 @@ export class TodoServiceProvider {
       if (this.online) {
         await p;
       }
+      this.notifCtrl.onTodoDelete(todoUuid);
     } catch (error) {
       console.log('Impossible de supprimer la tâche, tâche inexistante ?');
     }
@@ -1260,14 +1259,12 @@ export class TodoServiceProvider {
     }
 
     const todosCollection = listDoc.collection('todo');
-    const sub = todosCollection
-      .snapshotChanges()
-      .subscribe((snap: DocumentChangeAction[]) => {
-        for (const dca of snap) {
-          dca.payload.doc.ref.delete();
-        }
-        sub.unsubscribe();
-      });
+    const sub = todosCollection.snapshotChanges().subscribe((snap: DocumentChangeAction[]) => {
+      for (const dca of snap) {
+        dca.payload.doc.ref.delete();
+      }
+      sub.unsubscribe();
+    });
   }
 
   /**
@@ -1308,10 +1305,7 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async updateTodoOrder(
-    ref: DocumentReference | null,
-    order: number
-  ): Promise<void> {
+  public async updateTodoOrder(ref: DocumentReference | null, order: number): Promise<void> {
     if (ref == null || order == null) {
       return;
     }
@@ -1330,28 +1324,60 @@ export class TodoServiceProvider {
   }
 
   /**
-   *
-   * Permet de récupérer un flux de ITodoItem pour une liste
-   * Know bug: les todo externe ne sont pas mis à jour en cas de suppression-ajout :/
+   * recherche l'ensemble des todo pour l'ensemble des listes de l'utilisateur courrant (ou hors connexion).
+   * Effet de bord: comme l'opération est couteuse, publish cette liste dans l'evtCtrl
    *
    * @param {string} listUuid
-   * @returns {Promise<Observable<ITodoItem[]>>}
+   * @returns {Promise<IListMetadata>}
    * @memberof TodoServiceProvider
    */
-  public async getTodoDataFromList(listUuid: string): Promise<Observable<ITodoItem[]>> {
-    const list = await this.getFirestoreDocument(listUuid);
-    const obsTab: Observable<ITodoItem>[] = [];
-    const refs = await list.collection('todo').ref.get();
+  public async getListMetaData(listUuid: string): Promise<IListMetadata> {
+    const metaData = Global.getBlankMetaData();
 
-    for (const doc of refs.docs) {
-      obsTab.push(new AngularFirestoreDocument<ITodoItem>(doc.ref).valueChanges());
-    }
+    // init promises
+    const listP = this.getFirestoreDocument(listUuid);
     const extsRefs = this.getAListSnapshot(listUuid).externTodos;
+    const promises: Promise<DocumentSnapshot>[] = [];
     for (const ref of extsRefs) {
-      obsTab.push(new AngularFirestoreDocument<ITodoItem>(ref as any).valueChanges());
+      promises.push(ref.get());
     }
-    obsTab.push(Observable.of(Global.getBlankTodo())); // cause [] == false (ノಠ益ಠ)ノ彡┻━┻
-    return Observable.combineLatest(obsTab);
+
+    // regular todo
+    const items: ITodoItem[] = [];
+    const list = await listP;
+    const refs = await list.collection('todo').ref.get();
+    for (const doc of refs.docs) {
+      if (doc.exists) {
+        items.push(doc.data() as ITodoItem);
+      }
+    }
+
+    // on récupère les promises pour les ref de todo
+    const sharedDoc = await Promise.all(promises);
+    for (const doc of sharedDoc) {
+      if (doc.exists) {
+        items.push(doc.data() as ITodoItem);
+      }
+    }
+
+    // def MetaData
+    let completed = 0;
+    let oneLate = false;
+    const now = new Date().getTime();
+    for (const item of items) {
+      if (item.complete) {
+        completed++;
+      }
+      if (item.deadline != null && item.deadline.getTime() < now) {
+        oneLate = true;
+      }
+    }
+    metaData.todoComplete = completed;
+    metaData.todoTotal = items.length;
+    metaData.atLeastOneLate = oneLate;
+
+    this.evtCtrl.getLastTodosSnapSub().next(items);
+    return metaData;
   }
 
   /**
