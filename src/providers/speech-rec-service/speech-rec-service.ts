@@ -44,42 +44,30 @@ export class SpeechRecServiceProvider {
       (matches: string[]) => {
         this.uiCtrl.dismissLoading();
         console.log(matches);
-        let trouve : boolean = false;
         // phrases clés :
         // créer liste <nom_liste>
         // éditer list <nom_liste>
-        // ajouter tache <nom_tache> dans liste <nom_liste>
-        // éditer tache 
-        matches.forEach(
-            async s => {
-              if(s.includes("créer liste") && !trouve){ 
-                  trouve = true;
-                  this.creerListe(s);
-              }
-              if(s.includes("éditer liste") && !trouve){
-                  trouve = true;
-                  this.updateListe(s);
-              }
-              if(s.includes("éditer tache") && !trouve){ 
-                if(s.includes("liste")){
-                  trouve = true;
-                  this.updateTache(s);
-                }
-              }
-              if(s.includes("ajouter tâche") && !trouve){ 
-                if(s.includes("liste")){
-                  trouve = true;
-                  this.creerTache(s);
-                }
-              }   
-            }
-         );
-        if(!trouve){
-          console.log("pas de mots clés reconnus");
-          this.uiCtrl.alert('Erreur', 'Aucun mot clé n a été reconnu');
-          this.uiCtrl.dismissLoading();
+        // ajouter tâche <nom_tache> dans liste <nom_liste>
+        // éditer tâche <nom_tache> dans liste <nom_liste>
+        for(const item of matches){
+          const mots : string [] = item.split(" ");
+          if(mots.includes("créer") && mots.includes("liste")){
+            this.creerListe(mots);
+            break;
+          }
+          if(mots.includes("ajouter") && mots.includes("tâche")){
+            this.creerTache(mots);
+            break;
+          }
+          if(mots.includes("éditer") && mots.includes("liste")){
+            this.updateListe(mots);
+            break;
+          }
+          if(mots.includes("éditer") && mots.includes("tâche")){
+            this.updateTache(mots);
+            break;
+          }
         }
-        
       },
       () => {
         this.uiCtrl.alert('Erreur', 'une erreur inattendue est survenue');
@@ -88,11 +76,12 @@ export class SpeechRecServiceProvider {
     );
   }
 
-  private async creerListe(s : String) : Promise<void> {
+  private async creerListe(mots : string[]) : Promise<void> {
     console.log("dans créer liste");
     
     // on récupère le nom de la liste que l'on veut créer
-    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+    const nomListe : string = mots[mots.indexOf("liste") + 1];
+    
     console.log("Trouvé liste");
     console.log("nom de la liste :" + nomListe);
 
@@ -110,8 +99,8 @@ export class SpeechRecServiceProvider {
   }
 
  
-  private async updateListe(s : String) : Promise<void> {
-    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+  private async updateListe(mots : string[]) : Promise<void> {
+    const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("update de liste : " + nomListe);
     
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
@@ -120,9 +109,9 @@ export class SpeechRecServiceProvider {
     this.evtCtrl.getNavRequestSubject().next({page:'ListEditPage', data:{uuid: uuidListe}});
   }
 
-  private async updateTache(s : String) : Promise<void> {
-    const nomTache : string = s.slice(s.indexOf("tâche") + 6 );
-    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+  private async updateTache(mots : string[]) : Promise<void> {
+    const nomTache : string = mots[mots.indexOf("tâche") + 1];
+    const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("update de tache : " + nomTache   +" de la liste : " + nomListe);
     
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
@@ -132,10 +121,12 @@ export class SpeechRecServiceProvider {
   }
 
 
-  private async creerTache(s : String) : Promise<void> {
+  private async creerTache(mots : string[]) : Promise<void> {
     // phrase de la forme : ajouter tache <nom_tache> dans liste <nom_liste>
-    const nomTache : string = s.slice(s.indexOf("tâche") + 6 );
-    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+    const nomTache : string = mots[mots.indexOf("tâche") + 1];
+    
+    const nomListe : string = mots[mots.indexOf("liste") + 1];
+    
     console.log("créer todo : " + nomTache + " dans la liste : " + nomListe);
     
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
@@ -150,6 +141,7 @@ export class SpeechRecServiceProvider {
     this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
 
   }
+
 
   private speechWrapper(): void {
     this.uiCtrl.showLoading(
