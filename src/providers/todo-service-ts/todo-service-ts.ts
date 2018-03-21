@@ -799,6 +799,19 @@ export class TodoServiceProvider {
     return doc.valueChanges();
   }
 
+  public getListUUIDByName(name : string): string {
+    let uuidList : string | null ="";
+    this.localTodoLists.getValue().forEach(
+          liste => {
+            if(liste.name === name){
+              uuidList = liste.uuid;
+            }
+          }
+        );
+    return uuidList;
+
+  }
+
   /****************************** REMOVAL NOTIFS ****************************/
 
   /**

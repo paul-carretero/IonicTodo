@@ -5,6 +5,9 @@ import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { ListType, ITodoList } from '../../model/todo-list';
 import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
+//import { ITodoItem } from '../../model/todo-item';
+// import { ITodoItem } from '../../model/todo-item';
+//import { TodoListPage } from '../../pages/todo-list/todo-list';
 
 @Injectable()
 export class SpeechRecServiceProvider {
@@ -14,6 +17,7 @@ export class SpeechRecServiceProvider {
     private readonly speechRecognition: SpeechRecognition,
     private readonly evtCtrl: EventServiceProvider,
     private readonly todoService : TodoServiceProvider,
+    //private readonly navCtrl : NavController,
     private readonly uiCtrl: UiServiceProvider
   ) {
     console.log("constructor speech-rec-service");
@@ -41,16 +45,41 @@ export class SpeechRecServiceProvider {
         this.uiCtrl.dismissLoading();
         console.log(matches);
         let trouve : boolean = false;
+        // phrases clés :
+        // créer liste <nom_liste>
+        // éditer list <nom_liste>
+        // ajouter tache <nom_tache> dans liste <nom_liste>
+        // éditer tache 
         matches.forEach(
             async s => {
-              if(s.includes("créer") && !trouve){ 
-                if(s.includes("liste")){
+              if(s.includes("créer liste") && !trouve){ 
                   trouve = true;
                   this.creerListe(s);
+              }
+              if(s.includes("éditer liste") && !trouve){
+                  trouve = true;
+                  this.updateListe(s);
+              }
+              if(s.includes("éditer tache") && !trouve){ 
+                if(s.includes("liste")){
+                  trouve = true;
+                  this.updateTache(s);
                 }
-              }  
+              }
+              if(s.includes("ajouter tache") && !trouve){ 
+                if(s.includes("liste")){
+                  trouve = true;
+                  this.creerTache(s);
+                }
+              }   
             }
-            );
+         );
+        if(!trouve){
+          console.log("pas de mots clés reconnus");
+          this.uiCtrl.alert('Erreur', 'Aucun mot clé n a été reconnu');
+          this.uiCtrl.dismissLoading();
+        }
+        
       },
       () => {
         this.uiCtrl.alert('Erreur', 'une erreur inattendue est survenue');
@@ -60,28 +89,88 @@ export class SpeechRecServiceProvider {
   }
 
   private async creerListe(s : String) : Promise<void> {
-        const nomListe : string = s.slice(s.indexOf("liste") + 6 );
-        console.log("Trouvé liste");
-        console.log("nom de la liste :" + nomListe);
+    console.log("dans créer liste");
+    
+    // on récupère le nom de la liste que l'on veut créer
+    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+    console.log("Trouvé liste");
+    console.log("nom de la liste :" + nomListe);
 
-        const destType: ListType = ListType.LOCAL;
-        console.log("type" + destType);
+    const destType: ListType = ListType.LOCAL;
+    console.log("type" + destType);
 
-        const iconList = "Default";
+    const iconList = "list-box";
 
-        const data : ITodoList = {
-          uuid: null,
-          name: nomListe,
-          icon: iconList,
-          author: null,
-          order: 0,
-          externTodos: []
-        }
-        console.log("data : " + data);
-        const nextUuid = await this.todoService.addList(data, destType);
-        console.log("uuid : " + nextUuid);
+    const data : ITodoList = {
+      uuid: null,
+      name: nomListe,
+      icon: iconList,
+      author: null,
+      order: 0,
+      externTodos: []
+    }
+    console.log("data : " + data);
+    const nextUuid = await this.todoService.addList(data, destType);
+    console.log("uuid : " + nextUuid);
   }
 
+ 
+  private async updateListe(s : String) : Promise<void> {
+    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+    console.log("update de liste : " + nomListe);
+    
+    const uuidListe = this.todoService.getListUUIDByName(nomListe);
+    console.log("uuid liste : " + uuidListe);
+    
+    this.evtCtrl.getNavRequestSubject().next({page:'ListEditPage', data:{uuid: uuidListe}});
+  }
+
+  private async updateTache(s : String) : Promise<void> {
+    const nomTache : string = s.slice(s.indexOf("tache") + 6 );
+    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+    console.log("update de tache : " + nomTache   +" de la liste : " + nomListe);
+    
+    const uuidListe = this.todoService.getListUUIDByName(nomListe);
+    console.log("uuid liste : " + uuidListe);
+    console.log("type liste récupérée : " + this.todoService.getListType(uuidListe));
+    //this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: uuidListe}});
+  }
+
+
+  private async creerTache(s : String) : Promise<void> {
+    // phrase de la forme : ajouter tache <nom_tache> dans liste <nom_liste>
+    const nomTache : string = s.slice(s.indexOf("tache") + 6 );
+    const nomListe : string = s.slice(s.indexOf("liste") + 6 );
+    console.log("créer todo : " + nomTache + " dans la liste : " + nomListe);
+    
+   /*
+    const uuidListe = this.todoService.getListUUIDByName(nomListe);
+    console.log("uuid liste : " + uuidListe);
+
+    const data : ITodoItem = {
+       uuid : null,
+       ref : null,
+       notif : false,
+       SMSOnDone : false,
+       SMSNumber : null,
+       SMSBeforeDeadline : false,
+       picture : null,
+       complete : false,
+       deadline : null,
+       address : null,
+       author : null,
+       completeAuthor : null,
+       order : -1,
+       name : nomTache,
+       desc : ""
+    };
+
+    console.log("tache a ajouter : " + data.name);
+    */
+    //const nextUuid = await this.todoService.addTodo(uuidListe, data);  
+    //console.log("uuid : " + nextUuid);
+
+  }
 
   private speechWrapper(): void {
     this.uiCtrl.showLoading(
