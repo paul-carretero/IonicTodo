@@ -1,4 +1,4 @@
-import { ILatLng } from '@ionic-native/google-maps';
+import { ILatLng } from '../model/latlng';
 
 import { ITodoList } from '../model/todo-list';
 import { ITodoListPath } from '../model/todo-list-path';

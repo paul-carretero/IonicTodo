@@ -66,16 +66,21 @@ export class DBServiceProvider {
   private async initDatabase(): Promise<void> {
     this.dbObject = await this.sqlite.create(DBServiceProvider.SQL_CONFIG);
     const sql_settings =
-      'CREATE TABLE IF NOT EXISTS setting (id INTEGER PRIMARY KEY, value VARCHAR';
+      'CREATE TABLE IF NOT EXISTS setting (id INTEGER PRIMARY KEY, value VARCHAR)';
     const sql_notifs =
-      'CREATE TABLE IF NOT EXISTS notif (todo_uuid VARCHAR PRIMARY KEY, notif_id INTEGER UNIQUE, notif_ts INTEGER, user_uuid VARCHAR ))';
+      'CREATE TABLE IF NOT EXISTS notif (todo_uuid VARCHAR PRIMARY KEY, notif_id INTEGER UNIQUE, notif_ts INTEGER, user_uuid VARCHAR )';
     const sql_notifs_buffer =
       'CREATE TABLE IF NOT EXISTS notif_buffer (todo_uuid VARCHAR PRIMARY KEY)';
     const promises: Promise<any>[] = [];
     promises.push(this.dbObject.executeSql(sql_settings, {}));
     promises.push(this.dbObject.executeSql(sql_notifs, {}));
     promises.push(this.dbObject.executeSql(sql_notifs_buffer, {}));
-    await Promise.all(promises);
+
+    try {
+      await Promise.all(promises);
+    } catch (error) {
+      console.log(JSON.stringify(error));
+    }
   }
 
   /**************************************************************************/
@@ -193,6 +198,7 @@ export class DBServiceProvider {
     for (const todo of todos) {
       if (todo != null && todo.uuid != null) {
         const sql_insert = 'INSERT OR IGNORE INTO notif_buffer VALUES ( ' + todo.uuid + ' )';
+        console.log(sql_insert);
         promises.push(this.dbObject.executeSql(sql_insert, {}));
       }
     }
@@ -219,23 +225,24 @@ export class DBServiceProvider {
     let sql =
       'INSERT OR IGNORE INTO notif VALUES ( "' +
       todo_uuid +
-      '", "' +
+      '", ' +
       notif_id +
-      '", "' +
+      ', ' +
       notif_ts +
-      '" )';
+      ' )';
     if (user_uuid != null) {
       sql =
         'INSERT OR IGNORE INTO notif VALUES ( "' +
         todo_uuid +
         '", "' +
         notif_id +
-        '", "' +
+        ', ' +
         notif_ts +
-        '", "' +
+        ', "' +
         user_uuid +
         '" )';
     }
+    console.log(sql);
     await this.dbObject.executeSql(sql, {});
   }
 
@@ -249,7 +256,8 @@ export class DBServiceProvider {
    */
   public async deleteOutdatedNotif(now: number): Promise<void> {
     await this.ready;
-    const sql_delete = 'DELETE FROM notif WHERE notif_ts < ' + now + '';
+    const sql_delete = 'DELETE FROM notif WHERE notif_ts < ' + now;
+    console.log(sql_delete);
     await this.dbObject.executeSql(sql_delete, {});
   }
 
@@ -263,6 +271,7 @@ export class DBServiceProvider {
    */
   public async getAndDeleteNotificationId(todo_uuid: string): Promise<number | null> {
     const sql = 'SELECT notif_id FROM notif WHERE todo_uuid = "' + todo_uuid + '" ';
+    console.log(sql);
     let res: number | null = null;
     await this.ready;
     const result = await this.dbObject.executeSql(sql, {});
@@ -270,6 +279,7 @@ export class DBServiceProvider {
       res = Number(result.rows.item(0).notif_id);
     }
     const sql_del = "DELETE FROM notif WHERE todo_uuid = '" + todo_uuid + "' ";
+    console.log(sql_del);
     await this.dbObject.executeSql(sql_del, {});
     return res;
   }
@@ -283,6 +293,7 @@ export class DBServiceProvider {
    */
   public async getNextNotifId(): Promise<number> {
     const sql = 'SELECT MAX(notif_id) as res FROM notif';
+    console.log(sql);
     const result = await this.dbObject.executeSql(sql, {});
     if (result.rows.length === 0) {
       return 1;
@@ -310,8 +321,9 @@ export class DBServiceProvider {
       sql =
         "SELECT notif_id FROM notif WHERE todo_uuid NOT IN (SELECT todo_uuid FROM notif_buffer) AND (user_uuid IS NULL OR user_uuid = '" +
         user_uuid +
-        "' ";
+        "') ";
     }
+    console.log(sql);
     const result = await this.dbObject.executeSql(sql, {});
     for (let i = 0; i < result.rows.length; i++) {
       const n: number = result.rows.item(i).notif_id;
@@ -326,8 +338,9 @@ export class DBServiceProvider {
       sql =
         "DELETE FROM notif WHERE todo_uuid NOT IN (SELECT todo_uuid FROM notif_buffer) AND (user_uuid IS NULL OR user_uuid = '" +
         user_uuid +
-        "' ";
+        "') ";
     }
+    console.log(sql);
     await this.dbObject.executeSql(sql, {});
 
     return match;
@@ -343,6 +356,7 @@ export class DBServiceProvider {
   public async deleteNotifFromTodo(todo_uuid: string): Promise<void> {
     await this.ready;
     const sql = "DELETE FROM notif WHERE todo_uuid = '" + todo_uuid + "' ";
+    console.log(sql);
     await this.dbObject.executeSql(sql, {});
   }
 }

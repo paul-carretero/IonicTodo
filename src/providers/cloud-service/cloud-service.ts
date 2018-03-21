@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { DocumentSnapshot } from '@firebase/firestore-types';
-import { ILatLng } from '@ionic-native/google-maps';
+import { ILatLng } from '../../model/latlng';
 import {
   AngularFirestore,
   AngularFirestoreCollection,

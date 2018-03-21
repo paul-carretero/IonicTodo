@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ILatLng } from '@ionic-native/google-maps';
+import { ILatLng } from '../../model/latlng';
 import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFirestore } from 'angularfire2/firestore';
