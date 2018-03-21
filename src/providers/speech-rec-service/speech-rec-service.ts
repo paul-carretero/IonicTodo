@@ -5,8 +5,8 @@ import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { ListType, ITodoList } from '../../model/todo-list';
 import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
-//import { ITodoItem } from '../../model/todo-item';
-// import { ITodoItem } from '../../model/todo-item';
+import { Global } from '../../shared/global';
+import { ITodoItem } from '../../model/todo-item';
 //import { TodoListPage } from '../../pages/todo-list/todo-list';
 
 @Injectable()
@@ -66,7 +66,7 @@ export class SpeechRecServiceProvider {
                   this.updateTache(s);
                 }
               }
-              if(s.includes("ajouter tache") && !trouve){ 
+              if(s.includes("ajouter tâche") && !trouve){ 
                 if(s.includes("liste")){
                   trouve = true;
                   this.creerTache(s);
@@ -101,14 +101,9 @@ export class SpeechRecServiceProvider {
 
     const iconList = "list-box";
 
-    const data : ITodoList = {
-      uuid: null,
-      name: nomListe,
-      icon: iconList,
-      author: null,
-      order: 0,
-      externTodos: []
-    }
+    const data : ITodoList = Global.getBlankList();
+    data.name = nomListe;
+    data.icon = iconList;
     console.log("data : " + data);
     const nextUuid = await this.todoService.addList(data, destType);
     console.log("uuid : " + nextUuid);
@@ -126,7 +121,7 @@ export class SpeechRecServiceProvider {
   }
 
   private async updateTache(s : String) : Promise<void> {
-    const nomTache : string = s.slice(s.indexOf("tache") + 6 );
+    const nomTache : string = s.slice(s.indexOf("tâche") + 6 );
     const nomListe : string = s.slice(s.indexOf("liste") + 6 );
     console.log("update de tache : " + nomTache   +" de la liste : " + nomListe);
     
@@ -139,36 +134,20 @@ export class SpeechRecServiceProvider {
 
   private async creerTache(s : String) : Promise<void> {
     // phrase de la forme : ajouter tache <nom_tache> dans liste <nom_liste>
-    const nomTache : string = s.slice(s.indexOf("tache") + 6 );
+    const nomTache : string = s.slice(s.indexOf("tâche") + 6 );
     const nomListe : string = s.slice(s.indexOf("liste") + 6 );
     console.log("créer todo : " + nomTache + " dans la liste : " + nomListe);
     
-   /*
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
     console.log("uuid liste : " + uuidListe);
 
-    const data : ITodoItem = {
-       uuid : null,
-       ref : null,
-       notif : false,
-       SMSOnDone : false,
-       SMSNumber : null,
-       SMSBeforeDeadline : false,
-       picture : null,
-       complete : false,
-       deadline : null,
-       address : null,
-       author : null,
-       completeAuthor : null,
-       order : -1,
-       name : nomTache,
-       desc : ""
-    };
+    const data : ITodoItem = Global.getBlankTodo();
+    data.name = nomTache;
 
-    console.log("tache a ajouter : " + data.name);
-    */
-    //const nextUuid = await this.todoService.addTodo(uuidListe, data);  
-    //console.log("uuid : " + nextUuid);
+    const refDoc = await this.todoService.addTodo(uuidListe, data);  
+    console.log("ref doc : " + refDoc);
+
+    this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
 
   }
 
