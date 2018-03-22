@@ -55,15 +55,15 @@ export class SpeechRecServiceProvider {
             this.creerListe(mots);
             break;
           }
-          if(mots.includes("ajouter") && mots.includes("tâche")){
+          if(mots.includes("ajouter") && mots.includes("liste") && mots.includes("tâche")){
             this.creerTache(mots);
             break;
           }
-          if(mots.includes("éditer") && mots.includes("liste")){
+          if(mots.includes("éditer") && mots.includes("liste") && !mots.includes("tâche")){
             this.updateListe(mots);
             break;
           }
-          if(mots.includes("éditer") && mots.includes("tâche")){
+          if(mots.includes("éditer") && mots.includes("liste") && mots.includes("tâche")){
             this.updateTache(mots);
             break;
           }
@@ -116,8 +116,15 @@ export class SpeechRecServiceProvider {
     
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
     console.log("uuid liste : " + uuidListe);
-    console.log("type liste récupérée : " + this.todoService.getListType(uuidListe));
-    //this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: uuidListe}});
+    
+    this.todoService.getTodoRefByName(nomTache,uuidListe).subscribe( ref =>{
+      console.log("ref récupérée" + ref);
+      //if(ref != null){
+      //  this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: ref}});
+      //} 
+    })
+    
+    
   }
 
 

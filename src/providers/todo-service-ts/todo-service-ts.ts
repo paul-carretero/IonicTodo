@@ -838,8 +838,34 @@ export class TodoServiceProvider {
           }
         );
     return uuidList;
-
   }
+
+  public getTodoRefByName(name : string, uuidListe : string): Observable<DocumentReference | null> {
+    let ref : DocumentReference | null = null ;
+    let todoItems : ITodoItem[];
+    for(const liste of this.localTodoLists.getValue()){
+      if(liste.uuid === uuidListe){
+        console.log("liste trouve");
+        this.getPrivateTodos(uuidListe, false)
+        .then((res: Observable<ITodoItem[]>) => {
+          res.subscribe(tab => {
+            todoItems = tab;
+            for(const todo of todoItems){
+              if(todo.name === name){
+                ref = todo.ref;
+                if(ref != null){
+                  console.log("ref trouve : " + ref.id);
+                }
+                this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: ref}});
+              }
+            }
+          });
+        });
+      }  
+    }
+    return Observable.of(ref);
+  }
+
 
   /****************************** REMOVAL NOTIFS ****************************/
 
