@@ -7,6 +7,7 @@ import { ListType, ITodoList } from '../../model/todo-list';
 import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
 import { Global } from '../../shared/global';
 import { ITodoItem } from '../../model/todo-item';
+import { AuthServiceProvider } from '../auth-service/auth-service';
 //import { TodoListPage } from '../../pages/todo-list/todo-list';
 
 @Injectable()
@@ -17,8 +18,8 @@ export class SpeechRecServiceProvider {
     private readonly speechRecognition: SpeechRecognition,
     private readonly evtCtrl: EventServiceProvider,
     private readonly todoService : TodoServiceProvider,
-    //private readonly navCtrl : NavController,
-    private readonly uiCtrl: UiServiceProvider
+    private readonly uiCtrl: UiServiceProvider,
+    private readonly authCtrl: AuthServiceProvider
   ) {
     console.log("constructor speech-rec-service");
     this.listenForSpeechRequest();
@@ -97,7 +98,11 @@ export class SpeechRecServiceProvider {
     console.log("Trouvé liste");
     console.log("nom de la liste :" + nomListe);
 
-    const destType: ListType = ListType.LOCAL;
+    let destType: ListType = ListType.LOCAL;
+    if(this.authCtrl.isConnected()){
+      destType = ListType.PRIVATE;
+    }
+    
     console.log("type" + destType);
 
     const iconList = "list-box";
@@ -119,7 +124,7 @@ export class SpeechRecServiceProvider {
     this.todoService.deleteList(uuidListe);
   }
 
-  private async supprimerTache(mots : string[]) : Promise<void> {
+  private supprimerTache(mots : string[]) : void {
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     const nomTache : string = mots[mots.indexOf("tâche") + 1];
     console.log("supprimer tache : " + nomTache +" de la liste : " + nomListe);
@@ -141,7 +146,7 @@ export class SpeechRecServiceProvider {
 
   }
  
-  private async updateListe(mots : string[]) : Promise<void> {
+  private updateListe(mots : string[]) : void {
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("update de liste : " + nomListe);
     
@@ -151,7 +156,7 @@ export class SpeechRecServiceProvider {
     this.evtCtrl.getNavRequestSubject().next({page:'ListEditPage', data:{uuid: uuidListe}});
   }
 
-  private async updateTache(mots : string[]) : Promise<void> {
+  private updateTache(mots : string[]) : void {
     const nomTache : string = mots[mots.indexOf("tâche") + 1];
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("update de tache : " + nomTache   +" de la liste : " + nomListe);
