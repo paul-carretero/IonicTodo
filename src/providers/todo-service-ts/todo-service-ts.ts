@@ -840,6 +840,31 @@ export class TodoServiceProvider {
     return uuidList;
   }
 
+  public deleteTodoByName(name : string, uuidListe : string): void {
+    let ref : DocumentReference | null = null ;
+    let todoItems : ITodoItem[];
+    for(const liste of this.localTodoLists.getValue()){
+      if(liste.uuid === uuidListe){
+        console.log("liste trouve");
+        this.getPrivateTodos(uuidListe, false)
+        .then((res: Observable<ITodoItem[]>) => {
+          res.subscribe(tab => {
+            todoItems = tab;
+            for(const todo of todoItems){
+              if(todo.name === name){
+                ref = todo.ref;
+                if(ref != null && todo.uuid !=null){
+                  console.log("ref trouve : " + ref.id);
+                  this.deleteTodo(ref, todo.uuid);
+                }
+              }
+            }
+          });
+        });
+      }  
+    }
+  }
+
   public goEditTodoByName(name : string, uuidListe : string): void {
     let ref : DocumentReference | null = null ;
     let todoItems : ITodoItem[];
@@ -863,7 +888,6 @@ export class TodoServiceProvider {
         });
       }  
     }
-    //return Observable.of(ref);
   }
 
 

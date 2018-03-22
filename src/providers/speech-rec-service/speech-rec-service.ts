@@ -122,7 +122,9 @@ export class SpeechRecServiceProvider {
     
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
     console.log("uuid liste : " + uuidListe);
-    
+    this.todoService.deleteTodoByName(nomTache, uuidListe);    
+    this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
+
   }
 
  
@@ -144,16 +146,7 @@ export class SpeechRecServiceProvider {
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
     console.log("uuid liste : " + uuidListe);
     
-    this.todoService.goEditTodoByName(nomTache,uuidListe);
-    /*
-    this.todoService.getTodoRefByName(nomTache,uuidListe).subscribe( ref =>{
-      console.log("ref récupérée" + ref);
-      //if(ref != null){
-      //  this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: ref}});
-      //} 
-    })*/
-    
-    
+    this.todoService.goEditTodoByName(nomTache,uuidListe);    
   }
 
 
