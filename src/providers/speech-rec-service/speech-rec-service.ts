@@ -67,6 +67,10 @@ export class SpeechRecServiceProvider {
             this.updateTache(mots);
             break;
           }
+          if(mots.includes("supprimer") && mots.includes("liste") && !mots.includes("tâche")){
+            this.supprimerListe(mots);
+            break;
+          }
         }
       },
       () => {
@@ -96,6 +100,15 @@ export class SpeechRecServiceProvider {
     console.log("data : " + data);
     const nextUuid = await this.todoService.addList(data, destType);
     console.log("uuid : " + nextUuid);
+  }
+
+  private async supprimerListe(mots : string[]) : Promise<void> {
+    const nomListe : string = mots[mots.indexOf("liste") + 1];
+    console.log("supprimer liste : " + nomListe);
+    
+    const uuidListe = this.todoService.getListUUIDByName(nomListe);
+    console.log("uuid liste : " + uuidListe);
+    this.todoService.deleteList(uuidListe);
   }
 
  
