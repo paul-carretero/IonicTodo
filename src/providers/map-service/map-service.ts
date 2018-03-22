@@ -1,13 +1,15 @@
+import { ILatLng } from '@ionic-native/google-maps';
 import { Injectable } from '@angular/core';
 import { Geolocation } from '@ionic-native/geolocation';
-import { ILatLng } from '../../model/latlng';
 import { NativeGeocoder } from '@ionic-native/native-geocoder';
+import { UiServiceProvider } from '../ui-service/ui-service';
 
 @Injectable()
 export class MapServiceProvider {
   constructor(
     private readonly nativeGeocoder: NativeGeocoder,
-    private readonly geolocCtrl: Geolocation
+    private readonly geolocCtrl: Geolocation,
+    private readonly uiCtrl: UiServiceProvider
   ) {}
 
   public coordToAddress(lat: number, long: number): Promise<string> {
@@ -66,7 +68,9 @@ export class MapServiceProvider {
       const geoPos = await this.geolocCtrl.getCurrentPosition({ timeout: 5000 });
       return { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };
     } catch (error) {
-      console.log();
+      this.uiCtrl.displayToast(
+        "Impossible d'obtenir votre position, veuillez vérifier vos paramètres"
+      );
       return null;
     }
   }

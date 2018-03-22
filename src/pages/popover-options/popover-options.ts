@@ -11,11 +11,14 @@ import { MenuRequestType } from '../../model/menu-request-type';
   templateUrl: 'popover-options.html'
 })
 export class PopoverOptionsPage {
-  public editable: boolean;
-  public shareable: boolean;
-  public importable: boolean;
-  public pastable: boolean;
-  public copiable: boolean;
+  protected editable: boolean;
+  protected shareable: boolean;
+  protected importable: boolean;
+  protected pastable: boolean;
+  protected copiable: boolean;
+  protected isList: boolean;
+
+  protected request = MenuRequestType;
 
   /**
    * Creates an instance of PopoverOptionsPage.
@@ -35,8 +38,9 @@ export class PopoverOptionsPage {
     this.shareable = this.evtCtrl.getHeader().shareable;
     this.importable = this.evtCtrl.getHeader().importable;
     this.copiable = this.evtCtrl.getHeader().copiable;
+    this.isList = this.evtCtrl.getHeader().isList;
     this.pastable =
-      this.evtCtrl.getHeader().pastable && this.evtCtrl.getCopiedTodoRef != null;
+      this.evtCtrl.getHeader().pastable && this.evtCtrl.getCopiedTodoRef() != null;
   }
 
   private openSendMenu(): void {
@@ -125,18 +129,8 @@ export class PopoverOptionsPage {
     actionSheet.present();
   }
 
-  public close() {
+  protected close() {
     this.viewCtrl.dismiss();
-  }
-
-  public delete() {
-    this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.DELETE });
-  }
-
-  public edit() {
-    this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.EDIT });
   }
 
   /**
@@ -144,7 +138,7 @@ export class PopoverOptionsPage {
    *
    * @memberof PopoverOptionsPage
    */
-  public share() {
+  protected share() {
     this.viewCtrl.dismiss();
     this.openShareMenu();
   }
@@ -154,28 +148,24 @@ export class PopoverOptionsPage {
    *
    * @memberof PopoverOptionsPage
    */
-  public send() {
+  protected send() {
     this.viewCtrl.dismiss();
     this.openSendMenu();
   }
 
-  public help() {
+  /**
+   * envoi une notification d'action menu d'un type défini
+   *
+   * @protected
+   * @param {MenuRequestType} type
+   * @returns {void}
+   * @memberof PopoverOptionsPage
+   */
+  protected basicRequest(type: MenuRequestType): void {
+    if (type == null) {
+      return;
+    }
     this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.HELP });
-  }
-
-  public import() {
-    this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.IMPORT });
-  }
-
-  public copy() {
-    this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.COPY });
-  }
-
-  public paste() {
-    this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.PASTE });
+    this.evtCtrl.getMenuRequestSubject().next({ request: type });
   }
 }

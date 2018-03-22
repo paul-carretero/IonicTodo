@@ -244,6 +244,7 @@ export class EventServiceProvider {
     this.headerData.validable = newHeader.validable;
     this.headerData.copiable = newHeader.copiable;
     this.headerData.pastable = newHeader.pastable;
+    this.headerData.isList = newHeader.isList;
   }
 
   /**

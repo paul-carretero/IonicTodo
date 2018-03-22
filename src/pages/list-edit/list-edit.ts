@@ -155,7 +155,7 @@ export class ListEditPage extends GenericPage {
    * @param {IMenuRequest} req
    * @memberof ListEditPage
    */
-  public menuEventHandler(req: IMenuRequest): void {
+  protected menuEventHandler(req: IMenuRequest): void {
     switch (req.request) {
       case MenuRequestType.VALIDATE:
         this.defList();
@@ -164,22 +164,14 @@ export class ListEditPage extends GenericPage {
   }
 
   /**
-   * @override
-   * @returns {string}
-   * @memberof ListEditPage
-   */
-  public generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  /**
    * Authentification si liste partagée ou privée, sinon ok
    *
    * @override
+   * @protected
    * @returns {boolean}
    * @memberof ListEditPage
    */
-  public loginAuthRequired(): boolean {
+  protected loginAuthRequired(): boolean {
     return this.listType === ListType.PRIVATE || this.listType === ListType.SHARED;
   }
 
@@ -187,10 +179,11 @@ export class ListEditPage extends GenericPage {
    * Nécessaire d'être en mode navigation (offline ou connecté)
    *
    * @override
+   * @protected
    * @returns {boolean} true
    * @memberof ListEditPage
    */
-  public basicAuthRequired(): boolean {
+  protected basicAuthRequired(): boolean {
     return true;
   }
 

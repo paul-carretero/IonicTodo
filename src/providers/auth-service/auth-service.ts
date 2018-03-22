@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { ILatLng } from '../../model/latlng';
 import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFirestore } from 'angularfire2/firestore';
@@ -13,6 +12,7 @@ import { Global } from './../../shared/global';
 import { EventServiceProvider } from './../event/event-service';
 import { MapServiceProvider } from './../map-service/map-service';
 import { DBServiceProvider } from './../db/db-service';
+import { ILatLng } from '@ionic-native/google-maps';
 
 @Injectable()
 export class AuthServiceProvider {

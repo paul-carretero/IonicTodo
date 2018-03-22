@@ -8,7 +8,6 @@ import { IPageData } from '../../model/page-data';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
-import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ISimpleContact } from './../../model/simple-contact';
@@ -62,10 +61,10 @@ export class ContactModalPage extends GenericPage {
    * Map (ID=>contact)
    * Associe un id de contact à un objet de contact simplifié
    *
-   * @type {Map<string, ISimpleContact>}
+   * @type {ISimpleContact[]}
    * @memberof ContactModalPage
    */
-  protected exportedContacts: Map<string, ISimpleContact>;
+  protected exportedContacts: ISimpleContact[];
 
   /**
    * Ensemble des contacts du terminal
@@ -85,7 +84,6 @@ export class ContactModalPage extends GenericPage {
    * @param {NavController} navCtrl
    * @param {EventServiceProvider} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
-   * @param {TodoServiceProvider} todoCtrl
    * @param {AuthServiceProvider} authCtrl
    * @param {UiServiceProvider} uiCtrl
    * @param {ViewController} viewCtrl
@@ -93,14 +91,13 @@ export class ContactModalPage extends GenericPage {
    * @memberof ContactModalPage
    */
   constructor(
-    public readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly viewCtrl: ViewController,
+    private readonly navParams: NavParams,
     private readonly contactsCtrl: Contacts
   ) {
     super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
@@ -193,7 +190,15 @@ export class ContactModalPage extends GenericPage {
    * @memberof ContactModalPage
    */
   protected isSelected(contact: Contact): boolean {
-    return this.exportedContacts.has(contact.id);
+    const finded = this.exportedContacts.find(c => c.id === contact.id);
+    return finded != null;
+  }
+
+  private deleteFromContact(contactId: string): void {
+    const id = this.exportedContacts.findIndex(c => c.id === contactId);
+    if (id !== -1) {
+      this.exportedContacts.splice(id, 1);
+    }
   }
 
   /**
@@ -205,7 +210,7 @@ export class ContactModalPage extends GenericPage {
    */
   protected select(contact: Contact): void {
     if (this.isSelected(contact)) {
-      this.exportedContacts.delete(contact.id);
+      this.deleteFromContact(contact.id);
     } else {
       let email: string | undefined;
       if (contact.emails != null) {
@@ -219,7 +224,7 @@ export class ContactModalPage extends GenericPage {
         mobile: this.getMobile(contact)
       };
 
-      this.exportedContacts.set(contact.id, newSimpleContact);
+      this.exportedContacts.push(newSimpleContact);
     }
   }
 

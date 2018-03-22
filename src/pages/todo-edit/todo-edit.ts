@@ -112,10 +112,6 @@ export class TodoEditPage extends GenericPage {
     });
   }
 
-  protected generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
   private async defNewTodo(): Promise<void> {
     if (this.listUuid == null) {
       return;
@@ -161,13 +157,5 @@ export class TodoEditPage extends GenericPage {
     } else {
       this.editTodo();
     }
-  }
-
-  protected loginAuthRequired(): boolean {
-    return false;
-  }
-
-  protected basicAuthRequired(): boolean {
-    return true;
   }
 }

@@ -16,4 +16,5 @@ export interface IPageData {
   searchPlaceholders: string;
   copiable: boolean;
   pastable: boolean;
+  isList: boolean;
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { DocumentSnapshot } from '@firebase/firestore-types';
-import { ILatLng } from '../../model/latlng';
 import {
   AngularFirestore,
   AngularFirestoreCollection,
@@ -23,6 +22,7 @@ import { MapServiceProvider } from './../map-service/map-service';
 import { DBServiceProvider } from './../db/db-service';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../ui-service/ui-service';
+import { ILatLng } from '@ionic-native/google-maps';
 
 @Injectable()
 export class CloudServiceProvider {

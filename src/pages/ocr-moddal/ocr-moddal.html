@@ -1,0 +1,11 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+<ion-content padding>
+  <img *ngIf="srcImage" #image id="image" [src]="srcImage" [height]="maxHeight" class="center" />
+</ion-content>
+
+<ion-footer padding>
+  <button [disabled]="!cameraOn" ion-button full large round (click)="scanOCR()">Scanner une liste</button>
+</ion-footer>

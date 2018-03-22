@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MenuController, PopoverController, Searchbar } from 'ionic-angular';
 
@@ -38,6 +39,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   public displaySearchBar: boolean = false;
 
+  protected readonly netStatus: Observable<boolean>;
+
   /**************************** PRIVATE FIELDS ******************************/
 
   /**
@@ -66,6 +69,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly sprec : SpeechRecServiceProvider
   ) {
     this.data = this.evtCtrl.getHeader();
+    this.netStatus = this.evtCtrl.getNetStatusObs();
   }
 
   /**************************************************************************/

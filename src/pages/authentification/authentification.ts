@@ -1,4 +1,3 @@
-import { IMenuRequest } from './../../model/menu-request';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@firebase/auth-types';
@@ -10,8 +9,8 @@ import { Subscription } from 'rxjs/Rx';
 
 import { FirebaseCredentials } from '../../app/firebase.credentials';
 import { Settings } from '../../model/settings';
-import { EventServiceProvider } from '../../providers/event/event-service';
 import { DBServiceProvider } from '../../providers/db/db-service';
+import { EventServiceProvider } from '../../providers/event/event-service';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from './../../providers/speech-synth-service/speech-synth-service';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
@@ -343,16 +342,6 @@ export class AuthentificationPage extends GenericPage {
 
   /**
    * @protected
-   * @param {IMenuRequest} req
-   * @memberof AuthentificationPage
-   */
-  protected menuEventHandler(req: IMenuRequest): void {
-    switch (req.request) {
-    }
-  }
-
-  /**
-   * @protected
    * @returns {boolean}
    * @memberof AuthentificationPage
    */
@@ -367,14 +356,5 @@ export class AuthentificationPage extends GenericPage {
    */
   protected basicAuthRequired(): boolean {
     return false;
-  }
-
-  /**
-   * @protected
-   * @returns {string}
-   * @memberof AuthentificationPage
-   */
-  protected generateDescription(): string {
-    throw new Error('Method not implemented.');
   }
 }

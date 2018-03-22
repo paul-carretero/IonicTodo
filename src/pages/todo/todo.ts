@@ -97,6 +97,12 @@ export class TodoPage extends GenericPage {
     });
   }
 
+  /**
+   * @override
+   * @protected
+   * @param {IMenuRequest} req
+   * @memberof TodoPage
+   */
   protected menuEventHandler(req: IMenuRequest): void {
     switch (req.request) {
       case MenuRequestType.DELETE: {
@@ -120,14 +126,5 @@ export class TodoPage extends GenericPage {
         break;
       }
     }
-  }
-  protected generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-  protected loginAuthRequired(): boolean {
-    return false;
-  }
-  protected basicAuthRequired(): boolean {
-    return true;
   }
 }

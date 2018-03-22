@@ -5,14 +5,13 @@ import { ScreenOrientation } from '@ionic-native/screen-orientation';
 import { IonicPage, NavController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
-import { IMenuRequest } from '../../../model/menu-request';
 import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
+import { Global } from '../../../shared/global';
 import { GenericReceiver } from '../generic-receiver';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../../../providers/ui-service/ui-service';
-import { Global } from '../../../shared/global';
 
 @IonicPage()
 @Component({
@@ -20,11 +19,9 @@ import { Global } from '../../../shared/global';
   templateUrl: 'qr-reader.html'
 })
 export class QrReaderPage extends GenericReceiver {
-  private static readonly MAX_SCAN_TIME = 10000;
-
-  private static readonly cameraPreviewOpts: CameraPreviewOptions = {
+  private static readonly CAMERA_OPTS: CameraPreviewOptions = {
     x: 0,
-    y: 60,
+    y: 120,
     width: window.screen.width,
     height: window.screen.height / 2,
     camera: 'rear',
@@ -34,20 +31,49 @@ export class QrReaderPage extends GenericReceiver {
     alpha: 1
   };
 
+  /**
+   * Durée maximum avant d'abandonner la recherche de code QRCode
+   *
+   * @private
+   * @static
+   * @memberof QrReaderPage
+   */
+  private static readonly MAX_SCAN_TIME = 10000;
+
+  /**
+   * vrai si on peut démarrer le scan de qr code == si la class de scan est prepared
+   *
+   * @memberof QrReaderPage
+   */
   public okToScan = false;
+
+  /**
+   * vrai si la visualisation est activée, faux sinon
+   *
+   * @private
+   * @memberof QrReaderPage
+   */
   private cameraOn = false;
+
+  /**
+   * subscription aux résultat d'un scan de qr code
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof QrReaderPage
+   */
   private scanSub: Subscription;
 
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly todoCtrl: TodoServiceProvider,
+    protected readonly todoCtrl: TodoServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
+    protected readonly authCtrl: AuthServiceProvider,
     private readonly qrScanner: QRScanner,
     private readonly cameraPreview: CameraPreview,
-    private readonly screenCtrl: ScreenOrientation,
-    protected readonly authCtrl: AuthServiceProvider
+    private readonly screenCtrl: ScreenOrientation
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
@@ -82,7 +108,7 @@ export class QrReaderPage extends GenericReceiver {
   private async startPreview(): Promise<void> {
     if (this.cameraOn === false) {
       this.qrScanner.destroy();
-      await this.cameraPreview.startCamera(QrReaderPage.cameraPreviewOpts);
+      await this.cameraPreview.startCamera(QrReaderPage.CAMERA_OPTS);
       this.cameraOn = true;
     }
   }
@@ -125,14 +151,5 @@ export class QrReaderPage extends GenericReceiver {
     });
 
     this.timeoutNoData();
-  }
-
-  public generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  public menuEventHandler(req: IMenuRequest): void {
-    switch (req) {
-    }
   }
 }

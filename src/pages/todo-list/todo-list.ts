@@ -1,5 +1,5 @@
-import { DocumentReference } from '@firebase/firestore-types';
 import { Component } from '@angular/core';
+import { DocumentReference } from '@firebase/firestore-types';
 import { IonicPage, NavController, NavParams, reorderArray } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
@@ -9,8 +9,8 @@ import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { Settings } from '../../model/settings';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
-import { EventServiceProvider } from '../../providers/event/event-service';
 import { DBServiceProvider } from '../../providers/db/db-service';
+import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
@@ -217,10 +217,9 @@ export class TodoListPage extends GenericPage {
     const pageData = Global.getShareEditPageData();
     pageData.searchable = true;
     pageData.subtitle = 'Détails des tâches';
+    pageData.isList = true;
     this.initDataList(pageData);
-
     this.initTodoLists();
-
     this.deleteSub = this.todoService
       .getDeleteSubject(this.listUUID)
       .subscribe(() => this.hasBeenRemoved(true));
@@ -343,6 +342,7 @@ export class TodoListPage extends GenericPage {
   /**************************************************************************/
 
   /**
+   * @override
    * @protected
    * @param {IMenuRequest} req
    * @returns {void}
@@ -363,6 +363,13 @@ export class TodoListPage extends GenericPage {
         this.importList();
         break;
       }
+      case MenuRequestType.OCR:
+        {
+          this.navCtrl.push('OcrModdalPage', {
+            listUuid: this.listUUID
+          });
+        }
+        break;
       case MenuRequestType.PASTE:
         {
           const todoRef = this.evtCtrl.getCopiedTodoRef();
@@ -431,15 +438,7 @@ export class TodoListPage extends GenericPage {
   }
 
   /**
-   * @protected
-   * @returns {string}
-   * @memberof TodoListPage
-   */
-  protected generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  /**
+   * @override
    * @protected
    * @returns {boolean}
    * @memberof TodoListPage
@@ -449,6 +448,7 @@ export class TodoListPage extends GenericPage {
   }
 
   /**
+   * @override
    * @protected
    * @returns {boolean}
    * @memberof TodoListPage

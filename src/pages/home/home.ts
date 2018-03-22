@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, reorderArray } from 'ionic-angular';
+import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
 import { ITodoList, ListType } from '../../model/todo-list';
@@ -7,12 +8,9 @@ import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { GenericPage } from '../../shared/generic-page';
-import { IMenuRequest } from './../../model/menu-request';
-import { ITodoItem } from './../../model/todo-item';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
-import { Subscription } from 'rxjs';
 
 /**
  * Page principale de l'application.
@@ -251,51 +249,6 @@ export class HomePage extends GenericPage {
   }
 
   /**************************************************************************/
-  /******************************* OVERRIDES ********************************/
-  /**************************************************************************/
-
-  /**
-   *
-   * @override
-   * @param {IMenuRequest} req
-   * @memberof HomePage
-   */
-  protected menuEventHandler(req: IMenuRequest): void {
-    switch (req) {
-    }
-  }
-
-  /**
-   *
-   * @override
-   * @returns {string}
-   * @memberof HomePage
-   */
-  protected generateDescription(): string {
-    let description = 'Voici vos liste de tâches en cours:';
-    description += 'Voici vos liste de tâches terminé:';
-    return description;
-  }
-
-  /**
-   * @protected
-   * @returns {boolean}
-   * @memberof HomePage
-   */
-  protected loginAuthRequired(): boolean {
-    return false;
-  }
-
-  /**
-   * @protected
-   * @returns {boolean}
-   * @memberof HomePage
-   */
-  protected basicAuthRequired(): boolean {
-    return true;
-  }
-
-  /**************************************************************************/
   /********************************* GETTER *********************************/
   /**************************************************************************/
 
@@ -306,54 +259,6 @@ export class HomePage extends GenericPage {
   /**************************************************************************/
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/
-
-  /**
-   * Dans une liste de todo, recherche si au moins un todo est en retard par rapport à la deadline
-   * Un todo est en retard si la date courrante est superieure à sa deadline
-   *
-   * @param {ITodoList} list une liste de todo
-   * @returns {boolean} true si au moins un todo est en retard
-   * @memberof HomePage
-   */
-  protected isOneTodoLate(): boolean {
-    return true;
-    //TODO
-  }
-
-  /**
-   * Calcul le nombre de todo complété dans un tableau de todo
-   *
-   * @param {ITodoItem[]} list un tableaud de todo
-   * @returns {Number} le nombre de todo complété dans un tableaud do todo
-   * @memberof HomePage
-   */
-  protected getCompleted(list: ITodoItem[]): Number {
-    if (list == null) {
-      return 0;
-    }
-    let res = 0;
-    for (const item of list) {
-      if (item != null && item.complete) {
-        res++;
-      }
-    }
-    return res;
-  }
-
-  /**
-   * return true si la liste contient des item non complété, false sinon
-   *
-   * @protected
-   * @param {ITodoItem[]} items
-   * @returns {boolean}
-   * @memberof HomePage
-   */
-  protected isNotComplete(items: ITodoItem[]): boolean {
-    if (items == null) {
-      return true;
-    }
-    return items.length <= 1 || this.getCompleted(items) < items.length - 1;
-  }
 
   /**
    * Permet de naviguer vers la page d'affichage des listes pour afficher une liste en fonction de son identifiant
@@ -375,12 +280,17 @@ export class HomePage extends GenericPage {
   }
 
   /**
-   * Permet de supprimer une liste avec son identifiant
+   * Permet de supprimer une liste avec son identifiant.
+   * Supprime instantanément la liste du tableau afin de fluidifier l'affichage
    *
    * @param {string} uuid
    * @memberof HomePage
    */
-  protected deleteTodoList(uuid: string): void {
+  protected deleteTodoList(uuid: string, tab: ITodoList[]): void {
+    const i = tab.findIndex(list => list.uuid === uuid);
+    if (i !== -1) {
+      tab.splice(i, 1);
+    }
     this.todoService.deleteList(uuid);
   }
 

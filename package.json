@@ -20,6 +20,7 @@
     "@angular/http": "5.2.8",
     "@angular/platform-browser": "5.2.8",
     "@angular/platform-browser-dynamic": "5.2.8",
+    "@ionic-native/camera": "^4.6.0",
     "@ionic-native/camera-preview": "^4.6.0",
     "@ionic-native/contacts": "^4.6.0",
     "@ionic-native/core": "4.4.0",
@@ -48,6 +49,7 @@
     "cordova-browser": "^5.0.3",
     "cordova-multidex": "git+https://github.com/jwall149/cordova-multidex.git",
     "cordova-plugin-badge": "^0.8.7",
+    "cordova-plugin-camera": "^4.0.2",
     "cordova-plugin-camera-preview": "^0.9.0",
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-contacts": "^3.0.1",
@@ -88,6 +90,7 @@
   "devDependencies": {
     "@ionic/app-scripts": "3.1.6",
     "@types/uuid": "^3.4.3",
+    "ts-jsdoc": "^3.0.0",
     "typescript": "2.4.2"
   },
   "description": "An Ionic project",
@@ -124,7 +127,8 @@
         "API_KEY_FOR_ANDROID": "AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE",
         "PLAY_SERVICES_VERSION": "12.0.0",
         "ANDROID_SUPPORT_V4_VERSION": "24.1.0"
-      }
+      },
+      "cordova-plugin-camera": {}
     },
     "platforms": [
       "browser",
