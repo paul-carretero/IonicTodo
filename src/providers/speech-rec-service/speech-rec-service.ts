@@ -14,6 +14,17 @@ import { AuthServiceProvider } from '../auth-service/auth-service';
 export class SpeechRecServiceProvider {
   private allOK = false;
 
+
+  private readonly motClefs = {
+    list :["liste", "ensemble"],
+    todo :["tâche", "todo"],
+    create :["créer", "ajouter"], 
+    update : ["éditer", "modifier"], 
+    delete :["supprimer", "enlever"],
+    view : ["afficher", "visionner"]
+  };
+
+
   constructor(
     private readonly speechRecognition: SpeechRecognition,
     private readonly evtCtrl: EventServiceProvider,
@@ -38,46 +49,15 @@ export class SpeechRecServiceProvider {
       }
     });
   }
-
   private async startListening(): Promise<void> {
     console.log("dans start listening");
     this.speechRecognition.startListening().subscribe(
       (matches: string[]) => {
         this.uiCtrl.dismissLoading();
         console.log(matches);
-        // phrases clés :
-        // créer liste <nom_liste>
-        // éditer list <nom_liste>
-        // ajouter tâche <nom_tache> dans liste <nom_liste>
-        // éditer tâche <nom_tache> dans liste <nom_liste>
         for(const item of matches){
           const mots : string [] = item.split(" ");
-          if(mots.includes("créer") && mots.includes("liste")){
-            this.creerListe(mots);
-            break;
-          }
-          if(mots.includes("afficher") && mots.includes("liste")){
-            this.afficherListe(mots);
-            break;
-          }
-          if(mots.includes("ajouter") && mots.includes("liste") && mots.includes("tâche")){
-            this.creerTache(mots);
-            break;
-          }
-          if(mots.includes("éditer") && mots.includes("liste") && !mots.includes("tâche")){
-            this.updateListe(mots);
-            break;
-          }
-          if(mots.includes("éditer") && mots.includes("liste") && mots.includes("tâche")){
-            this.updateTache(mots);
-            break;
-          }
-          if(mots.includes("supprimer") && mots.includes("liste") && !mots.includes("tâche")){
-            this.supprimerListe(mots);
-            break;
-          }
-          if(mots.includes("supprimer") && mots.includes("liste") && mots.includes("tâche")){
-            this.supprimerTache(mots);
+          if(this.reconnaissanceVocale(mots)){
             break;
           }
         }
@@ -88,6 +68,74 @@ export class SpeechRecServiceProvider {
       }
     );
   }
+
+  /**
+   * Méthode permettant d'agir selon les mots enregistrés reconnus
+   * @param mots ensemble de mots enregistrés par le micro
+   */
+  public reconnaissanceVocale(mots : string[]) : boolean{
+    const contain_list = this.contain_motclef(mots, this.motClefs.list);
+    const contain_todo = this.contain_motclef(mots, this.motClefs.todo);
+    const contain_create = this.contain_motclef(mots, this.motClefs.create);
+    const contain_update = this.contain_motclef(mots, this.motClefs.update);
+    const contain_delete = this.contain_motclef(mots, this.motClefs.delete);
+    const contain_view = this.contain_motclef(mots, this.motClefs.view);
+
+    let trouve = false;
+    if(contain_create && contain_list && !contain_todo){
+      this.creerListe(mots);
+      trouve = true;
+    }
+    if(contain_create && contain_list && contain_todo){
+      this.creerTache(mots);
+      trouve = true;
+    }
+    if(contain_update && contain_list && !contain_todo){
+      this.updateListe(mots);
+      trouve = true;
+    }
+    if(contain_update && contain_list && contain_todo){
+      this.updateTache(mots);
+      trouve = true;
+    }
+    if(contain_delete && contain_list && !contain_todo){
+      this.supprimerListe(mots);
+      trouve = true;
+    }
+    if(contain_delete && contain_list && contain_todo){
+      this.supprimerTache(mots);
+      trouve = true;
+    }
+    if(contain_view && contain_list && !contain_todo){
+      this.afficherListe(mots);
+      trouve = true;
+    }
+
+
+    if(!trouve){
+      this.uiCtrl.alert('Erreur', 'Aucun mot clé n a été reconnu');
+      this.uiCtrl.dismissLoading();
+    }
+
+    return trouve;
+  }
+
+  /**
+   * Méthode permettant de reconnaitre un mot clef dans un ensemble de mots
+   * @param mots ensemble de mots à vérifier
+   * @param motclefs mot clef à trouvé (et ses synonymes)
+   */
+  public contain_motclef(mots : string[], motclefs : string[]) : boolean {
+    let contain : boolean = false;
+    for(const motclef of motclefs){
+      if(mots.includes(motclef)){
+        contain = true;
+      }
+    }
+    return contain;
+  }
+
+
 
   private async creerListe(mots : string[]) : Promise<void> {
     console.log("dans créer liste");
@@ -188,6 +236,8 @@ export class SpeechRecServiceProvider {
     this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
 
   }
+
+
 
 
   private speechWrapper(): void {
