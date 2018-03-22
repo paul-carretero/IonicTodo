@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs/Rx';
 import { Component } from '@angular/core';
 import { ActionSheetController, IonicPage, ViewController } from 'ionic-angular';
 
@@ -17,6 +18,7 @@ export class PopoverOptionsPage {
   protected pastable: boolean;
   protected copiable: boolean;
   protected isList: boolean;
+  protected onLine: Observable<boolean>;
 
   protected request = MenuRequestType;
 
@@ -31,7 +33,9 @@ export class PopoverOptionsPage {
     private readonly viewCtrl: ViewController,
     private readonly evtCtrl: EventServiceProvider,
     public readonly actionSheetCtrl: ActionSheetController
-  ) {}
+  ) {
+    this.onLine = this.evtCtrl.getNetStatusObs();
+  }
 
   ionViewDidLoad() {
     this.editable = this.evtCtrl.getHeader().editable;

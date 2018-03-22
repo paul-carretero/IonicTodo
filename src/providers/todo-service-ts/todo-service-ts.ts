@@ -36,8 +36,18 @@ export class TodoServiceProvider {
    */
   private cloudCtrl: CloudServiceProvider;
 
+  /**
+   * Map associative associant l'ensemble des uuid de liste à un ensemble de tache
+   *
+   * @readonly
+   * @private
+   * @type {Map<string, ITodoItem[]>}
+   * @memberof TodoServiceProvider
+   */
+  private readonly lastAllTodosSnapshot: Map<string, ITodoItem[]>;
+
   /**************************************************************************/
-  /**************************** TODO UTILISATEUR ****************************/
+  /**************************** LIST UTILISATEUR ****************************/
   /**************************************************************************/
 
   /**
@@ -67,7 +77,7 @@ export class TodoServiceProvider {
   private privateListSub: Subscription;
 
   /**************************************************************************/
-  /*************************** TODO LOCAL MACHINE ***************************/
+  /*************************** LIST LOCAL MACHINE ***************************/
   /**************************************************************************/
 
   /**
@@ -165,9 +175,32 @@ export class TodoServiceProvider {
   /****************************** TODO FIELDS *******************************/
   /**************************************************************************/
 
-  private todoSub: Subscription;
+  /**
+   * subscription aux changement des ref vers les todo externe de la liste actuelle
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof TodoServiceProvider
+   */
+  private outterExtTodoSub: Subscription;
 
-  private readonly extTodoSubject: Subject<Observable<ITodoItem[]>>;
+  /**
+   * subscription au changement dans le tableau des todo externes de la liste actuelle
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof TodoServiceProvider
+   */
+  private innerExtTodoSub: Subscription;
+
+  /**
+   * Contient les valeurs des todo externe de la liste en cours
+   *
+   * @private
+   * @type {Subject<ITodoItem[]>}
+   * @memberof TodoServiceProvider
+   */
+  private readonly extTodoSubject: Subject<ITodoItem[]>;
 
   /**************************************************************************/
   /************************* TODO/LIST DELETE NOTIF *************************/
@@ -226,8 +259,9 @@ export class TodoServiceProvider {
     this.currentUserData = new BehaviorSubject<IAppUser>({
       todoListSharedWithMe: []
     });
-    this.extTodoSubject = new Subject<Observable<ITodoItem[]>>();
+    this.extTodoSubject = new Subject<ITodoItem[]>();
     this.deleteSubject = new Subject<void>();
+    this.lastAllTodosSnapshot = new Map<string, ITodoItem[]>();
     this.updateDBLink();
     this.updateLocalDBLink();
   }
@@ -427,13 +461,15 @@ export class TodoServiceProvider {
       this.tryUnsub(this.userDataSub);
       this.tryUnsub(this.sharedListSub);
       this.tryUnsub(this.appUserDataSub);
-
+      this.lastAllTodosSnapshot.clear();
       if (user != null) {
         this.initPrivateListCollection();
         this.initUserDataDocument();
         this.defSharedTodoCollection();
       } else {
-        this.currentUserData.next({ todoListSharedWithMe: [] });
+        this.currentUserData.next({
+          todoListSharedWithMe: []
+        });
         this.todoLists.next([]);
       }
     });
@@ -535,8 +571,14 @@ export class TodoServiceProvider {
     const listsPathTab = this.getSharedListPathSnapchot();
     listsPathTab.push(path);
     await this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab }).catch(() => {
-      this.currentUserDataDoc.set({ todoListSharedWithMe: [path] });
+      this.currentUserDataDoc.set({
+        todoListSharedWithMe: [path]
+      });
     });
+
+    if (path.listUUID != null) {
+      this.refreshTodoSnapForList(path.listUUID);
+    }
   }
 
   /**
@@ -545,15 +587,10 @@ export class TodoServiceProvider {
    * @param {string} listUUID
    * @memberof TodoServiceProvider
    */
-  public async removeListLink(listUUID: string): Promise<void> {
+  public async removeListLink(listUuid: string): Promise<void> {
     const listsPathTab = this.getSharedListPathSnapchot();
-
-    let toDelete: number = -1;
-    for (let i = 0; i < listsPathTab.length; i++) {
-      if (listsPathTab[i].listUUID === listUUID) {
-        toDelete = i;
-      }
-    }
+    const toDelete: number = listsPathTab.findIndex(r => r.listUUID === listUuid);
+    this.lastAllTodosSnapshot.delete(listUuid);
 
     if (toDelete !== -1) {
       listsPathTab.splice(toDelete);
@@ -585,12 +622,17 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public async importList(path: ITodoListPath): Promise<void> {
+    if (path.userUUID == null || path.listUUID == null) {
+      return;
+    }
+
     const listData = await this.getAListSnapshotFromPath(path);
     listData.uuid = null;
     listData.order = 0;
     const p = this.addList(listData);
     if (this.online) {
-      await p;
+      const listUuid = await p;
+      this.cloneTodo(path.listUUID, path.userUUID, listUuid);
     }
   }
 
@@ -640,6 +682,7 @@ export class TodoServiceProvider {
       await p;
     }
 
+    this.refreshTodoSnapForList(newUuid);
     return newUuid;
   }
 
@@ -824,7 +867,6 @@ export class TodoServiceProvider {
     } catch (error) {
       return Observable.of(Global.getBlankList());
     }
-
     return doc.valueChanges();
   }
 
@@ -953,6 +995,8 @@ export class TodoServiceProvider {
       }
     }
 
+    this.lastAllTodosSnapshot.delete(listUuid);
+
     if (type === ListType.SHARED) {
       this.removeListLink(listUuid);
     } else {
@@ -974,9 +1018,90 @@ export class TodoServiceProvider {
   }
 
   /**************************************************************************/
+  /************************* PRIVATE TODOS METHODES *************************/
+  /**************************************************************************/
+
+  /**
+   * vérifie si l'on dispose de toutes les listes, si tel est le cas alors publie une snapshot de toutes les listes
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  private async tryPublishTodos(): Promise<void> {
+    const nList = this.getAllList().length;
+    const nMap = this.lastAllTodosSnapshot.size;
+    console.log('nList' + nList);
+    console.log('nMap' + nMap);
+    if (nList === nMap) {
+      this.evtCtrl.getLastTodosSnapSub().next(this.getAllTodos());
+    }
+  }
+
+  /**
+   * Met à jour le sujet  des todo externe de la liste en cours
+   *
+   * @private
+   * @param {Observable<ITodoItem[]>} obs
+   * @memberof TodoServiceProvider
+   */
+  private obsObsRefactor(obs: Observable<ITodoItem[]>): void {
+    this.tryUnsub(this.innerExtTodoSub);
+    this.innerExtTodoSub = obs.subscribe(listTab => {
+      this.extTodoSubject.next(listTab);
+    });
+  }
+
+  /**
+   * Met à jour la snapshot courrante des todos externe et interne d'une liste
+   *
+   * @param {(string | null)} listUuid
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  private async refreshTodoSnapForList(listUuid: string | null): Promise<void> {
+    if (listUuid == null) {
+      return;
+    }
+
+    // init promises
+    let listP: Promise<AngularFirestoreDocument<ITodoList>>;
+    try {
+      listP = this.getFirestoreDocument(listUuid);
+    } catch (error) {
+      this.lastAllTodosSnapshot.delete(listUuid);
+      return;
+    }
+
+    const extsRefs = this.getAListSnapshot(listUuid).externTodos;
+    const promises: Promise<DocumentSnapshot>[] = [];
+    for (const ref of extsRefs) {
+      promises.push(ref.get());
+    }
+
+    // regular todo
+    const items: ITodoItem[] = [];
+    const list = await listP;
+    const refs = await list.collection('todo').ref.get();
+    for (const doc of refs.docs) {
+      if (doc.exists) {
+        items.push(doc.data() as ITodoItem);
+      }
+    }
+
+    // on récupère les promises pour les ref de todo
+    const sharedDoc = await Promise.all(promises);
+    for (const doc of sharedDoc) {
+      if (doc.exists) {
+        items.push(doc.data() as ITodoItem);
+      }
+    }
+
+    this.lastAllTodosSnapshot.set(listUuid, items);
+  }
+
   /**************************************************************************/
   /************************* PUBLIC TODOS INTERFACE *************************/
-  /**************************************************************************/
   /**************************************************************************/
 
   /**
@@ -1003,7 +1128,6 @@ export class TodoServiceProvider {
   /**
    * retourne la collection firestore des todos standard de la liste dont l'uuid est passé en paramètre
    *
-   * @private
    * @param {string} listUuid
    * @param {boolean} completed true si l'on recherche les todo completed, false sinon
    * @returns {Promise<Observable<ITodoItem>>}
@@ -1027,7 +1151,8 @@ export class TodoServiceProvider {
       .valueChanges();
   }
 
-  /**extTodoSubject
+  /**
+   * extTodoSubject
    * permet de récupérer un observable d'observable (a refaire...) des todo originaire d'autre listes.
    * Supprime également les référence invalides
    *
@@ -1037,36 +1162,37 @@ export class TodoServiceProvider {
    */
   public async getExportedTodosObservables(
     listUuid: string
-  ): Promise<Observable<Observable<ITodoItem[]>>> {
+  ): Promise<Observable<ITodoItem[]>> {
     let listBase: AngularFirestoreDocument<ITodoList>;
     try {
       listBase = await this.getFirestoreDocument(listUuid);
     } catch (error) {
-      return Observable.of(Observable.of([]));
+      return Observable.of([]);
     }
-
-    this.tryUnsub(this.todoSub);
-
-    this.todoSub = listBase.valueChanges().subscribe((list: ITodoList) => {
+    this.tryUnsub(this.outterExtTodoSub);
+    this.outterExtTodoSub = listBase.valueChanges().subscribe((list: ITodoList) => {
       const afDocs: Observable<ITodoItem>[] = [];
       const promises: Promise<void>[] = [];
-      for (const extTodo of list.externTodos) {
-        const promise = extTodo.get().then(extTodoDoc => {
-          if (extTodoDoc.exists) {
-            afDocs.push(
-              new AngularFirestoreDocument<ITodoItem>(extTodo as any).valueChanges()
-            );
-          } else {
-            this.removeTodoRef(listUuid, extTodo);
-          }
-        });
-        promises.push(promise);
+      if (list == null || list.externTodos.length === 0) {
+        this.extTodoSubject.next([]);
+      } else {
+        for (const extTodo of list.externTodos) {
+          const promise = extTodo.get().then(extTodoDoc => {
+            if (extTodoDoc.exists) {
+              afDocs.push(
+                new AngularFirestoreDocument<ITodoItem>(extTodo as any).valueChanges()
+              );
+            } else {
+              this.removeTodoRef(listUuid, extTodo);
+            }
+          });
+          promises.push(promise);
+        }
+        Promise.all(promises).then(() =>
+          this.obsObsRefactor(Observable.combineLatest(afDocs))
+        );
       }
-      Promise.all(promises).then(() =>
-        this.extTodoSubject.next(Observable.combineLatest(afDocs))
-      );
     });
-
     return this.extTodoSubject;
   }
 
@@ -1076,7 +1202,8 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public unsubscribeOfTodo(): void {
-    this.tryUnsub(this.todoSub);
+    this.tryUnsub(this.outterExtTodoSub);
+    this.tryUnsub(this.innerExtTodoSub);
   }
 
   /**
@@ -1147,6 +1274,16 @@ export class TodoServiceProvider {
       console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
       return;
     }
+    const listDoc = todoDoc.ref.parent.parent;
+    if (listDoc == null) {
+      return;
+    }
+    listDoc.get().then(col => {
+      if (col != null && col.data() != null) {
+        const list = col.data() as ITodoList;
+        this.refreshTodoSnapForList(list.uuid);
+      }
+    });
   }
 
   /**
@@ -1178,6 +1315,7 @@ export class TodoServiceProvider {
       await p;
     }
     this.notifCtrl.onTodoUpdate(newItem);
+    this.refreshTodoSnapForList(listUuid);
     return newItem.ref;
   }
 
@@ -1185,6 +1323,7 @@ export class TodoServiceProvider {
    * Permet de supprimer un todo
    *
    * @param {DocumentReference} ref référence vers le todo à supprimer
+   * @param {string} todoUuid
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
@@ -1192,9 +1331,9 @@ export class TodoServiceProvider {
     if (ref == null) {
       return;
     }
-    const list = new AngularFirestoreDocument(ref as any);
+    const todoDoc = new AngularFirestoreDocument(ref as any);
     try {
-      const p = list.delete();
+      const p = todoDoc.delete();
       if (this.online) {
         await p;
       }
@@ -1202,8 +1341,27 @@ export class TodoServiceProvider {
     } catch (error) {
       console.log('Impossible de supprimer la tâche, tâche inexistante ?');
     }
+
+    const listDoc = todoDoc.ref.parent.parent;
+    if (listDoc == null) {
+      return;
+    }
+    listDoc.get().then(col => {
+      if (col != null && col.data() != null) {
+        const list = col.data() as ITodoList;
+        this.refreshTodoSnapForList(list.uuid);
+      }
+    });
   }
 
+  /**
+   * Supprime une référence vers un todo externe d'une liste
+   *
+   * @param {string} listUuid
+   * @param {DocumentReference} ref
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
   public async removeTodoRef(listUuid: string, ref: DocumentReference): Promise<void> {
     if (ref == null || listUuid == null) {
       return;
@@ -1228,6 +1386,7 @@ export class TodoServiceProvider {
         await p;
       }
     }
+    this.refreshTodoSnapForList(listUuid);
   }
 
   /**
@@ -1282,6 +1441,7 @@ export class TodoServiceProvider {
     if (this.online) {
       await p;
     }
+    this.refreshTodoSnapForList(listUuid);
   }
 
   /**
@@ -1321,30 +1481,10 @@ export class TodoServiceProvider {
   public async getListMetaData(listUuid: string): Promise<IListMetadata> {
     const metaData = Global.getBlankMetaData();
 
-    // init promises
-    const listP = this.getFirestoreDocument(listUuid);
-    const extsRefs = this.getAListSnapshot(listUuid).externTodos;
-    const promises: Promise<DocumentSnapshot>[] = [];
-    for (const ref of extsRefs) {
-      promises.push(ref.get());
-    }
-
-    // regular todo
-    const items: ITodoItem[] = [];
-    const list = await listP;
-    const refs = await list.collection('todo').ref.get();
-    for (const doc of refs.docs) {
-      if (doc.exists) {
-        items.push(doc.data() as ITodoItem);
-      }
-    }
-
-    // on récupère les promises pour les ref de todo
-    const sharedDoc = await Promise.all(promises);
-    for (const doc of sharedDoc) {
-      if (doc.exists) {
-        items.push(doc.data() as ITodoItem);
-      }
+    await this.refreshTodoSnapForList(listUuid);
+    const items = this.lastAllTodosSnapshot.get(listUuid);
+    if (items == null) {
+      return metaData;
     }
 
     // def MetaData
@@ -1363,27 +1503,69 @@ export class TodoServiceProvider {
     metaData.todoTotal = items.length;
     metaData.atLeastOneLate = oneLate;
 
-    this.evtCtrl.getLastTodosSnapSub().next(items);
+    this.tryPublishTodos();
+
     return metaData;
+  }
+
+  /**
+   * retourne une snapshot des liste de l'utilisateur connecté ou local
+   *
+   * @returns {ITodoList[]}
+   * @memberof TodoServiceProvider
+   */
+  public getAllList(): ITodoList[] {
+    const localList = this.localTodoLists.getValue();
+    const privateLists = this.todoLists.getValue();
+    const sharedLists = this.sharedTodoLists.getValue();
+    return localList.concat(sharedLists).concat(privateLists);
+  }
+
+  /**
+   * Retourne la dernière snapshot contenant l'ensemble des todos d'une liste ou l'ensemble des todos de l'utilisateur connecté ou local
+   *
+   * @public
+   * @param {string} [listUuid]
+   * @returns {ITodoItem[]}
+   * @memberof TodoServiceProvider
+   */
+  public getAllTodos(listUuid?: string): ITodoItem[] {
+    if (listUuid == null) {
+      const arrOfArr = Array.from(this.lastAllTodosSnapshot.values());
+      return [].concat.apply([], arrOfArr);
+    }
+    const res = this.lastAllTodosSnapshot.get(listUuid);
+    if (res === undefined) {
+      return [];
+    }
+    return res;
   }
 
   /**
    * Permet de cloner les todos d'une liste vers une autre liste
    *
+   * @public
    * @param {string} listUuidSrc
    * @param {string} userUuidSrc
    * @param {string} listUuidDest
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async cloneTodo(
-    listUuidSrc: string,
-    userUuidSrc: string,
-    listUuidDest: string
-  ): Promise<void> {
-    // A FAIRE NOW!!!
-    listUuidDest;
-    listUuidSrc;
-    userUuidSrc;
+  public cloneTodo(listUuidSrc: string, userUuidSrc: string, listUuidDest: string): void {
+    const collection = this.firestoreCtrl.collection<ITodoItem>(
+      '/user/' + userUuidSrc + '/list/' + listUuidSrc
+    );
+    const sub = collection.valueChanges().subscribe((todos: ITodoItem[]) => {
+      if (todos != null) {
+        for (const todo of todos) {
+          if (todo != null) {
+            todo.uuid = null;
+            this.addTodo(listUuidDest, todo);
+          }
+          this.refreshTodoSnapForList(listUuidDest);
+        }
+      }
+      sub.unsubscribe();
+    });
   }
 }

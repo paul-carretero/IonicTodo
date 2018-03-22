@@ -196,7 +196,7 @@ export class DBServiceProvider {
     await this.resetNotifBuffer();
     const promises: Promise<any>[] = [];
     for (const todo of todos) {
-      if (todo != null && todo.uuid != null) {
+      if (todo != null && todo.uuid != null && todo.notif != null) {
         const sql_insert = 'INSERT OR IGNORE INTO notif_buffer VALUES ( ' + todo.uuid + ' )';
         console.log(sql_insert);
         promises.push(this.dbObject.executeSql(sql_insert, {}));
@@ -344,19 +344,5 @@ export class DBServiceProvider {
     await this.dbObject.executeSql(sql, {});
 
     return match;
-  }
-
-  /**
-   * Supprime toutes les entrée de notifications associées à un todo
-   *
-   * @param {string} todo_uuid
-   * @returns {Promise<void>}
-   * @memberof DBServiceProvider
-   */
-  public async deleteNotifFromTodo(todo_uuid: string): Promise<void> {
-    await this.ready;
-    const sql = "DELETE FROM notif WHERE todo_uuid = '" + todo_uuid + "' ";
-    console.log(sql);
-    await this.dbObject.executeSql(sql, {});
   }
 }

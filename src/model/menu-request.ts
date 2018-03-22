@@ -24,4 +24,6 @@ export interface IMenuRequest {
    * @memberof IMenuRequest
    */
   media?: Media;
+
+  uuid?: string;
 }
