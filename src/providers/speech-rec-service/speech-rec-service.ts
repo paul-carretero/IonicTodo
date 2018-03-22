@@ -55,6 +55,10 @@ export class SpeechRecServiceProvider {
             this.creerListe(mots);
             break;
           }
+          if(mots.includes("afficher") && mots.includes("liste")){
+            this.afficherListe(mots);
+            break;
+          }
           if(mots.includes("ajouter") && mots.includes("liste") && mots.includes("tâche")){
             this.creerTache(mots);
             break;
@@ -127,6 +131,15 @@ export class SpeechRecServiceProvider {
 
   }
 
+  private afficherListe(mots : string[]) : void {
+    const nomListe : string = mots[mots.indexOf("liste") + 1];
+    console.log("afficher liste : " + nomListe);
+    
+    const uuidListe = this.todoService.getListUUIDByName(nomListe);
+    console.log("uuid liste : " + uuidListe);
+    this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
+
+  }
  
   private async updateListe(mots : string[]) : Promise<void> {
     const nomListe : string = mots[mots.indexOf("liste") + 1];
