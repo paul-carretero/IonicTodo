@@ -71,6 +71,10 @@ export class SpeechRecServiceProvider {
             this.supprimerListe(mots);
             break;
           }
+          if(mots.includes("supprimer") && mots.includes("liste") && mots.includes("tâche")){
+            this.supprimerTache(mots);
+            break;
+          }
         }
       },
       () => {
@@ -102,13 +106,23 @@ export class SpeechRecServiceProvider {
     console.log("uuid : " + nextUuid);
   }
 
-  private async supprimerListe(mots : string[]) : Promise<void> {
+  private supprimerListe(mots : string[]) : void {
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("supprimer liste : " + nomListe);
     
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
     console.log("uuid liste : " + uuidListe);
     this.todoService.deleteList(uuidListe);
+  }
+
+  private async supprimerTache(mots : string[]) : Promise<void> {
+    const nomListe : string = mots[mots.indexOf("liste") + 1];
+    const nomTache : string = mots[mots.indexOf("tâche") + 1];
+    console.log("supprimer tache : " + nomTache +" de la liste : " + nomListe);
+    
+    const uuidListe = this.todoService.getListUUIDByName(nomListe);
+    console.log("uuid liste : " + uuidListe);
+    
   }
 
  
@@ -130,12 +144,14 @@ export class SpeechRecServiceProvider {
     const uuidListe = this.todoService.getListUUIDByName(nomListe);
     console.log("uuid liste : " + uuidListe);
     
+    this.todoService.goEditTodoByName(nomTache,uuidListe);
+    /*
     this.todoService.getTodoRefByName(nomTache,uuidListe).subscribe( ref =>{
       console.log("ref récupérée" + ref);
       //if(ref != null){
       //  this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: ref}});
       //} 
-    })
+    })*/
     
     
   }

@@ -840,7 +840,7 @@ export class TodoServiceProvider {
     return uuidList;
   }
 
-  public getTodoRefByName(name : string, uuidListe : string): Observable<DocumentReference | null> {
+  public goEditTodoByName(name : string, uuidListe : string): void {
     let ref : DocumentReference | null = null ;
     let todoItems : ITodoItem[];
     for(const liste of this.localTodoLists.getValue()){
@@ -863,7 +863,7 @@ export class TodoServiceProvider {
         });
       }  
     }
-    return Observable.of(ref);
+    //return Observable.of(ref);
   }
 
 
