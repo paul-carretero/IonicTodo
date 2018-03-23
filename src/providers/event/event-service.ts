@@ -85,10 +85,10 @@ export class EventServiceProvider {
    * dernière snapshot de l'ensemble des items
    *
    * @private
-   * @type {BehaviorSubject<ITodoItem>}
+   * @type {Subject<ITodoItem>}
    * @memberof EventServiceProvider
    */
-  private readonly lastTodosSnap: BehaviorSubject<ITodoItem[]>;
+  private readonly lastTodosSnap: Subject<ITodoItem[]>;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -112,7 +112,7 @@ export class EventServiceProvider {
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
     this.searchSubject = new BehaviorSubject<string>('#');
-    this.lastTodosSnap = new BehaviorSubject<ITodoItem[]>([]);
+    this.lastTodosSnap = new Subject<ITodoItem[]>();
     this.netSubject = new BehaviorSubject<boolean>(this.netCtrl.type !== 'none');
     this.shakeDetect();
     this.listenForResetAuth();
@@ -219,7 +219,7 @@ export class EventServiceProvider {
    * retourne le header
    *
    * @public
-   * @returns {BehaviorSubject<IPageData>}
+   * @returns {IPageData}
    * @memberof EventServiceProvider
    */
   public getHeader(): IPageData {
@@ -287,7 +287,7 @@ export class EventServiceProvider {
    * @returns {BehaviorSubject<ITodoItem[]>}
    * @memberof EventServiceProvider
    */
-  public getLastTodosSnapSub(): BehaviorSubject<ITodoItem[]> {
+  public getLastTodosSnapSub(): Subject<ITodoItem[]> {
     return this.lastTodosSnap;
   }
 }

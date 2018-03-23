@@ -4,12 +4,61 @@
 
 <ion-content padding>
     <ng-container *ngIf="todo != null">
-        <ion-card *ngIf="todo.desc != null">
+
+        <ion-card>
             <ion-card-header>
-                Descriptif de la tâche {{todo.name}}
+                <ion-item>
+                    <ion-icon name="switch" item-start></ion-icon>
+                    <ion-label>{{todo.name}}</ion-label>
+                    <ion-checkbox large [(ngModel)]="todo.complete" (ionChange)="updateComplete()" [disabled]="completeLoading" item-end></ion-checkbox>
+                </ion-item>
             </ion-card-header>
             <ion-card-content>
                 {{todo.desc}}
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="alarm"></ion-icon>
+                Notifications
+            </ion-card-header>
+            <ion-card-content>
+                <ion-list>
+
+                </ion-list>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="contacts"></ion-icon>
+                Contacts
+            </ion-card-header>
+            <ion-card-content>
+                <ion-list>
+
+                </ion-list>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="image"></ion-icon>
+                Photo
+            </ion-card-header>
+            <ion-card-content>
+
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="pin"></ion-icon>
+                Localisation
+            </ion-card-header>
+            <ion-card-content>
+
             </ion-card-content>
         </ion-card>
 
@@ -26,24 +75,7 @@
                 <ion-icon name="information-circle"></ion-icon>
                 La tâche à été réalisée:
             </ion-card-header>
-            <author-display [author]="todo.author"></author-display>
+            <author-display [author]="todo.completeAuthor"></author-display>
         </ion-card>
     </ng-container>
 </ion-content>
-
-<!--
-<ion-content padding>
-    <ion-card *ngIf="todo | async; let todo">
-        <ion-card-header>
-            {{todo.name}}
-        </ion-card-header>
-        <ion-card-content>
-            {{todo.desc}}
-        </ion-card-content>
-        <ion-item>
-            <ion-label>Fait</ion-label>
-            <ion-checkbox [(ngModel)]="todo.complete"></ion-checkbox>
-        </ion-item>
-    </ion-card>
-</ion-content>
--->

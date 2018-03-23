@@ -4,13 +4,13 @@
     <ion-icon name="trash"></ion-icon>Supprimer</button>
   <button *ngIf="editable" ion-item (click)="basicRequest(request.EDIT)" icon-start>
     <ion-icon name="create"></ion-icon>Editer</button>
-  <button *ngIf="shareable && editable" ion-item (click)="share()" icon-start>
+  <button *ngIf="shareable && editable" ion-item (click)="share()" icon-start [disabled]="!onLine | async">
     <ion-icon name="share"></ion-icon>Partager
   </button>
-  <button *ngIf="shareable && editable" ion-item (click)="send()" icon-start>
+  <button *ngIf="shareable && editable" ion-item (click)="send()" icon-start [disabled]="!onLine | async">
     <ion-icon name="send"></ion-icon>Envoyer
   </button>
-  <button *ngIf="importable" ion-item (click)="basicRequest(request.IMPORT)" icon-start>
+  <button *ngIf="importable" ion-item (click)="basicRequest(request.IMPORT)" icon-start [disabled]="!onLine | async">
     <ion-icon name="cloud-download"></ion-icon>Importer
   </button>
   <button *ngIf="pastable && editable" ion-item (click)="basicRequest(request.PASTE)" icon-start>

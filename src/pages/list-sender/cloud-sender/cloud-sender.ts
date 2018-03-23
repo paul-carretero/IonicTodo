@@ -22,7 +22,9 @@ export class CloudSenderPage extends GenericSharer {
 
   private readonly shareData: ICloudSharedList;
 
-  private readonly contactList: ISimpleContact[];
+  protected readonly contactList: ISimpleContact[];
+
+  protected sendSMS: boolean = false;
 
   constructor(
     public readonly navParams: NavParams,

@@ -10,11 +10,11 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "lib": ["dom", "es2017"],
+    "lib": ["dom", "es2015"],
     "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
-    "target": "es2017"
+    "target": "es2015"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "src/**/*.spec.ts", "src/**/__tests__/*.ts"],

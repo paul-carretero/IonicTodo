@@ -3,7 +3,7 @@
 </ion-header>
 
 
-<ion-content padding *ngIf="json != null">
+<ion-content padding *ngIf="json">
 
 
   <ion-card>
@@ -45,7 +45,7 @@
 
       <span [innerHTML]="textContact"></span>
 
-      <ion-item *ngIf="contactList.size > 0">
+      <ion-item *ngIf="contactList.length > 0">
         <ion-label>Envoyer un sms à vos contacts:</ion-label>
         <ion-toggle [(ngModel)]="sendSMS"></ion-toggle>
       </ion-item>

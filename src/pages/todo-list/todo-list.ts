@@ -95,15 +95,6 @@ export class TodoListPage extends GenericPage {
    */
   private exportedSub: Subscription;
 
-  /**
-   * subscription aux subscription aux todo externe à cette liste
-   *
-   * @private
-   * @type {Subscription}
-   * @memberof TodoListPage
-   */
-  private exportedSubSub: Subscription;
-
   /***************************** PUBLIC FIELDS ******************************/
 
   /**
@@ -235,7 +226,6 @@ export class TodoListPage extends GenericPage {
     this.todoService.unsubDeleteSubject();
     this.tryUnSub(this.listeSub);
     this.tryUnSub(this.exportedSub);
-    this.tryUnSub(this.exportedSubSub);
     this.tryUnSub(this.todoSub);
     this.tryUnSub(this.completedSub);
   }
@@ -269,11 +259,9 @@ export class TodoListPage extends GenericPage {
 
     this.todoService
       .getExportedTodosObservables(this.listUUID)
-      .then((obsObs: Observable<Observable<ITodoItem[]>>) => {
-        this.exportedSub = obsObs.subscribe(res => {
-          this.exportedSubSub = res.subscribe(tab => {
-            this.exportedTodoItems = tab;
-          });
+      .then((res: Observable<ITodoItem[]>) => {
+        this.exportedSub = res.subscribe(tab => {
+          this.exportedTodoItems = tab;
         });
       });
   }
