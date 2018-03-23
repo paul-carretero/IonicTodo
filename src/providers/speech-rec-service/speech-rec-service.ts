@@ -9,6 +9,7 @@ import { Global } from '../../shared/global';
 import { ITodoItem } from '../../model/todo-item';
 import { AuthServiceProvider } from '../auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../speech-synth-service/speech-synth-service';
+//import { DocumentReference } from '@firebase/firestore-types';
 //import { TodoListPage } from '../../pages/todo-list/todo-list';
 
 @Injectable()
@@ -18,11 +19,11 @@ export class SpeechRecServiceProvider {
 
   private readonly motClefs = {
     list :["liste", "ensemble"],
-    todo :["tâche", "todo"],
+    todo :["tâche", "todo", "tâches"],
     create :["créer", "ajouter"], 
     update : ["éditer", "modifier"], 
     delete :["supprimer", "enlever"],
-    view : ["afficher", "visionner"],
+    view : ["afficher", "visionner", "voir"],
     insulte : ["chier", "putain", "merde"]
   };
 
@@ -91,33 +92,31 @@ export class SpeechRecServiceProvider {
 
 
     let trouve = false;
+    
     if(contain_create && contain_list && !contain_todo){
       this.creerListe(mots);
       trouve = true;
     }
     if(contain_create && contain_list && contain_todo){
-      this.creerTache(mots);
-      trouve = true;
+      if(this.name_list_existed(this.getNameList(mots)).success){
+        trouve = true;
+        this.creerTache(mots);
+      }
     }
     if(contain_update && contain_list && !contain_todo){
-      this.updateListe(mots);
-      trouve = true;
+      trouve = this.updateListe(mots);
     }
     if(contain_update && contain_list && contain_todo){
-      this.updateTache(mots);
-      trouve = true;
+      trouve = this.updateTache(mots);
     }
     if(contain_delete && contain_list && !contain_todo){
-      this.supprimerListe(mots);
-      trouve = true;
+      trouve = this.supprimerListe(mots);
     }
     if(contain_delete && contain_list && contain_todo){
-      this.supprimerTache(mots);
-      trouve = true;
+      trouve = this.supprimerTache(mots);
     }
     if(contain_view && contain_list && !contain_todo){
-      this.afficherListe(mots);
-      trouve = true;
+      trouve = this.afficherListe(mots);
     }
     if(this.contain_motclef(mots, this.motClefs.insulte)){
       trouve = true;
@@ -141,8 +140,59 @@ export class SpeechRecServiceProvider {
     return contain;
   }
 
+  /*
+  private getListUUIDByName(name : string) : string {
+    let uuidList : string | null ="";
+    this.todoService.getAllList().forEach(
+          liste => {
+            if(liste.name === name){
+              uuidList = liste.uuid;
+            }
+          }
+        );
+    return uuidList;
+  }
+  */
 
+  private getNameList(mots : string[]) : string {
+    return mots[mots.indexOf("liste")+1];
+  }
 
+  private name_list_existed(name : string) : {uuid : string , success : boolean } {
+    let uuidList : string | null ="";
+    let is_success : boolean = false;
+    this.todoService.getAllList().forEach(
+          liste => {
+            if(liste.name === name){
+              uuidList = liste.uuid;
+              is_success = true;
+            }
+          }
+        );
+    return {uuid : uuidList, success : is_success};
+  }
+
+  /**
+   * 
+   * @param name le nom de la tâche recherchée
+   * @param uuidList l'uuid de la liste où l'on veut chercher la tache
+   */
+  private name_todo_existed(name : string, uuidList : string) : {todo : ITodoItem , success : boolean } {
+    let todo_found : ITodoItem = Global.getBlankTodo();
+    let is_success : boolean = false;
+    this.todoService.getAllTodos(uuidList).forEach(
+          todo => {
+            if(todo.name === name){
+              todo_found = todo;
+              is_success = true;
+            }
+          }
+        );
+    return {todo : todo_found, success : is_success};
+  }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
   private async creerListe(mots : string[]) : Promise<void> {
     console.log("dans créer liste");
     
@@ -166,63 +216,90 @@ export class SpeechRecServiceProvider {
     data.icon = iconList;
     console.log("data : " + data);
     const nextUuid = await this.todoService.addList(data, destType);
+    this.speechSynthService.synthText("Liste " + nomListe + " créée.");
     console.log("uuid : " + nextUuid);
   }
 
-  private supprimerListe(mots : string[]) : void {
+  private supprimerListe(mots : string[]) : boolean {
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("supprimer liste : " + nomListe);
     
-    const uuidListe = this.todoService.getListUUIDByName(nomListe);
-    console.log("uuid liste : " + uuidListe);
-    this.todoService.deleteList(uuidListe);
-  }
+    const uuidListe_search = this.name_list_existed(nomListe);
+    console.log("uuid liste : " + uuidListe_search.uuid);
+    if(uuidListe_search.success){
+      this.speechSynthService.synthText("Suppression de la liste " + nomListe);
+      this.todoService.deleteList(uuidListe_search.uuid);
+    }
+    return uuidListe_search.success;
+  }  
 
-  private supprimerTache(mots : string[]) : void {
+  private supprimerTache(mots : string[]) : boolean {
+    let success : boolean = false;
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     const nomTache : string = mots[mots.indexOf("tâche") + 1];
     console.log("supprimer tache : " + nomTache +" de la liste : " + nomListe);
     
-    const uuidListe = this.todoService.getListUUIDByName(nomListe);
-    console.log("uuid liste : " + uuidListe);
-    this.todoService.deleteTodoByName(nomTache, uuidListe);    
-    this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
-
+    const liste_search = this.name_list_existed(nomListe);
+    console.log("uuid liste : " + liste_search.uuid);
+    if(liste_search.success){
+      const todo_search = this.name_todo_existed(nomTache, liste_search.uuid);
+      if(todo_search.success){
+        if(todo_search.todo.ref != null && todo_search.todo.uuid != null){
+          this.speechSynthService.synthText("Suppression de la tâche " + nomTache + " de la liste " + nomListe);
+          this.todoService.deleteTodo(todo_search.todo.ref, todo_search.todo.uuid); 
+          this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: liste_search.uuid}});
+          success = true;
+        }      
+      }
+    }
+    return success;
   }
 
-  private afficherListe(mots : string[]) : void {
+  private afficherListe(mots : string[]) : boolean {
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("afficher liste : " + nomListe);
     
-    const uuidListe = this.todoService.getListUUIDByName(nomListe);
-    console.log("uuid liste : " + uuidListe);
-    this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
-
+    const liste_search = this.name_list_existed(nomListe);
+    console.log("uuid liste : " + liste_search.uuid);
+    if(liste_search.success){
+      this.speechSynthService.synthText("Affichage de la liste " + nomListe);
+      this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: liste_search.uuid}});
+    }
+    return liste_search.success;
   }
  
-  private updateListe(mots : string[]) : void {
+  private updateListe(mots : string[]) : boolean {
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("update de liste : " + nomListe);
     
-    const uuidListe = this.todoService.getListUUIDByName(nomListe);
-    console.log("uuid liste : " + uuidListe);
-    
-    this.evtCtrl.getNavRequestSubject().next({page:'ListEditPage', data:{uuid: uuidListe}});
+    const liste_search = this.name_list_existed(nomListe);
+    console.log("uuid liste : " + liste_search.uuid);
+    if(liste_search.success){
+      this.evtCtrl.getNavRequestSubject().next({page:'ListEditPage', data:{uuid: liste_search.uuid}});
+    }
+    return liste_search.success;
   }
 
-  private updateTache(mots : string[]) : void {
+  private updateTache(mots : string[]) : boolean {
     const nomTache : string = mots[mots.indexOf("tâche") + 1];
     const nomListe : string = mots[mots.indexOf("liste") + 1];
     console.log("update de tache : " + nomTache   +" de la liste : " + nomListe);
     
-    const uuidListe = this.todoService.getListUUIDByName(nomListe);
-    console.log("uuid liste : " + uuidListe);
-    
-    this.todoService.goEditTodoByName(nomTache,uuidListe);    
+    const liste_search = this.name_list_existed(nomListe);
+    console.log("uuid liste : " + liste_search.uuid);
+    let success = false;
+    if(liste_search.success){
+      const todo_search = this.name_todo_existed(nomTache, liste_search.uuid);
+      if(todo_search.success){
+        this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: todo_search.todo.ref}});
+        success = true;
+      }
+    }
+    return success;
   }
 
 
-  private async creerTache(mots : string[]) : Promise<void> {
+  private async creerTache(mots : string[]) : Promise<boolean> {
     // phrase de la forme : ajouter tache <nom_tache> dans liste <nom_liste>
     const nomTache : string = mots[mots.indexOf("tâche") + 1];
     
@@ -230,17 +307,20 @@ export class SpeechRecServiceProvider {
     
     console.log("créer todo : " + nomTache + " dans la liste : " + nomListe);
     
-    const uuidListe = this.todoService.getListUUIDByName(nomListe);
-    console.log("uuid liste : " + uuidListe);
+    const liste_search = this.name_list_existed(nomListe);
+    console.log("uuid liste : " + liste_search.uuid);
 
     const data : ITodoItem = Global.getBlankTodo();
     data.name = nomTache;
 
-    const refDoc = await this.todoService.addTodo(uuidListe, data);  
-    console.log("ref doc : " + refDoc);
+    if(liste_search.success){
+      const refDoc = await this.todoService.addTodo(liste_search.uuid, data);  
+      console.log("ref doc : " + refDoc);
 
-    this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: uuidListe}});
-
+      this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: liste_search.uuid}});
+    }
+    
+    return liste_search.success;
   }
 
 

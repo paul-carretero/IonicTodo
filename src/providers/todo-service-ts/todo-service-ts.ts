@@ -870,68 +870,6 @@ export class TodoServiceProvider {
     return doc.valueChanges();
   }
 
-  public getListUUIDByName(name : string): string {
-    let uuidList : string | null ="";
-    this.localTodoLists.getValue().forEach(
-          liste => {
-            if(liste.name === name){
-              uuidList = liste.uuid;
-            }
-          }
-        );
-    return uuidList;
-  }
-
-  public deleteTodoByName(name : string, uuidListe : string): void {
-    let ref : DocumentReference | null = null ;
-    let todoItems : ITodoItem[];
-    for(const liste of this.localTodoLists.getValue()){
-      if(liste.uuid === uuidListe){
-        console.log("liste trouve");
-        this.getPrivateTodos(uuidListe, false)
-        .then((res: Observable<ITodoItem[]>) => {
-          res.subscribe(tab => {
-            todoItems = tab;
-            for(const todo of todoItems){
-              if(todo.name === name){
-                ref = todo.ref;
-                if(ref != null && todo.uuid !=null){
-                  console.log("ref trouve : " + ref.id);
-                  this.deleteTodo(ref, todo.uuid);
-                }
-              }
-            }
-          });
-        });
-      }  
-    }
-  }
-
-  public goEditTodoByName(name : string, uuidListe : string): void {
-    let ref : DocumentReference | null = null ;
-    let todoItems : ITodoItem[];
-    for(const liste of this.localTodoLists.getValue()){
-      if(liste.uuid === uuidListe){
-        console.log("liste trouve");
-        this.getPrivateTodos(uuidListe, false)
-        .then((res: Observable<ITodoItem[]>) => {
-          res.subscribe(tab => {
-            todoItems = tab;
-            for(const todo of todoItems){
-              if(todo.name === name){
-                ref = todo.ref;
-                if(ref != null){
-                  console.log("ref trouve : " + ref.id);
-                }
-                this.evtCtrl.getNavRequestSubject().next({page:'TodoEditPage', data:{todoRef: ref}});
-              }
-            }
-          });
-        });
-      }  
-    }
-  }
-
 
   /****************************** REMOVAL NOTIFS ****************************/
 
