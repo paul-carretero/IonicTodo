@@ -8,6 +8,7 @@ import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
 import { Global } from '../../shared/global';
 import { ITodoItem } from '../../model/todo-item';
 import { AuthServiceProvider } from '../auth-service/auth-service';
+import { SpeechSynthServiceProvider } from '../speech-synth-service/speech-synth-service';
 //import { TodoListPage } from '../../pages/todo-list/todo-list';
 
 @Injectable()
@@ -21,7 +22,8 @@ export class SpeechRecServiceProvider {
     create :["créer", "ajouter"], 
     update : ["éditer", "modifier"], 
     delete :["supprimer", "enlever"],
-    view : ["afficher", "visionner"]
+    view : ["afficher", "visionner"],
+    insulte : ["chier", "putain", "merde"]
   };
 
 
@@ -30,7 +32,8 @@ export class SpeechRecServiceProvider {
     private readonly evtCtrl: EventServiceProvider,
     private readonly todoService : TodoServiceProvider,
     private readonly uiCtrl: UiServiceProvider,
-    private readonly authCtrl: AuthServiceProvider
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly speechSynthService : SpeechSynthServiceProvider
   ) {
     console.log("constructor speech-rec-service");
     this.listenForSpeechRequest();
@@ -55,11 +58,16 @@ export class SpeechRecServiceProvider {
       (matches: string[]) => {
         this.uiCtrl.dismissLoading();
         console.log(matches);
+        let trouve = false;
         for(const item of matches){
           const mots : string [] = item.split(" ");
-          if(this.reconnaissanceVocale(mots)){
+          trouve = this.reconnaissanceVocale(mots); 
+          if(trouve){
             break;
           }
+        }
+        if(!trouve){
+          this.speechSynthService.synthText("Aucun mot clé n'a été reconnu. Veuillez réésayer");
         }
       },
       () => {
@@ -80,6 +88,7 @@ export class SpeechRecServiceProvider {
     const contain_update = this.contain_motclef(mots, this.motClefs.update);
     const contain_delete = this.contain_motclef(mots, this.motClefs.delete);
     const contain_view = this.contain_motclef(mots, this.motClefs.view);
+
 
     let trouve = false;
     if(contain_create && contain_list && !contain_todo){
@@ -110,13 +119,10 @@ export class SpeechRecServiceProvider {
       this.afficherListe(mots);
       trouve = true;
     }
-
-
-    if(!trouve){
-      this.uiCtrl.alert('Erreur', 'Aucun mot clé n a été reconnu');
-      this.uiCtrl.dismissLoading();
+    if(this.contain_motclef(mots, this.motClefs.insulte)){
+      trouve = true;
+      this.speechSynthService.synthText("Veuillez rester polis");
     }
-
     return trouve;
   }
 
