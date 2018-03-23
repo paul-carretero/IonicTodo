@@ -112,9 +112,9 @@ export class NotifServiceProvider {
       todo =>
         todo.complete === false &&
         todo.uuid != null &&
-        todo.notif != null &&
+        todo.deadline != null &&
         this.todoIAlreadyAnnoyedUserFor.indexOf(todo.uuid) === -1 &&
-        this.roundTime(todo.notif) === this.approxNow
+        this.roundTime(todo.deadline) === this.approxNow
     );
 
     if (nowTodo != null && nowTodo.uuid != null) {
@@ -238,17 +238,17 @@ export class NotifServiceProvider {
    * @memberof NotifServiceProvider
    */
   private async createNewNotif(todo: ITodoItem): Promise<number> {
-    if (todo.name == null || todo.notif == null) {
+    if (todo.name == null || todo.notif == null || todo.ref == null) {
       return -1;
     }
-
     const id = await this.dbCtrl.getNextNotifId();
     this.localNotifCtrl.schedule({
       id: id,
       title: todo.name,
       text: 'Rappel : La tâche ' + todo.name + ' se termine bientôt !',
-      data: { todoRef: todo.ref },
-      at: this.roundTime(todo.notif)
+      data: { todoRef: todo.ref.path },
+      at: todo.notif,
+      icon: undefined
     });
     return id;
   }
@@ -271,11 +271,17 @@ export class NotifServiceProvider {
     this.localNotifCtrl.on('click', (notification: any, state: any) => {
       console.log(notification);
       console.log(notification.data);
-      this.uiCtrl.alert(notification.title, notification.data.mydata);
+      this.uiCtrl.alert(notification.title, notification.data.todoRef);
       console.log('state = ' + JSON.stringify(state));
     });
   }
 
+  /**
+   * si les notifications sont désactivé globalement alors supprime toutes les entrées associées
+   *
+   * @returns {Promise<void>}
+   * @memberof NotifServiceProvider
+   */
   public async redefNotifStatus(): Promise<void> {
     const shouldReset = await this.dbCtrl.getSetting(Settings.DISABLE_NOTIF);
     if (shouldReset) {
@@ -312,14 +318,23 @@ export class NotifServiceProvider {
       this.localNotifCtrl.cancel(notifId);
     }
 
+    if (todo.notif == null) {
+      return;
+    }
     if (
       todo.notif != null &&
-      todo.complete !== false &&
+      todo.complete === false &&
       todo.name != null &&
       now < todo.notif.getTime()
     ) {
       const newId = await this.createNewNotif(todo);
-      await this.dbCtrl.addNewNotif(todo.uuid, newId, this.roundTime(todo.notif));
+      await this.dbCtrl.addNewNotif(
+        todo.uuid,
+        newId,
+        this.roundTime(todo.notif),
+        this.authCtrl.getUserId()
+      );
+      console.log('added todo notif for @' + todo.uuid);
     }
   }
 

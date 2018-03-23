@@ -1031,8 +1031,6 @@ export class TodoServiceProvider {
   private async tryPublishTodos(): Promise<void> {
     const nList = this.getAllList().length;
     const nMap = this.lastAllTodosSnapshot.size;
-    console.log('nList' + nList);
-    console.log('nMap' + nMap);
     if (nList === nMap) {
       this.evtCtrl.getLastTodosSnapSub().next(this.getAllTodos());
     }

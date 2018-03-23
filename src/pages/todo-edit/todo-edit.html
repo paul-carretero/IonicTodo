@@ -5,7 +5,8 @@
 <ion-content padding>
     <form [formGroup]="todoForm" (ngSubmit)="validate()">
         <ion-card>
-            <ion-card-header>
+            <ion-card-header icon-start>
+                <ion-icon name="information-circle"></ion-icon>
                 Informations sur la tâche
             </ion-card-header>
             <ion-card-content>
@@ -16,6 +17,86 @@
                 <ion-item>
                     <ion-label color="primary" stacked>Description de la tâche</ion-label>
                     <ion-textarea formControlName="desc" placeholder="Champs optionnel"></ion-textarea>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="alarm"></ion-icon>
+                Notifications
+            </ion-card-header>
+            <ion-card-content>
+                <ion-list>
+                    <ion-item (click)="selectDate(true)">
+                        <ion-label color="primary" stacked>Deadline:</ion-label>
+                        <ion-datetime displayFormat="DDDD DD MMMM YYYY - HH:mm" [(ngModel)]="ISOdeadline" [ngModelOptions]="{standalone: true}" disabled>
+                        </ion-datetime>
+                    </ion-item>
+                    <ion-item (click)="selectDate(false)">
+                        <ion-label color="primary" stacked>Notification:</ion-label>
+                        <ion-datetime displayFormat="DDDD DD MMMM YYYY - HH:mm" [(ngModel)]="ISOnotif" [ngModelOptions]="{standalone: true}" disabled>
+                        </ion-datetime>
+                    </ion-item>
+                </ion-list>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="contacts"></ion-icon>
+                Contacts (SMS à la complétion)
+            </ion-card-header>
+            <ion-card-content>
+                <ion-list>
+                    <ion-item-sliding *ngFor="let contact of contactList">
+                        <ion-item>
+                            {{contact.displayName}} ({{contact.mobile}})
+                        </ion-item>
+                        <ion-item-options side="right">
+                            <button ion-button color="danger" (click)="deleteContact(contact.id)">
+                                <ion-icon name="trash">
+                                    supprimer
+                                </ion-icon>
+                            </button>
+                        </ion-item-options>
+                    </ion-item-sliding>
+                    <button ion-item color="light" (click)="openContactPopup()" type="button">
+                        <ion-icon name="add-circle" item-start></ion-icon>
+                        Ajouter des contacts
+                    </button>
+                </ion-list>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="image"></ion-icon>
+                Photo
+            </ion-card-header>
+            <ion-card-content>
+                <ion-list>
+                    <button ion-item color="light" type="button">
+                        <ion-icon name="camera" item-start></ion-icon>
+                        Prendre une photo
+                    </button>
+                    <button ion-item color="light" (click)="openGallery()" type="button">
+                        <ion-icon name="images" item-start></ion-icon>
+                        Rechercher dans la gallerie
+                    </button>
+                </ion-list>
+            </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+            <ion-card-header icon-start>
+                <ion-icon name="pin"></ion-icon>
+                Localisation
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item>
+                    <ion-label color="primary" stacked>Addresse de la tâche</ion-label>
+                    <ion-textarea formControlName="address" placeholder="Champs optionnel"></ion-textarea>
                 </ion-item>
             </ion-card-content>
         </ion-card>

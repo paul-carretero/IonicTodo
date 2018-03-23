@@ -114,4 +114,8 @@
     </plugin>
     <engine name="android" spec="~7.1.0" />
     <plugin name="cordova-plugin-camera" spec="^4.0.2" />
+    <plugin name="com.synconset.imagepicker" spec="~2.1.10">
+        <variable name="PHOTO_LIBRARY_USAGE_DESCRIPTION" value="ajouter des images aux taches" />
+    </plugin>
+    <plugin name="cordova-plugin-datepicker" spec="^0.9.3" />
 </widget>

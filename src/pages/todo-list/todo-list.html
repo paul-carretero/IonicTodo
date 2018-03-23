@@ -11,7 +11,7 @@
             <ng-container *ngFor="let todo of todoItems">
                 <ng-container *ngIf="search$ | async as search">
                     <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
-                        <ion-item>
+                        <ion-item detail-push>
                             <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
                             <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                             <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
@@ -38,7 +38,7 @@
         <ng-container *ngFor="let todo of completedTodoItem">
             <ng-container *ngIf="search$ | async as search">
                 <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
-                    <ion-item>
+                    <ion-item detail-push>
                         <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
                         <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                         <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
@@ -65,7 +65,7 @@
             <ng-container *ngIf="todo != null">
                 <ng-container *ngIf="search$ | async as search">
                     <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
-                        <ion-item>
+                        <ion-item detail-push>
                             <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
                             <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                             <h2 (click)="selectTodo(todo.ref, true)">{{todo.name}}</h2>

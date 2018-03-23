@@ -36,6 +36,8 @@ export class TodoPage extends GenericPage {
 
   private isMine: boolean = false;
 
+  protected completeLoading: boolean = false;
+
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
@@ -95,6 +97,12 @@ export class TodoPage extends GenericPage {
         }
       }
     });
+  }
+
+  protected async updateComplete(): Promise<void> {
+    this.completeLoading = true;
+    await this.todoCtrl.complete(this.todoRef, this.todo.complete);
+    this.completeLoading = false;
   }
 
   /**

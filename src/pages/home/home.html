@@ -13,7 +13,7 @@
                     <ng-container *ngIf="search$ | async as search">
                         <ng-container *ngIf="list.metadata.todoTotal === 0 || list.metadata.todoComplete < list.metadata.todoTotal">
                             <ion-item-sliding *ngIf="areMatching(list,search)">
-                                <ion-item (click)="selectTodoList(list.uuid)">
+                                <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                                     <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                     {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                                     <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
@@ -39,7 +39,7 @@
                     <ng-container *ngIf="search$ | async as search">
                         <ng-container *ngIf="list.metadata.todoTotal > 0 && list.metadata.todoComplete === list.metadata.todoTotal">
                             <ion-item-sliding *ngIf="areMatching(list,search)">
-                                <ion-item (click)="selectTodoList(list.uuid)">
+                                <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                                     <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                     {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                                 </ion-item>
@@ -64,7 +64,7 @@
                 <ng-container *ngFor="let list of sharedTodoList">
                     <ng-container *ngIf="search$ | async as search">
                         <ion-item-sliding *ngIf="areMatching(list,search)">
-                            <ion-item (click)="selectTodoList(list.uuid)">
+                            <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                                 <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                 {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                                 <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
@@ -91,7 +91,7 @@
             <ng-container *ngFor="let list of localTodoList">
                 <ng-container *ngIf="search$ | async as search">
                     <ion-item-sliding *ngIf="areMatching(list,search)">
-                        <ion-item (click)="selectTodoList(list.uuid)">
+                        <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                             <ion-icon name="{{list.icon}}" item-start></ion-icon>
                             {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                             <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>

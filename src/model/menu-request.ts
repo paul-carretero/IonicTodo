@@ -25,5 +25,11 @@ export interface IMenuRequest {
    */
   media?: Media;
 
+  /**
+   * identifiant d'une ressource
+   *
+   * @type {string}
+   * @memberof IMenuRequest
+   */
   uuid?: string;
 }

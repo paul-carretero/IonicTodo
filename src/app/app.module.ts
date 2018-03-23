@@ -22,16 +22,17 @@ import { UniqueDeviceID } from '@ionic-native/unique-device-id';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
+import { AngularFireStorageModule } from 'angularfire2/storage';
 import { AlertController, IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { NgxQRCodeModule } from 'ngx-qrcode2';
 
 import { ComponentsModule } from '../components/components.module';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
 import { CloudServiceProvider } from '../providers/cloud-service/cloud-service';
+import { DBServiceProvider } from '../providers/db/db-service';
 import { MapServiceProvider } from '../providers/map-service/map-service';
 import { NfcProvider } from '../providers/nfc/nfc';
 import { NotifServiceProvider } from '../providers/notif-service/notif-service';
-import { DBServiceProvider } from '../providers/db/db-service';
 import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
@@ -39,16 +40,52 @@ import { UiServiceProvider } from '../providers/ui-service/ui-service';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
+import { DatePicker } from '@ionic-native/date-picker';
+import { ImagePicker } from '@ionic-native/image-picker';
+
+const dateLocal = {
+  monthNames: [
+    'Janvier',
+    'Fevrier',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Aout',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Decembre'
+  ],
+  monthShortNames: [
+    'jan',
+    'fev',
+    'mar',
+    'avr',
+    'mai',
+    'jun',
+    'jui',
+    'aou',
+    'sep',
+    'oct',
+    'nov',
+    'dec'
+  ],
+  dayNames: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
+  dayShortNames: ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']
+};
 
 @NgModule({
   declarations: [MyApp],
   imports: [
     BrowserModule,
     NgxQRCodeModule,
-    IonicModule.forRoot(MyApp),
+    IonicModule.forRoot(MyApp, dateLocal),
     AngularFireModule.initializeApp(FirebaseCredentials),
     AngularFireAuthModule,
     AngularFirestoreModule.enablePersistence(),
+    AngularFireStorageModule,
     ComponentsModule
   ],
   bootstrap: [IonicApp],
@@ -87,7 +124,9 @@ import { FirebaseCredentials } from './firebase.credentials';
     Keyboard,
     Contacts,
     UiServiceProvider,
-    Network
+    Network,
+    DatePicker,
+    ImagePicker
   ]
 })
 export class AppModule {}

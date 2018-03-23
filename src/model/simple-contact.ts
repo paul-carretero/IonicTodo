@@ -10,7 +10,7 @@ export interface ISimpleContact {
 
   mobile?: string | null;
 
-  email?: string;
+  email?: string | null;
 
   id?: string;
 }

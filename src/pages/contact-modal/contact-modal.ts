@@ -282,31 +282,4 @@ export class ContactModalPage extends GenericPage {
         break;
     }
   }
-
-  /**
-   * @override
-   * @returns {string}
-   * @memberof ContactModalPage
-   */
-  protected generateDescription(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  /**
-   * @override
-   * @returns {boolean}
-   * @memberof ContactModalPage
-   */
-  protected loginAuthRequired(): boolean {
-    return false;
-  }
-
-  /**
-   * @override
-   * @returns {boolean}
-   * @memberof ContactModalPage
-   */
-  protected basicAuthRequired(): boolean {
-    return false;
-  }
 }
