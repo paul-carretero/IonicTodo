@@ -59,16 +59,20 @@ export class SpeechRecServiceProvider {
       (matches: string[]) => {
         this.uiCtrl.dismissLoading();
         console.log(matches);
-        let trouve = false;
+        let res_rec : {reconnu :boolean, success : boolean, message_error : string};
+        res_rec = {reconnu : false, success :false, message_error : ""};
         for(const item of matches){
           const mots : string [] = item.split(" ");
-          trouve = this.reconnaissanceVocale(mots); 
-          if(trouve){
+          res_rec = this.reconnaissanceVocale(mots); 
+          if(res_rec.success){
             break;
           }
         }
-        if(!trouve){
+        if(!res_rec.reconnu){
           this.speechSynthService.synthText("Aucun mot clé n'a été reconnu. Veuillez réésayer");
+        }
+        if(res_rec.reconnu && !res_rec.success){
+          this.speechSynthService.synthText(res_rec.message_error);
         }
       },
       () => {
@@ -82,7 +86,7 @@ export class SpeechRecServiceProvider {
    * Méthode permettant d'agir selon les mots enregistrés reconnus
    * @param mots ensemble de mots enregistrés par le micro
    */
-  public reconnaissanceVocale(mots : string[]) : boolean{
+  public reconnaissanceVocale(mots : string[]) : {reconnu :boolean, success : boolean, message_error : string}{
     const contain_list = this.contain_motclef(mots, this.motClefs.list);
     const contain_todo = this.contain_motclef(mots, this.motClefs.todo);
     const contain_create = this.contain_motclef(mots, this.motClefs.create);
@@ -91,38 +95,66 @@ export class SpeechRecServiceProvider {
     const contain_view = this.contain_motclef(mots, this.motClefs.view);
 
 
-    let trouve = false;
-    
+    let action_success = false;
+    let phrase_reconnue = false;
+    let message_error = "L'action n'a pas pu être réalisée";
     if(contain_create && contain_list && !contain_todo){
+      phrase_reconnue = true;
       this.creerListe(mots);
-      trouve = true;
+      action_success = true;
     }
     if(contain_create && contain_list && contain_todo){
-      if(this.name_list_existed(this.getNameList(mots)).success){
-        trouve = true;
-        this.creerTache(mots);
+      phrase_reconnue = true;
+      const list = this.name_list_existed(this.getNameList(mots)); 
+      if(list.success){
+        action_success = this.creerTache(mots);
       }
+      else{
+        message_error = "La liste " + this.getNameList(mots) + "n'a pas étée trouvée";
+      }   
+      
     }
+
     if(contain_update && contain_list && !contain_todo){
-      trouve = this.updateListe(mots);
+      phrase_reconnue = true;
+      action_success = this.updateListe(mots);
     }
+
     if(contain_update && contain_list && contain_todo){
-      trouve = this.updateTache(mots);
+      phrase_reconnue = true;
+      const list = this.name_list_existed(this.getNameList(mots)); 
+      if(list.success){
+        if(this.name_todo_existed(this.getNameTodo(mots), list.uuid).success){
+          action_success = true;
+          action_success = this.updateTache(mots);
+        }
+        else{
+          message_error = "La tâche " + this.getNameTodo(mots) + " n'a pas étée trouvée dans la liste " + this.getNameList(mots);
+        }
+      }
+      else{
+        message_error = "La liste " + this.getNameList(mots) + "n'a pas étée trouvée";
+      }  
     }
+
     if(contain_delete && contain_list && !contain_todo){
-      trouve = this.supprimerListe(mots);
+      phrase_reconnue = true;
+      action_success = this.supprimerListe(mots);
     }
     if(contain_delete && contain_list && contain_todo){
-      trouve = this.supprimerTache(mots);
+      phrase_reconnue = true;
+      action_success = this.supprimerTache(mots);
     }
     if(contain_view && contain_list && !contain_todo){
-      trouve = this.afficherListe(mots);
+      phrase_reconnue = true;
+      action_success = this.afficherListe(mots);
     }
     if(this.contain_motclef(mots, this.motClefs.insulte)){
-      trouve = true;
+      phrase_reconnue = true;
+      action_success = true;
       this.speechSynthService.synthText("Veuillez rester polis");
     }
-    return trouve;
+    return {reconnu : phrase_reconnue, success : action_success, message_error : message_error};
   }
 
   /**
@@ -140,22 +172,12 @@ export class SpeechRecServiceProvider {
     return contain;
   }
 
-  /*
-  private getListUUIDByName(name : string) : string {
-    let uuidList : string | null ="";
-    this.todoService.getAllList().forEach(
-          liste => {
-            if(liste.name === name){
-              uuidList = liste.uuid;
-            }
-          }
-        );
-    return uuidList;
-  }
-  */
-
   private getNameList(mots : string[]) : string {
     return mots[mots.indexOf("liste")+1];
+  }
+
+  private getNameTodo(mots : string[]) : string {
+    return mots[mots.indexOf("tâche")+1];
   }
 
   private name_list_existed(name : string) : {uuid : string , success : boolean } {
@@ -242,6 +264,7 @@ export class SpeechRecServiceProvider {
     const liste_search = this.name_list_existed(nomListe);
     console.log("uuid liste : " + liste_search.uuid);
     if(liste_search.success){
+      console.log("liste trouvée");
       const todo_search = this.name_todo_existed(nomTache, liste_search.uuid);
       if(todo_search.success){
         if(todo_search.todo.ref != null && todo_search.todo.uuid != null){
@@ -299,7 +322,7 @@ export class SpeechRecServiceProvider {
   }
 
 
-  private async creerTache(mots : string[]) : Promise<boolean> {
+  private creerTache(mots : string[]) : boolean {
     // phrase de la forme : ajouter tache <nom_tache> dans liste <nom_liste>
     const nomTache : string = mots[mots.indexOf("tâche") + 1];
     
@@ -314,9 +337,9 @@ export class SpeechRecServiceProvider {
     data.name = nomTache;
 
     if(liste_search.success){
-      const refDoc = await this.todoService.addTodo(liste_search.uuid, data);  
+      const refDoc = this.todoService.addTodo(liste_search.uuid, data);  
       console.log("ref doc : " + refDoc);
-
+      this.speechSynthService.synthText("Tâche " + nomTache + " a été ajoutée dans la liste " + nomListe);
       this.evtCtrl.getNavRequestSubject().next({page:'TodoListPage', data:{uuid: liste_search.uuid}});
     }
     
