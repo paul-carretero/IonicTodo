@@ -20,6 +20,7 @@
     <preference name="SplashShowOnlyFirstTime" value="false" />
     <preference name="SplashScreen" value="screen" />
     <preference name="SplashScreenDelay" value="3000" />
+    <preference name="loadUrlTimeoutValue" value="700000" />
     <platform name="android">
         <allow-intent href="market:*" />
         <icon density="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />
@@ -114,8 +115,8 @@
     </plugin>
     <engine name="android" spec="~7.1.0" />
     <plugin name="cordova-plugin-camera" spec="^4.0.2" />
-    <plugin name="com.synconset.imagepicker" spec="~2.1.10">
-        <variable name="PHOTO_LIBRARY_USAGE_DESCRIPTION" value="ajouter des images aux taches" />
-    </plugin>
     <plugin name="cordova-plugin-datepicker" spec="^0.9.3" />
+    <plugin name="com.synconset.imagepicker" spec="~2.1.10">
+        <variable name="PHOTO_LIBRARY_USAGE_DESCRIPTION" value="your usage message" />
+    </plugin>
 </widget>

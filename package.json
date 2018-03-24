@@ -134,7 +134,7 @@
       },
       "cordova-plugin-camera": {},
       "com.synconset.imagepicker": {
-        "PHOTO_LIBRARY_USAGE_DESCRIPTION": "ajouter des images aux taches"
+        "PHOTO_LIBRARY_USAGE_DESCRIPTION": "your usage message"
       },
       "cordova-plugin-datepicker": {}
     },
