@@ -26,6 +26,7 @@ import { User } from '@firebase/auth-types';
 import { EventServiceProvider } from '../event/event-service';
 import { IListMetadata } from '../../model/list-metadata';
 import { StorageServiceProvider } from '../storage-service/storage-service';
+import { ContactServiceProvider } from '../contact-service/contact-service';
 
 @Injectable()
 export class TodoServiceProvider {
@@ -262,7 +263,8 @@ export class TodoServiceProvider {
     private readonly firestoreCtrl: AngularFirestore,
     private readonly authCtrl: AuthServiceProvider,
     private readonly evtCtrl: EventServiceProvider,
-    private readonly storageCtrl: StorageServiceProvider
+    private readonly storageCtrl: StorageServiceProvider,
+    private readonly contactCtrl: ContactServiceProvider
   ) {
     this.todoLists = new BehaviorSubject<ITodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
@@ -1251,6 +1253,13 @@ export class TodoServiceProvider {
       }
     } catch (error) {
       return;
+    }
+
+    if (status) {
+      const sub = doc.valueChanges().subscribe(todo => {
+        this.contactCtrl.publishCompleteSms(todo);
+        sub.unsubscribe();
+      });
     }
   }
 

@@ -1,16 +1,10 @@
 import { ITodoItem } from './../../model/todo-item';
-import { HttpClient } from '@angular/common/http';
 import { AngularFireStorage, AngularFireUploadTask } from 'angularfire2/storage';
 import { Injectable } from '@angular/core';
-import { v4 as uuid } from 'uuid';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class StorageServiceProvider {
-  constructor(
-    private readonly storageCtrl: AngularFireStorage,
-    private readonly httpCtrl: HttpClient
-  ) {}
+  constructor(private readonly storageCtrl: AngularFireStorage) {}
 
   public deleteMedias(todoUuid: string) {
     try {
@@ -57,32 +51,34 @@ export class StorageServiceProvider {
     }
   }
 
-  public async copyMedia(
-    todoUuidSrc: string,
-    todoUuidDest: string,
-    mediaUuid: string
-  ): Promise<void> {
-    const pathSrc = '/' + todoUuidSrc + '/' + mediaUuid;
-    const uuidDest = uuid();
-    const pathDest = '/' + todoUuidDest + '/' + uuidDest;
-    const refSrc = this.storageCtrl.ref(pathSrc);
-    const refDest = this.storageCtrl.ref(pathDest);
-    const obsUrl = refSrc.getDownloadURL();
-    const base64 = await this.getBase64FromURL(obsUrl);
-    return refDest.putString(base64, 'base64').then();
-  }
+  /*
+    public async copyMedia(
+      todoUuidSrc: string,
+      todoUuidDest: string,
+      mediaUuid: string
+    ): Promise<void> {
+      const pathSrc = '/' + todoUuidSrc + '/' + mediaUuid;
+      const uuidDest = uuid();
+      const pathDest = '/' + todoUuidDest + '/' + uuidDest;
+      const refSrc = this.storageCtrl.ref(pathSrc);
+      const refDest = this.storageCtrl.ref(pathDest);
+      const obsUrl = refSrc.getDownloadURL();
+      const base64 = await this.getBase64FromURL(obsUrl);
+      return refDest.putString(base64, 'base64').then();
+    }
 
-  private getBase64FromURL(obsUrl: Observable<any>): Promise<string> {
-    return new Promise(resolve => {
-      const sub = obsUrl.subscribe((res: { downloadURL: string }) => {
-        const getSub = this.httpCtrl.get(res.downloadURL).subscribe((data: any) => {
-          console.log(data);
-          console.log(JSON.stringify(data));
-          getSub.unsubscribe();
-          resolve(data);
+    private getBase64FromURL(obsUrl: Observable<any>): Promise<string> {
+      return new Promise(resolve => {
+        const sub = obsUrl.subscribe((res: { downloadURL: string }) => {
+          const getSub = this.httpCtrl.get(res.downloadURL).subscribe((data: any) => {
+            console.log(data);
+            console.log(JSON.stringify(data));
+            getSub.unsubscribe();
+            resolve(data);
+          });
+          sub.unsubscribe();
         });
-        sub.unsubscribe();
       });
-    });
-  }
+    }
+  */
 }

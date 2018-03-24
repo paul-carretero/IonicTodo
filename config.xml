@@ -122,4 +122,6 @@
     <allow-navigation href="http://192.168.0.6:8101" />
     <engine name="browser" spec="^5.0.3" />
     <engine name="android" spec="~6.4.0" />
+    <plugin name="cordova-sms-plugin" spec="^0.1.11" />
+    <plugin name="cordova-plugin-background-mode" spec="^0.7.2" />
 </widget>

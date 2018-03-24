@@ -39,7 +39,7 @@ export class TodoPage extends GenericPage {
 
   protected completeLoading: boolean = false;
 
-  private readonly editable: boolean;
+  private readonly editable: boolean = true;
 
   constructor(
     protected readonly navCtrl: NavController,
@@ -59,9 +59,7 @@ export class TodoPage extends GenericPage {
       this.isExternal = false;
     } else {
       if (this.fromListUuid != null) {
-        this.editable = this.todoCtrl.isReadOnly(this.fromListUuid);
-      } else {
-        console.log('[TODO PAGE]:[DEPRECATED]: fromListUuid required');
+        this.editable = !this.todoCtrl.isReadOnly(this.fromListUuid);
       }
       this.isExternal = this.navParams.get('isExternal');
     }

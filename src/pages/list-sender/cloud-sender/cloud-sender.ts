@@ -11,6 +11,7 @@ import { SpeechSynthServiceProvider } from './../../../providers/speech-synth-se
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { Global } from './../../../shared/global';
 import { GenericSharer } from './../generic-sharer';
+import { ContactServiceProvider } from '../../../providers/contact-service/contact-service';
 
 @IonicPage()
 @Component({
@@ -35,7 +36,8 @@ export class CloudSenderPage extends GenericSharer {
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider,
-    private readonly modalCtrl: ModalController
+    private readonly modalCtrl: ModalController,
+    private readonly contactCtrl: ContactServiceProvider
   ) {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
     this.shareData = Global.getDefaultCloudShareData();
@@ -57,7 +59,7 @@ export class CloudSenderPage extends GenericSharer {
     return ['partager', 'partagée', 'partage'];
   }
 
-  public async share(email: string): Promise<void> {
+  public async share(email: string | null): Promise<void> {
     this.uiCtrl.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
 
@@ -78,13 +80,16 @@ export class CloudSenderPage extends GenericSharer {
     if (this.contactList.length > 0) {
       for (const contact of this.contactList) {
         if (contact.email == null) {
-          this.share('');
+          this.share(null);
         } else {
           this.share(contact.email);
         }
       }
     } else {
-      this.share('');
+      this.share(null);
+    }
+    if (this.sendSMS) {
+      this.contactCtrl.sendInviteSms(this.contactList);
     }
   }
 

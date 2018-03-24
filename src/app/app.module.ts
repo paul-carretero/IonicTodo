@@ -1,8 +1,10 @@
+import { ContactServiceProvider } from './../providers/contact-service/contact-service';
 import { HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { Base64 } from '@ionic-native/base64';
+import { Camera } from '@ionic-native/camera';
 import { CameraPreview } from '@ionic-native/camera-preview';
 import { Contacts } from '@ionic-native/contacts';
 import { DatePicker } from '@ionic-native/date-picker';
@@ -19,6 +21,7 @@ import { PhotoViewer } from '@ionic-native/photo-viewer';
 import { QRScanner } from '@ionic-native/qr-scanner';
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
 import { Shake } from '@ionic-native/shake';
+import { SMS } from '@ionic-native/sms';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { SQLite } from '@ionic-native/sqlite';
@@ -47,7 +50,6 @@ import { UiServiceProvider } from '../providers/ui-service/ui-service';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-import { Camera } from '@ionic-native/camera';
 
 const dateLocal = {
   monthNames: [
@@ -139,7 +141,9 @@ const dateLocal = {
     StorageServiceProvider,
     PhotoViewer,
     HttpClientModule,
-    Camera
+    Camera,
+    ContactServiceProvider,
+    SMS
   ]
 })
 export class AppModule {}
