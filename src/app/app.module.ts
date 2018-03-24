@@ -78,8 +78,8 @@ const dateLocal = {
     'nov',
     'dec'
   ],
-  dayNames: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
-  dayShortNames: ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']
+  dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+  dayShortNames: ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam']
 };
 
 @NgModule({

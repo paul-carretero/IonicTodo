@@ -565,4 +565,12 @@ export class TodoListPage extends GenericPage {
     await Promise.all(promises);
     this.orderableReady = true;
   }
+
+  protected isLate(todo: ITodoItem): boolean {
+    if (todo.complete === false || todo.deadline == null) {
+      return false;
+    }
+    const deadline = new Date(todo.deadline).getTime();
+    return deadline < new Date().getTime();
+  }
 }

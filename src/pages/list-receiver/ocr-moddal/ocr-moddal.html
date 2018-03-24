@@ -1,0 +1,10 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+<ion-content padding>
+  <ion-toolbar>
+    La reconnaissance de caractère peux prendre un certains temps en fonction de la complexité et de la taille de l'image...
+  </ion-toolbar>
+  <img *ngIf="srcImage" #image id="image" [src]="srcImage" class="center" />
+</ion-content>

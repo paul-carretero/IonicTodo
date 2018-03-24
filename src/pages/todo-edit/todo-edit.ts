@@ -263,7 +263,7 @@ export class TodoEditPage extends GenericPage {
     if (this.todo.deadline == null) {
       return null;
     }
-    const date = new Date(this.todo.deadline.getTime() + 3600000); // on ajoute une heure dunno why probablment à supprimer en heure d'été...
+    const date = new Date(this.todo.deadline.getTime() + 3600000); // à fixer quand on sera heure d'été, vivement qu'on supprime cette stupidité
     return date.toISOString();
   }
 

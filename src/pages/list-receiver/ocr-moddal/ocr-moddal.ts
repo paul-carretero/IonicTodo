@@ -1,19 +1,14 @@
-import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { Component } from '@angular/core';
-import {
-  CameraPreview,
-  CameraPreviewOptions,
-  CameraPreviewPictureOptions
-} from '@ionic-native/camera-preview';
-import { ScreenOrientation } from '@ionic-native/screen-orientation';
+import { Camera, CameraOptions } from '@ionic-native/camera';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 
-import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
-import { EventServiceProvider } from '../../providers/event/event-service';
-import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
-import { UiServiceProvider } from '../../providers/ui-service/ui-service';
-import { GenericPage } from '../../shared/generic-page';
-import { Global } from '../../shared/global';
+import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
+import { EventServiceProvider } from '../../../providers/event/event-service';
+import { SpeechSynthServiceProvider } from '../../../providers/speech-synth-service/speech-synth-service';
+import { TodoServiceProvider } from '../../../providers/todo-service-ts/todo-service-ts';
+import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
+import { GenericPage } from '../../../shared/generic-page';
+import { Global } from '../../../shared/global';
 
 declare var OCRAD: any;
 
@@ -31,39 +26,6 @@ declare var OCRAD: any;
 })
 export class OcrModdalPage extends GenericPage {
   /**************************** PRIVATE FIELDS ******************************/
-  /**
-   * options pour prendre une photo avec le plugin de preview
-   *
-   * @private
-   * @static
-   * @type {CameraPreviewPictureOptions}
-   * @memberof OcrModdalPage
-   */
-  private static readonly pictureOpts: CameraPreviewPictureOptions = {
-    width: 720,
-    height: 1280,
-    quality: 100
-  };
-
-  /**
-   * options de prévisiualisation avec le plugin de preview
-   *
-   * @private
-   * @static
-   * @type {CameraPreviewOptions}
-   * @memberof OcrModdalPage
-   */
-  private static readonly CAMERA_OPTS: CameraPreviewOptions = {
-    x: (window.screen.width - window.screen.width / 1.4) / 2,
-    y: 120,
-    width: window.screen.width / 1.4,
-    height: window.screen.height / 2,
-    camera: 'rear',
-    tapPhoto: false,
-    previewDrag: false,
-    toBack: true,
-    alpha: 1
-  };
 
   /**
    * liste dans laquelle sauvegarder les todo scanner
@@ -75,26 +37,16 @@ export class OcrModdalPage extends GenericPage {
    */
   private readonly listUuid: string;
 
+  /**
+   * options pour la caméta
+   *
+   * @private
+   * @type {CameraOptions}
+   * @memberof OcrModdalPage
+   */
+  private readonly cameraOpts: CameraOptions;
+
   /***************************** PUBLIC FIELDS ******************************/
-
-  /**
-   * vrai si la visualisation est activée, faux sinon
-   *
-   * @protected
-   * @type {boolean}
-   * @memberof OcrModdalPage
-   */
-  protected cameraOn: boolean = false;
-
-  /**
-   * Hauteur maximal de l'image (lors du chargement, ne dépasse pas les limites de l'écran)
-   *
-   * @readonly
-   * @protected
-   * @type {number}
-   * @memberof OcrModdalPage
-   */
-  protected readonly maxHeight = OcrModdalPage.CAMERA_OPTS.height;
 
   /**
    * image pour présentation à l'écran
@@ -117,8 +69,7 @@ export class OcrModdalPage extends GenericPage {
    * @param {AuthServiceProvider} authCtrl
    * @param {UiServiceProvider} uiCtrl
    * @param {NavParams} navParams
-   * @param {CameraPreview} cameraPreview
-   * @param {ScreenOrientation} screenCtrl
+   * @param {Camera} cameraCtrl
    * @param {TodoServiceProvider} todoCtrl
    * @memberof OcrModdalPage
    */
@@ -129,12 +80,20 @@ export class OcrModdalPage extends GenericPage {
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly navParams: NavParams,
-    private readonly cameraPreview: CameraPreview,
-    private readonly screenCtrl: ScreenOrientation,
+    private readonly cameraCtrl: Camera,
     private readonly todoCtrl: TodoServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUuid = this.navParams.get('listUuid');
+    this.cameraOpts = {
+      quality: 80,
+      correctOrientation: true,
+      allowEdit: true,
+      targetWidth: 800,
+      destinationType: this.cameraCtrl.DestinationType.FILE_URI,
+      encodingType: this.cameraCtrl.EncodingType.JPEG,
+      mediaType: this.cameraCtrl.MediaType.PICTURE
+    };
   }
 
   /**************************************************************************/
@@ -147,12 +106,11 @@ export class OcrModdalPage extends GenericPage {
    * @memberof OcrModdalPage
    */
   ionViewDidEnter() {
-    this.startPreview();
-    this.screenCtrl.lock(this.screenCtrl.ORIENTATIONS.PORTRAIT);
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Importer par OCR';
     pageData.subtitle = 'Importer vos tâches';
     this.evtCtrl.setHeader(pageData);
+    this.takePicture();
   }
 
   /**
@@ -160,41 +118,20 @@ export class OcrModdalPage extends GenericPage {
    *
    * @memberof OcrModdalPage
    */
-  ionViewWillLeave() {
-    this.stopPreview();
-    this.screenCtrl.unlock();
-  }
+  ionViewWillLeave() {}
 
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
 
-  /**
-   * commence la prévisualisation
-   *
-   * @private
-   * @returns {Promise<void>}
-   * @memberof OcrModdalPage
-   */
-  private async startPreview(): Promise<void> {
-    if (this.cameraOn === false) {
-      await this.cameraPreview.startCamera(OcrModdalPage.CAMERA_OPTS);
-      this.cameraOn = true;
-    }
-  }
-
-  /**
-   * Termine la prévisualisation si possible
-   *
-   * @private
-   * @returns {Promise<void>}
-   * @memberof OcrModdalPage
-   */
-  private async stopPreview(): Promise<void> {
-    if (this.cameraOn === true) {
-      await this.cameraPreview.stopCamera();
-      this.cameraOn = false;
-    }
+  protected takePicture(): void {
+    this.cameraCtrl.getPicture(this.cameraOpts).then(
+      imageData => {
+        this.srcImage = imageData;
+        this.startOCR();
+      },
+      () => this.uiCtrl.alert('Erreur', "Impossible d'acceder à la camera")
+    );
   }
 
   /**
@@ -212,12 +149,14 @@ export class OcrModdalPage extends GenericPage {
     text = text.replace(/[-'`~!@#$%^&*()_|+=?;:'",.<>\{\}\[\]\\\/]/gi, '');
     const lines = text.split(/\r?\n/);
     const selectTodo = this.uiCtrl.getBasicAlert();
+    let atLeastOne = false;
     selectTodo.setTitle('Tâches à importer');
     selectTodo.setSubTitle(
       'Les tâches suivante ont été reconnues. Vous pouvez sélectionner celles que vous souhaiter importer dans votre liste de tâches'
     );
     for (const todo of lines) {
       if (todo.trim().length > 2) {
+        atLeastOne = true;
         selectTodo.addInput({
           type: 'checkbox',
           label: todo,
@@ -230,7 +169,7 @@ export class OcrModdalPage extends GenericPage {
       text: 'Annuler',
       handler: () => {
         this.srcImage = null;
-        this.startPreview();
+        this.takePicture();
       }
     });
     selectTodo.addButton({
@@ -240,7 +179,20 @@ export class OcrModdalPage extends GenericPage {
       }
     });
     this.uiCtrl.dismissLoading();
-    selectTodo.present();
+    if (atLeastOne) {
+      selectTodo.present();
+    } else {
+      const again = await this.uiCtrl.confirm(
+        'Echec',
+        "Désolé mais aucune ligne n'a pû être identifiée, voulez vous réessayer ?"
+      );
+      if (again) {
+        this.srcImage = null;
+        this.takePicture();
+      } else {
+        this.navCtrl.pop();
+      }
+    }
   }
 
   /**
@@ -263,10 +215,6 @@ export class OcrModdalPage extends GenericPage {
     this.navCtrl.pop();
   }
 
-  /**************************************************************************/
-  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
-  /**************************************************************************/
-
   /**
    * la fonction démarrera la reconnaissance de caractères
    * terminera le preview et affichera l'image prise pour la reconnaissance
@@ -275,16 +223,7 @@ export class OcrModdalPage extends GenericPage {
    * @returns {Promise<void>}
    * @memberof OcrModdalPage
    */
-  protected async scanOCR(): Promise<void> {
-    let imageData: any;
-    try {
-      imageData = await this.cameraPreview.takePicture(OcrModdalPage.pictureOpts);
-    } catch (error) {
-      this.uiCtrl.displayToast('Impossible de prendre une photo');
-      return;
-    }
-    this.srcImage = 'data:image/jpeg;base64,' + imageData;
-    this.stopPreview();
+  private async startOCR(): Promise<void> {
     this.uiCtrl.showLoading('OCR en cours');
     setTimeout(() => {
       OCRAD(document.getElementById('image'), (text: any) => {
