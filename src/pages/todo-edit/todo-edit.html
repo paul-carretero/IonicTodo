@@ -76,16 +76,25 @@
             </ion-card-header>
             <ion-card-content>
                 <ion-list>
-                    <ion-item *ngFor="let pic of todo.pictures">
-                        <ion-thumbnail item-start>
-                            <img *ngIf="!(pic.url == null)" [src]="pic.url" (click)="showPhoto(pic.url)" />
-                        </ion-thumbnail>
-                        <progress [value]="pic.dl" max="100" min="0" class="progressbar">{{pic.dl}} %</progress>
-                        <button ion-button color="danger" type="button" large item-end *ngIf="!(pic.url == null)" (click)="deleteUploadedPic(pic.uuid)">
-                            <ion-icon name="trash" large></ion-icon>
-                        </button>
-                    </ion-item>
-                    <button ion-item color="light" type="button">
+                    <ion-item-sliding *ngFor="let pic of todo.pictures">
+                        <ion-item>
+                            <ion-thumbnail item-start>
+                                <img *ngIf="!(pic.url == null)" [src]="pic.url" />
+                            </ion-thumbnail>
+                            <progress *ngIf="pic.dl < 100" [value]="pic.dl" max="100" min="0" class="progressbar">{{pic.dl}} %</progress>
+                            <ion-input *ngIf="pic.url" type="text" placeholder="Nom de l'image" [(ngModel)]="pic.name" [ngModelOptions]="{standalone: true}"></ion-input>
+                        </ion-item>
+
+                        <ion-item-options side="right" *ngIf="!(pic.url == null)">
+                            <button ion-button color="danger" (click)="deleteUploadedPic(pic.uuid)">
+                                <ion-icon name="trash">
+                                    supprimer
+                                </ion-icon>
+                            </button>
+                        </ion-item-options>
+                    </ion-item-sliding>
+
+                    <button ion-item color="light" type="button" (click)="takePicture()">
                         <ion-icon name="camera" item-start></ion-icon>
                         Prendre une photo
                     </button>

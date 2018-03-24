@@ -1,3 +1,5 @@
+import { IAuthor } from './../../model/author';
+import { StorageServiceProvider } from './../../providers/storage-service/storage-service';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DocumentReference } from '@firebase/firestore-types';
@@ -5,8 +7,6 @@ import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { Base64 } from '@ionic-native/base64';
 import { DatePicker } from '@ionic-native/date-picker';
 import { File } from '@ionic-native/file';
-import { PhotoViewer } from '@ionic-native/photo-viewer';
-import { AngularFireStorage } from 'angularfire2/storage';
 import { IonicPage, ModalController, NavController, NavParams } from 'ionic-angular';
 import { v4 as uuid } from 'uuid';
 
@@ -23,6 +23,7 @@ import { EventServiceProvider } from './../../providers/event/event-service';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
+import { Camera, CameraOptions } from '@ionic-native/camera';
 
 @IonicPage()
 @Component({
@@ -42,6 +43,12 @@ export class TodoEditPage extends GenericPage {
 
   protected uploading: boolean = false;
 
+  private imgCacheClean: boolean = true;
+
+  private readonly cameraOpts: CameraOptions;
+
+  private curAuthor: IAuthor;
+
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
@@ -53,11 +60,11 @@ export class TodoEditPage extends GenericPage {
     private readonly formBuilder: FormBuilder,
     private readonly datePicker: DatePicker,
     private readonly modalCtrl: ModalController,
-    private readonly storageCtrl: AngularFireStorage,
     private readonly base64Ctrl: Base64,
     private readonly fileCtrl: File,
     private readonly permsCtrl: AndroidPermissions,
-    private readonly photoCtrl: PhotoViewer
+    private readonly storageCtrl: StorageServiceProvider,
+    private readonly cameraCtrl: Camera
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
@@ -74,6 +81,16 @@ export class TodoEditPage extends GenericPage {
       desc: [''],
       address: ['']
     });
+
+    this.cameraOpts = {
+      quality: 100,
+      correctOrientation: true,
+      allowEdit: true,
+      targetHeight: 1280,
+      destinationType: this.cameraCtrl.DestinationType.FILE_URI,
+      encodingType: this.cameraCtrl.EncodingType.JPEG,
+      mediaType: this.cameraCtrl.MediaType.PICTURE
+    };
   }
 
   /**************************************************************************/
@@ -95,10 +112,17 @@ export class TodoEditPage extends GenericPage {
       header.subtitle = 'Menu création';
       this.evtCtrl.setHeader(header);
     }
+
+    this.authCtrl.getAuthor(false).then((res: IAuthor) => {
+      this.curAuthor = res;
+    });
   }
 
   ionViewWillLeave(): void {
     this.todoService.unsubDeleteSubject();
+    if (!this.imgCacheClean) {
+      this.todoService.updateTodoPictures(this.todo);
+    }
   }
 
   protected menuEventHandler(req: IMenuRequest): void {
@@ -142,7 +166,7 @@ export class TodoEditPage extends GenericPage {
         desc.setValue(this.todo.desc);
         address.setValue(this.todo.address);
       }
-
+      this.storageCtrl.refreshDownloadLink(this.todo);
       sub.unsubscribe();
     });
   }
@@ -221,6 +245,7 @@ export class TodoEditPage extends GenericPage {
         minDate: new Date().valueOf(),
         is24Hour: true,
         titleText: title,
+        locale: 'fr-FR',
         androidTheme: this.datePicker.ANDROID_THEMES.THEME_HOLO_DARK
       });
     } catch (error) {
@@ -238,14 +263,16 @@ export class TodoEditPage extends GenericPage {
     if (this.todo.deadline == null) {
       return null;
     }
-    return this.todo.deadline.toISOString();
+    const date = new Date(this.todo.deadline.getTime() + 3600000); // on ajoute une heure dunno why probablment à supprimer en heure d'été...
+    return date.toISOString();
   }
 
   get ISOnotif(): string | null {
     if (this.todo.notif == null) {
       return null;
     }
-    return this.todo.notif.toISOString();
+    const date = new Date(this.todo.notif.getTime() + 3600000); // idem
+    return date.toISOString();
   }
 
   protected openContactPopup(): void {
@@ -269,12 +296,15 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
-  private async galleryResultHandler(URIs: string[]): Promise<void> {
+  private async imgResultHandler(URIs: string[], author: IAuthor | null): Promise<void> {
+    this.imgCacheClean = false;
     const prepareUploadedPics: { uuid: string; url: string | null; dl: number }[] = [];
     this.uploading = true;
 
-    for (let i = 0; i < URIs.length; i++) {
-      const entry: IPicture = { uuid: uuid(), dl: 0, url: null };
+    for (const uri of URIs) {
+      const uriTab = uri.split('/');
+      const name = uriTab[uriTab.length - 1].substring(4, 20);
+      const entry: IPicture = { uuid: uuid(), dl: 0, url: null, author: author, name: name };
       prepareUploadedPics.push(entry);
       this.todo.pictures.push(entry);
     }
@@ -284,11 +314,15 @@ export class TodoEditPage extends GenericPage {
       if (entry == null) {
         return;
       }
+      let content: 'image/png' | 'image/jpg' = 'image/jpg';
+      if (uri.toUpperCase().includes('.PNG')) {
+        content = 'image/png';
+      }
 
       const base64_full = await this.base64Ctrl.encodeFile(uri);
       const base64_split = base64_full.split(',');
       const base64 = base64_split[base64_split.length - 1];
-      this.uploadImage(base64, entry.uuid);
+      this.uploadImage(base64, entry.uuid, content);
       this.fileCtrl
         .resolveLocalFilesystemUrl(uri)
         .then(f => f.remove(() => {}, () => console.log('suppression PAS OK :/')));
@@ -313,7 +347,7 @@ export class TodoEditPage extends GenericPage {
     this.requestPerms();
     (<any>window).imagePicker.getPictures(
       (res: string[]) => {
-        this.galleryResultHandler(res);
+        this.imgResultHandler(res, null);
       },
       (error: any) => {
         console.log('Erreur dans ImagePicker: ' + error);
@@ -326,24 +360,31 @@ export class TodoEditPage extends GenericPage {
   }
 
   protected deleteUploadedPic(uuidPic: string): void {
-    const path = '/' + this.todo.uuid + '/' + uuidPic;
-    const ref = this.storageCtrl.ref(path);
-    ref.delete();
+    if (this.todo.uuid === null) {
+      return;
+    }
+    this.imgCacheClean = false;
+    this.storageCtrl.deleteMedia(this.todo.uuid, uuidPic);
     const i = this.todo.pictures.findIndex(u => u.uuid === uuidPic);
     if (i !== -1) {
       this.todo.pictures.splice(i, 1);
     }
   }
 
-  private uploadImage(base64Pic: string, uuidPic: string): void {
-    const path = '/' + this.todo.uuid + '/' + uuidPic;
-    const ref = this.storageCtrl.ref(path);
-    const upload = ref.putString(base64Pic, 'base64', { contentType: 'image/png' });
+  private uploadImage(
+    base64Pic: string,
+    uuidPic: string,
+    content: 'image/jpg' | 'image/png'
+  ): void {
+    if (this.todo.uuid == null) {
+      return;
+    }
+    const upload = this.storageCtrl.uploadMedia(this.todo.uuid, uuidPic, base64Pic, content);
 
     upload.percentageChanges().subscribe((n: number) => {
       const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
       if (entry == null) {
-        this.todo.pictures.push({ uuid: uuidPic, dl: n, url: null });
+        this.todo.pictures.push({ uuid: uuidPic, dl: n, url: null, name: null, author: null });
       } else {
         entry.dl = n;
       }
@@ -352,14 +393,29 @@ export class TodoEditPage extends GenericPage {
     upload.then().then((res: { downloadURL: string }) => {
       const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
       if (entry == null) {
-        this.todo.pictures.push({ uuid: uuidPic, url: res.downloadURL, dl: 100 });
+        this.todo.pictures.push({
+          uuid: uuidPic,
+          url: res.downloadURL,
+          dl: 100,
+          name: null,
+          author: null
+        });
       } else {
         entry.url = res.downloadURL;
       }
     });
   }
 
-  protected showPhoto(uri: string): void {
-    this.photoCtrl.show(uri);
+  protected updateName(pic: IPicture, name: string): void {
+    pic.name = name;
+  }
+
+  protected takePicture(): void {
+    this.cameraCtrl.getPicture(this.cameraOpts).then(
+      imageData => {
+        this.imgResultHandler([imageData], this.curAuthor);
+      },
+      () => this.uiCtrl.alert('Erreur', "Impossible d'acceder à la camera")
+    );
   }
 }

@@ -1471,6 +1471,32 @@ export class TodoServiceProvider {
   }
 
   /**
+   * permet de garder la consistence du cache des images d'un todo
+   *
+   * @param {ITodoItem} todo
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  public async updateTodoPictures(todo: ITodoItem): Promise<void> {
+    if (todo.ref == null || todo.pictures == null) {
+      return;
+    }
+
+    const todoDoc = new AngularFirestoreDocument<ITodoItem>(todo.ref as any);
+    try {
+      const p = todoDoc.update({
+        pictures: todo.pictures
+      });
+      if (this.online) {
+        await p;
+      }
+    } catch (error) {
+      console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
+      return;
+    }
+  }
+
+  /**
    * recherche l'ensemble des todo pour l'ensemble des listes de l'utilisateur courrant (ou hors connexion).
    * Effet de bord: comme l'opération est couteuse, publish cette liste dans l'evtCtrl
    *

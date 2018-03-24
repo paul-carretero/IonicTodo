@@ -47,6 +47,7 @@ import { UiServiceProvider } from '../providers/ui-service/ui-service';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
+import { Camera } from '@ionic-native/camera';
 
 const dateLocal = {
   monthNames: [
@@ -137,7 +138,8 @@ const dateLocal = {
     AndroidPermissions,
     StorageServiceProvider,
     PhotoViewer,
-    HttpClientModule
+    HttpClientModule,
+    Camera
   ]
 })
 export class AppModule {}

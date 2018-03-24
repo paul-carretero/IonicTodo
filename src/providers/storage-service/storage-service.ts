@@ -1,5 +1,6 @@
+import { ITodoItem } from './../../model/todo-item';
 import { HttpClient } from '@angular/common/http';
-import { AngularFireStorage } from 'angularfire2/storage';
+import { AngularFireStorage, AngularFireUploadTask } from 'angularfire2/storage';
 import { Injectable } from '@angular/core';
 import { v4 as uuid } from 'uuid';
 import { Observable } from 'rxjs';
@@ -12,14 +13,48 @@ export class StorageServiceProvider {
   ) {}
 
   public deleteMedias(todoUuid: string) {
-    const ref = this.storageCtrl.ref(todoUuid);
-    ref.delete();
+    try {
+      const ref = this.storageCtrl.ref(todoUuid);
+      ref.delete();
+    } catch (error) {
+      console.log('erreur lors de la suppression, le media existe il toujours ?');
+    }
   }
 
   public deleteMedia(todoUuid: string, mediaUuid: string): void {
-    const path = '/' + todoUuid + '/' + mediaUuid;
+    try {
+      const path = '/' + todoUuid + '/' + mediaUuid;
+      const ref = this.storageCtrl.ref(path);
+      ref.delete();
+    } catch (error) {
+      console.log('erreur lors de la suppression, le media existe il toujours ?');
+    }
+  }
+
+  public uploadMedia(
+    todoUuid: string,
+    uuidMedia: string,
+    base64data: string,
+    content: 'image/jpg' | 'image/png'
+  ): AngularFireUploadTask {
+    const path = '/' + todoUuid + '/' + uuidMedia;
     const ref = this.storageCtrl.ref(path);
-    ref.delete();
+    return ref.putString(base64data, 'base64', { contentType: content });
+  }
+
+  public refreshDownloadLink(todo: ITodoItem): void {
+    if (todo == null || todo.uuid == null || todo.pictures.length === 0) {
+      return;
+    }
+
+    for (const picture of todo.pictures) {
+      const path = '/' + todo.uuid + '/' + picture.uuid;
+      const ref = this.storageCtrl.ref(path);
+      const sub = ref.getDownloadURL().subscribe(res => {
+        picture.url = res;
+        sub.unsubscribe();
+      });
+    }
   }
 
   public async copyMedia(

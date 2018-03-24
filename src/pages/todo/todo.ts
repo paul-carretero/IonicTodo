@@ -15,6 +15,7 @@ import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { IPageData } from '../../model/page-data';
+import { PhotoViewer } from '@ionic-native/photo-viewer';
 
 @IonicPage()
 @Component({
@@ -45,7 +46,8 @@ export class TodoPage extends GenericPage {
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly navParams: NavParams,
-    private readonly todoCtrl: TodoServiceProvider
+    private readonly todoCtrl: TodoServiceProvider,
+    private readonly photoCtrl: PhotoViewer
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
@@ -134,5 +136,9 @@ export class TodoPage extends GenericPage {
         break;
       }
     }
+  }
+
+  protected showPhoto(uri: string): void {
+    this.photoCtrl.show(uri);
   }
 }
