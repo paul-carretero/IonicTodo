@@ -10,13 +10,13 @@
 			"title":"Language",
 			"type":"radio",
 			"key":"lang",
-			"default": "en-us",
+			"default": "fr-FR",
 			"items":[{
-				"value":"en-us",
-				"title":"English (US)"
+				"value":"fr-FR",
+				"title":"French (FR)"
 			}, {
-				"value":"en-gb",
-				"title":"English (UK)"
+				"value":"en-EN",
+				"title":"English (US)"
 			}]
 		}, {
 			"title":"Debug",

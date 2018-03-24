@@ -16,11 +16,11 @@ import { Global } from '../../../shared/global';
 })
 export class QrcodeGeneratePage extends GenericSharer {
   constructor(
-    public readonly navParams: NavParams,
+    protected readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly todoCtrl: TodoServiceProvider,
+    protected readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider
   ) {

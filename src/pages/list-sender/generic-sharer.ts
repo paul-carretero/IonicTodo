@@ -29,7 +29,7 @@ export class GenericSharer extends GenericPage {
   protected choice: 'lock' | 'unlock' | 'send';
 
   constructor(
-    public readonly navParams: NavParams,
+    protected readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,

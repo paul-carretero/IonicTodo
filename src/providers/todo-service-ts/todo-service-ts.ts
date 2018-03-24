@@ -1,3 +1,4 @@
+import { ITodoSnapshot } from './../../model/todo-snap';
 import { NotifServiceProvider } from './../notif-service/notif-service';
 import { Global } from './../../shared/global';
 import { DocumentReference, DocumentSnapshot } from '@firebase/firestore-types';
@@ -24,6 +25,7 @@ import { Subscription, Subject, Observable } from 'rxjs/Rx';
 import { User } from '@firebase/auth-types';
 import { EventServiceProvider } from '../event/event-service';
 import { IListMetadata } from '../../model/list-metadata';
+import { StorageServiceProvider } from '../storage-service/storage-service';
 
 @Injectable()
 export class TodoServiceProvider {
@@ -37,6 +39,15 @@ export class TodoServiceProvider {
   private cloudCtrl: CloudServiceProvider;
 
   /**
+   * Notif controlleur qui s'enregistrera plus tard
+   *
+   * @private
+   * @type {NotifServiceProvider}
+   * @memberof TodoServiceProvider
+   */
+  private notifCtrl: NotifServiceProvider;
+
+  /**
    * Map associative associant l'ensemble des uuid de liste à un ensemble de tache
    *
    * @readonly
@@ -44,7 +55,7 @@ export class TodoServiceProvider {
    * @type {Map<string, ITodoItem[]>}
    * @memberof TodoServiceProvider
    */
-  private readonly lastAllTodosSnapshot: Map<string, ITodoItem[]>;
+  private lastAllTodosSnapshot: ITodoSnapshot[];
 
   /**************************************************************************/
   /**************************** LIST UTILISATEUR ****************************/
@@ -251,7 +262,7 @@ export class TodoServiceProvider {
     private readonly firestoreCtrl: AngularFirestore,
     private readonly authCtrl: AuthServiceProvider,
     private readonly evtCtrl: EventServiceProvider,
-    private readonly notifCtrl: NotifServiceProvider
+    private readonly storageCtrl: StorageServiceProvider
   ) {
     this.todoLists = new BehaviorSubject<ITodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
@@ -261,7 +272,7 @@ export class TodoServiceProvider {
     });
     this.extTodoSubject = new Subject<ITodoItem[]>();
     this.deleteSubject = new Subject<void>();
-    this.lastAllTodosSnapshot = new Map<string, ITodoItem[]>();
+    this.lastAllTodosSnapshot = [];
     this.updateDBLink();
     this.updateLocalDBLink();
   }
@@ -274,6 +285,16 @@ export class TodoServiceProvider {
    */
   public cloudRegister(c: CloudServiceProvider): void {
     this.cloudCtrl = c;
+  }
+
+  /**
+   * permet au service de notification de s'enregistrer sur ce service
+   *
+   * @param {NotifServiceProvider} n
+   * @memberof TodoServiceProvider
+   */
+  public notifRegister(n: NotifServiceProvider): void {
+    this.notifCtrl = n;
   }
 
   /**
@@ -461,7 +482,7 @@ export class TodoServiceProvider {
       this.tryUnsub(this.userDataSub);
       this.tryUnsub(this.sharedListSub);
       this.tryUnsub(this.appUserDataSub);
-      this.lastAllTodosSnapshot.clear();
+      this.lastAllTodosSnapshot = [];
       if (user != null) {
         this.initPrivateListCollection();
         this.initUserDataDocument();
@@ -496,8 +517,8 @@ export class TodoServiceProvider {
    * @private
    * @memberof TodoServiceProvider
    */
-  private async updateLocalDBLink(): Promise<void> {
-    const machineId: string = await this.authCtrl.getMachineId();
+  private updateLocalDBLink(): void {
+    const machineId: string = this.authCtrl.getMachineId();
     this.localTodoListCollection = this.firestoreCtrl.collection<ITodoList>(
       'machine/' + machineId + '/list',
       ref => ref.orderBy('order', 'asc')
@@ -590,7 +611,7 @@ export class TodoServiceProvider {
   public async removeListLink(listUuid: string): Promise<void> {
     const listsPathTab = this.getSharedListPathSnapchot();
     const toDelete: number = listsPathTab.findIndex(r => r.listUUID === listUuid);
-    this.lastAllTodosSnapshot.delete(listUuid);
+    this.deleteListTodoSnap(listUuid);
 
     if (toDelete !== -1) {
       listsPathTab.splice(toDelete);
@@ -995,7 +1016,7 @@ export class TodoServiceProvider {
       }
     }
 
-    this.lastAllTodosSnapshot.delete(listUuid);
+    this.deleteListTodoSnap(listUuid);
 
     if (type === ListType.SHARED) {
       this.removeListLink(listUuid);
@@ -1022,21 +1043,6 @@ export class TodoServiceProvider {
   /**************************************************************************/
 
   /**
-   * vérifie si l'on dispose de toutes les listes, si tel est le cas alors publie une snapshot de toutes les listes
-   *
-   * @private
-   * @returns {Promise<void>}
-   * @memberof TodoServiceProvider
-   */
-  private async tryPublishTodos(): Promise<void> {
-    const nList = this.getAllList().length;
-    const nMap = this.lastAllTodosSnapshot.size;
-    if (nList === nMap) {
-      this.evtCtrl.getLastTodosSnapSub().next(this.getAllTodos());
-    }
-  }
-
-  /**
    * Met à jour le sujet  des todo externe de la liste en cours
    *
    * @private
@@ -1057,9 +1063,9 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  private async refreshTodoSnapForList(listUuid: string | null): Promise<void> {
+  private async refreshTodoSnapForList(listUuid: string | null): Promise<ITodoItem[]> {
     if (listUuid == null) {
-      return;
+      return [];
     }
 
     // init promises
@@ -1067,8 +1073,8 @@ export class TodoServiceProvider {
     try {
       listP = this.getFirestoreDocument(listUuid);
     } catch (error) {
-      this.lastAllTodosSnapshot.delete(listUuid);
-      return;
+      this.deleteListTodoSnap(listUuid);
+      return [];
     }
 
     const extsRefs = this.getAListSnapshot(listUuid).externTodos;
@@ -1095,12 +1101,10 @@ export class TodoServiceProvider {
       }
     }
 
-    this.lastAllTodosSnapshot.set(listUuid, items);
-  }
+    this.addTodosSnap(items, listUuid);
 
-  /**************************************************************************/
-  /************************* PUBLIC TODOS INTERFACE *************************/
-  /**************************************************************************/
+    return items;
+  }
 
   /**
    * reconfigure le sujet de suppression de liste/todo pour la reference de todo
@@ -1248,40 +1252,40 @@ export class TodoServiceProvider {
   /**
    * permet de modifier un todo
    *
-   * @param {DocumentReference} ref référence vers le todo à éditer
-   * @param {ITodoItem} editedItem
+   * @param {ITodoItem} editedItem tod à éditer
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async editTodo(ref: DocumentReference, editedItem: ITodoItem): Promise<void> {
-    if (ref == null || editedItem == null) {
+  public async editTodo(editedItem: ITodoItem): Promise<void> {
+    if (editedItem == null) {
       return;
     }
 
-    const todoDoc = new AngularFirestoreDocument<ITodoItem>(ref as any);
+    const todoDoc = new AngularFirestoreDocument<ITodoItem>(editedItem.ref as any);
     try {
       const p = todoDoc.update({
-        name: editedItem.name
-        // a completer une fois fini
+        name: editedItem.name,
+        desc: editedItem.desc,
+        deadline: editedItem.deadline,
+        address: editedItem.address,
+        contacts: editedItem.contacts,
+        notif: editedItem.notif,
+        pictures: editedItem.pictures
       });
       if (this.online) {
         await p;
       }
       this.notifCtrl.onTodoUpdate(editedItem);
     } catch (error) {
-      console.log("impossible d'editer le todo. Est ce que le todo existe encore ?");
+      console.log("impossible d'editer le todo. Est ce que le todo existe encore ?", error);
       return;
     }
     const listDoc = todoDoc.ref.parent.parent;
     if (listDoc == null) {
       return;
     }
-    listDoc.get().then(col => {
-      if (col != null && col.data() != null) {
-        const list = col.data() as ITodoList;
-        this.refreshTodoSnapForList(list.uuid);
-      }
-    });
+
+    this.addTodoSnap(editedItem);
   }
 
   /**
@@ -1289,13 +1293,15 @@ export class TodoServiceProvider {
    *
    * @param {string} listUuid
    * @param {ITodoItem} newItem
+   * @param {boolean} overrideReturn si true alors la fonction retournera l'uuid du todo créé
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
   public async addTodo(
     listUuid: string,
-    newItem: ITodoItem
-  ): Promise<DocumentReference | null> {
+    newItem: ITodoItem,
+    overrideReturn?: boolean
+  ): Promise<DocumentReference | null | string> {
     let listDoc: AngularFirestoreDocument<ITodoList>;
     try {
       listDoc = await this.getFirestoreDocument(listUuid);
@@ -1313,7 +1319,11 @@ export class TodoServiceProvider {
       await p;
     }
     this.notifCtrl.onTodoUpdate(newItem);
-    this.refreshTodoSnapForList(listUuid);
+    this.addTodoSnap(newItem, listUuid);
+
+    if (overrideReturn === true) {
+      return newItem.uuid;
+    }
     return newItem.ref;
   }
 
@@ -1340,16 +1350,8 @@ export class TodoServiceProvider {
       console.log('Impossible de supprimer la tâche, tâche inexistante ?');
     }
 
-    const listDoc = todoDoc.ref.parent.parent;
-    if (listDoc == null) {
-      return;
-    }
-    listDoc.get().then(col => {
-      if (col != null && col.data() != null) {
-        const list = col.data() as ITodoList;
-        this.refreshTodoSnapForList(list.uuid);
-      }
-    });
+    this.storageCtrl.deleteMedias(todoUuid);
+    this.deleteTodoSnap(todoUuid);
   }
 
   /**
@@ -1479,8 +1481,7 @@ export class TodoServiceProvider {
   public async getListMetaData(listUuid: string): Promise<IListMetadata> {
     const metaData = Global.getBlankMetaData();
 
-    await this.refreshTodoSnapForList(listUuid);
-    const items = this.lastAllTodosSnapshot.get(listUuid);
+    const items = await this.refreshTodoSnapForList(listUuid);
     if (items == null) {
       return metaData;
     }
@@ -1501,42 +1502,7 @@ export class TodoServiceProvider {
     metaData.todoTotal = items.length;
     metaData.atLeastOneLate = oneLate;
 
-    this.tryPublishTodos();
-
     return metaData;
-  }
-
-  /**
-   * retourne une snapshot des liste de l'utilisateur connecté ou local
-   *
-   * @returns {ITodoList[]}
-   * @memberof TodoServiceProvider
-   */
-  public getAllList(): ITodoList[] {
-    const localList = this.localTodoLists.getValue();
-    const privateLists = this.todoLists.getValue();
-    const sharedLists = this.sharedTodoLists.getValue();
-    return localList.concat(sharedLists).concat(privateLists);
-  }
-
-  /**
-   * Retourne la dernière snapshot contenant l'ensemble des todos d'une liste ou l'ensemble des todos de l'utilisateur connecté ou local
-   *
-   * @public
-   * @param {string} [listUuid]
-   * @returns {ITodoItem[]}
-   * @memberof TodoServiceProvider
-   */
-  public getAllTodos(listUuid?: string): ITodoItem[] {
-    if (listUuid == null) {
-      const arrOfArr = Array.from(this.lastAllTodosSnapshot.values());
-      return [].concat.apply([], arrOfArr);
-    }
-    const res = this.lastAllTodosSnapshot.get(listUuid);
-    if (res === undefined) {
-      return [];
-    }
-    return res;
   }
 
   /**
@@ -1557,13 +1523,151 @@ export class TodoServiceProvider {
       if (todos != null) {
         for (const todo of todos) {
           if (todo != null) {
-            todo.uuid = null;
-            this.addTodo(listUuidDest, todo);
+            this.addTodo(listUuidDest, this.deepCloneTodo(todo), true);
+            /*this.addTodo(listUuidDest, this.deepCloneTodo(todo), true).then(
+              (newTodoUuid: string) => {
+                for (const pictureUuid of todo.pictures) {
+                  if (todo.uuid != null) {
+                    this.storageCtrl.copyMedia(todo.uuid, newTodoUuid, pictureUuid);
+                  }
+                }
+              }
+            );*/
           }
           this.refreshTodoSnapForList(listUuidDest);
         }
       }
       sub.unsubscribe();
     });
+  }
+
+  /**
+   * retourne une copie par valeur d'un todo
+   *
+   * @private
+   * @param {ITodoItem} todo
+   * @returns {ITodoItem}
+   * @memberof TodoServiceProvider
+   */
+  private deepCloneTodo(todo: ITodoItem): ITodoItem {
+    return {
+      uuid: String(todo.uuid),
+      name: String(todo.name),
+      address: String(todo.address),
+      author: todo.author,
+      complete: Boolean(todo.complete),
+      completeAuthor: todo.completeAuthor,
+      contacts: todo.contacts,
+      deadline: todo.deadline,
+      notif: todo.notif,
+      desc: String(todo.desc),
+      order: Number(todo.order),
+      pictures: todo.pictures,
+      ref: todo.ref
+    };
+  }
+
+  /**************************************************************************/
+  /************************* TODO SNAPSHOT SERVICE **************************/
+  /**************************************************************************/
+
+  private cleanUpTodoSnap(todoUuid: string): void {
+    const i = this.lastAllTodosSnapshot.findIndex(
+      s => s.uuid === todoUuid && (s.listUuids == null || s.listUuids.length === 0)
+    );
+    if (i !== -1) {
+      this.lastAllTodosSnapshot.splice(i, 1);
+    }
+  }
+
+  private deleteTodoSnap(todoUuid: string, listUuid?: string): void {
+    if (listUuid == null) {
+      const snapIndex = this.lastAllTodosSnapshot.findIndex(s => s.uuid === todoUuid);
+      if (snapIndex === -1) {
+        return;
+      }
+      this.lastAllTodosSnapshot.splice(snapIndex, 1);
+    } else {
+      const snap = this.lastAllTodosSnapshot.find(s => s.uuid === todoUuid);
+      if (snap == null || snap.listUuids == null) {
+        return;
+      }
+      const toDelete = snap.listUuids.indexOf(listUuid);
+      if (toDelete !== -1) {
+        snap.listUuids.splice(toDelete, 1);
+      }
+      this.cleanUpTodoSnap(todoUuid);
+    }
+  }
+
+  private addTodoSnap(todo: ITodoItem, listUuid?: string): void {
+    const existSnapIndex = this.lastAllTodosSnapshot.findIndex(s => s.uuid === todo.uuid);
+    let listUuids: string[] = [];
+
+    if (existSnapIndex !== -1) {
+      const toTestListUuids = this.lastAllTodosSnapshot[existSnapIndex].listUuids;
+      if (toTestListUuids != null) {
+        listUuids = toTestListUuids;
+      }
+      this.lastAllTodosSnapshot.splice(existSnapIndex, 1);
+    }
+
+    const snap: ITodoSnapshot = todo;
+    if (listUuid != null && listUuids.indexOf(listUuid) === -1) {
+      listUuids.push(listUuid);
+    }
+    this.lastAllTodosSnapshot.push(snap);
+  }
+
+  private addTodosSnap(todos: ITodoItem[], listUuid: string): void {
+    for (const todo of todos) {
+      this.addTodoSnap(todo, listUuid);
+    }
+  }
+
+  private deleteListTodoSnap(listUuid: string): void {
+    for (const snap of this.lastAllTodosSnapshot) {
+      if (snap.listUuids != null && snap.uuid != null) {
+        const index = snap.listUuids.indexOf(listUuid);
+        if (index !== -1) {
+          snap.listUuids.splice(index, 1);
+          this.cleanUpTodoSnap(snap.uuid);
+        }
+      }
+    }
+  }
+
+  /**
+   * Retourne la dernière snapshot contenant l'ensemble des todos d'une liste ou l'ensemble des todos de l'utilisateur connecté ou local
+   *
+   * @public
+   * @param {string} [listUuid]
+   * @returns {ITodoItem[]}
+   * @memberof TodoServiceProvider
+   */
+  public getAllTodos(listUuid?: string): ITodoItem[] {
+    if (listUuid == null) {
+      return this.lastAllTodosSnapshot;
+    }
+    const res = [];
+    for (const snap of this.lastAllTodosSnapshot) {
+      if (snap.listUuids != null && snap.listUuids.indexOf(listUuid) !== -1) {
+        res.push(snap);
+      }
+    }
+    return res;
+  }
+
+  /**
+   * retourne une snapshot des liste de l'utilisateur connecté ou local
+   *
+   * @returns {ITodoList[]}
+   * @memberof TodoServiceProvider
+   */
+  public getAllList(): ITodoList[] {
+    const localList = this.localTodoLists.getValue();
+    const privateLists = this.todoLists.getValue();
+    const sharedLists = this.sharedTodoLists.getValue();
+    return localList.concat(sharedLists).concat(privateLists);
   }
 }

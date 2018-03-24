@@ -1,17 +1,16 @@
-import { ITodoItem } from './../../model/todo-item';
-import { Network } from '@ionic-native/network';
-import { AuthServiceProvider } from './../auth-service/auth-service';
 import { Injectable } from '@angular/core';
+import { DocumentReference } from '@firebase/firestore-types';
+import { Network } from '@ionic-native/network';
 import { Shake } from '@ionic-native/shake';
-import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { IMenuRequest } from '../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
 import { IPageData } from '../../model/page-data';
+import { UiServiceProvider } from '../ui-service/ui-service';
 import { INavRequest } from './../../model/nav-request';
 import { Global } from './../../shared/global';
-import { MenuRequestType } from '../../model/menu-request-type';
-import { DocumentReference } from '@firebase/firestore-types';
-import { UiServiceProvider } from '../ui-service/ui-service';
+import { AuthServiceProvider } from './../auth-service/auth-service';
 
 /**
  * Après analyse, il a été préférer d'implémenter une classe d'Event plutôt que d'utiliser le service Ionic native Events
@@ -81,15 +80,6 @@ export class EventServiceProvider {
    */
   private readonly netSubject: BehaviorSubject<boolean>;
 
-  /**
-   * dernière snapshot de l'ensemble des items
-   *
-   * @private
-   * @type {Subject<ITodoItem>}
-   * @memberof EventServiceProvider
-   */
-  private readonly lastTodosSnap: Subject<ITodoItem[]>;
-
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -112,7 +102,6 @@ export class EventServiceProvider {
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
     this.searchSubject = new BehaviorSubject<string>('#');
-    this.lastTodosSnap = new Subject<ITodoItem[]>();
     this.netSubject = new BehaviorSubject<boolean>(this.netCtrl.type !== 'none');
     this.shakeDetect();
     this.listenForResetAuth();
@@ -151,7 +140,6 @@ export class EventServiceProvider {
     this.authCtrl.getConnexionSubject().subscribe(user => {
       if (user == null) {
         this.copiedTodoRef = null;
-        this.lastTodosSnap.next([]);
       }
     });
   }
@@ -278,16 +266,5 @@ export class EventServiceProvider {
    */
   public getSearchSubject(): BehaviorSubject<string> {
     return this.searchSubject;
-  }
-
-  /**
-   * retourne le sujet contenant la dernière snapshot de l'ensemble des todos
-   *
-   * @public
-   * @returns {BehaviorSubject<ITodoItem[]>}
-   * @memberof EventServiceProvider
-   */
-  public getLastTodosSnapSub(): Subject<ITodoItem[]> {
-    return this.lastTodosSnap;
   }
 }

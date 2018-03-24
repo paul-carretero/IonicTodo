@@ -108,7 +108,7 @@ export class ContactModalPage extends GenericPage {
       this.onlyEmail = this.navParams.get('onlyEmail');
     }
 
-    if (this.navParams.get('onlyMobile')) {
+    if (this.navParams.get('onlyMobile') != null) {
       this.onlyMobile = this.navParams.get('onlyMobile');
     }
   }
@@ -190,7 +190,9 @@ export class ContactModalPage extends GenericPage {
    * @memberof ContactModalPage
    */
   protected isSelected(contact: Contact): boolean {
-    const finded = this.exportedContacts.find(c => c.id === contact.id);
+    const finded = this.exportedContacts.find(
+      c => c.id === contact.id && c.machineId === this.authCtrl.getMachineId()
+    );
     return finded != null;
   }
 
@@ -212,13 +214,17 @@ export class ContactModalPage extends GenericPage {
     if (this.isSelected(contact)) {
       this.deleteFromContact(contact.id);
     } else {
-      let email: string | undefined;
+      let email: string | null | undefined;
       if (contact.emails != null) {
         email = contact.emails[0].value;
+      }
+      if (email === undefined) {
+        email = null;
       }
 
       const newSimpleContact: ISimpleContact = {
         id: contact.id,
+        machineId: this.authCtrl.getMachineId(),
         displayName: contact.displayName,
         email: email,
         mobile: this.getMobile(contact)

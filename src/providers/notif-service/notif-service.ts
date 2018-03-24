@@ -1,3 +1,4 @@
+import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 import { ITodoItem } from './../../model/todo-item';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { DBServiceProvider } from './../db/db-service';
@@ -19,8 +20,6 @@ export class NotifServiceProvider {
    */
   private firstLaunch: boolean;
 
-  private shouldAllCheck: boolean;
-
   /**
    * contient la liste des uuis des todo pour lesquels une action à été entreprise
    *
@@ -30,16 +29,19 @@ export class NotifServiceProvider {
    */
   private todoIAlreadyAnnoyedUserFor: string[];
 
+  private timeoutLog: any;
+
   constructor(
     private readonly localNotifCtrl: LocalNotifications,
     private readonly uiCtrl: UiServiceProvider,
     private readonly dbCtrl: DBServiceProvider,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly evtCtrl: EventServiceProvider
+    private readonly evtCtrl: EventServiceProvider,
+    private readonly todoCtrl: TodoServiceProvider
   ) {
     this.firstLaunch = true;
-    this.shouldAllCheck = true;
     this.todoIAlreadyAnnoyedUserFor = [];
+    this.todoCtrl.notifRegister(this);
   }
 
   /**
@@ -80,23 +82,20 @@ export class NotifServiceProvider {
    * @private
    * @memberof NotifServiceProvider
    */
-  private checkForTodoSnapChange() {
-    this.evtCtrl.getLastTodosSnapSub().subscribe(items => {
-      // c'est des timestamp sur firestore...
-      items.forEach(todo => {
-        if (todo.notif != null) {
-          todo.notif = new Date(todo.notif);
-        }
-      });
-      this.checkNowTodoForRedirect(items);
-      this.checkForAutoRedirect(items);
-
-      if (this.shouldAllCheck) {
-        this.allCheck(items);
+  private CheckOnLogin() {
+    const items = this.todoCtrl.getAllTodos();
+    items.forEach(todo => {
+      if (todo.notif != null) {
+        todo.notif = new Date(todo.notif);
       }
-
-      this.firstLaunch = false;
     });
+    this.checkNowTodoForRedirect(items);
+    this.checkForAutoRedirect(items);
+    if (this.authCtrl.isConnected() && this.evtCtrl.getNetStatus()) {
+      this.allCheck(items);
+    }
+    this.firstLaunch = false;
+    this.timeoutLog = null;
   }
 
   /**
@@ -189,8 +188,11 @@ export class NotifServiceProvider {
    */
   private listenForAuthEvents(): void {
     this.authCtrl.getConnexionSubject().subscribe(() => {
-      this.shouldAllCheck = true;
       this.todoIAlreadyAnnoyedUserFor = [];
+      if (this.timeoutLog != null) {
+        clearTimeout(this.timeoutLog);
+      }
+      this.timeoutLog = setTimeout(() => this.CheckOnLogin(), 10000);
     });
   }
 
@@ -226,7 +228,6 @@ export class NotifServiceProvider {
     for (const todo of items) {
       this.onTodoUpdate(todo);
     }
-    this.shouldAllCheck = false;
   }
 
   /**
@@ -265,14 +266,12 @@ export class NotifServiceProvider {
   public listenForEvents(): void {
     this.dbCtrl.deleteOutdatedNotif(new Date().getTime());
     this.dbCtrl.resetNotifBuffer();
-    this.checkForTodoSnapChange();
     this.listenForAuthEvents();
 
-    this.localNotifCtrl.on('click', (notification: any, state: any) => {
-      console.log(notification);
-      console.log(notification.data);
-      this.uiCtrl.alert(notification.title, notification.data.todoRef);
-      console.log('state = ' + JSON.stringify(state));
+    this.localNotifCtrl.on('click', (notification: any) => {
+      this.evtCtrl
+        .getNavRequestSubject()
+        .next({ page: 'TodoPage', data: { todoRef: notification.data.todoRef } });
     });
   }
 
