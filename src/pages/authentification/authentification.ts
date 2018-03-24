@@ -107,7 +107,7 @@ export class AuthentificationPage extends GenericPage {
     private readonly formBuilder: FormBuilder,
     private readonly settingCtrl: DBServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
     this.authForm = this.formBuilder.group({
       email: ['', Validators.email],
       password: ['', Validators.required]

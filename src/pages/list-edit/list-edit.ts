@@ -104,7 +104,7 @@ export class ListEditPage extends GenericPage {
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
     this.currentList = Global.getBlankList();
     this.defineNewList();

@@ -125,7 +125,7 @@ export class HomePage extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
     this.todoList = [];
     this.localTodoList = [];
     this.search$ = this.evtCtrl.getSearchSubject();

@@ -65,6 +65,7 @@ export abstract class GenericPage {
    * @param {NavController} navCtrl
    * @param {EventServiceProvider} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {SpeechRecServiceProvider} sprecCtrl
    * @param {AuthServiceProvider} authCtrl
    * @param {UiServiceProvider} uiCtrl
    * @memberof GenericPage

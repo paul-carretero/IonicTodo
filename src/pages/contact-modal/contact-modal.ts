@@ -100,7 +100,7 @@ export class ContactModalPage extends GenericPage {
     private readonly navParams: NavParams,
     private readonly contactsCtrl: Contacts
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
 
     this.exportedContacts = this.navParams.get('contacts');
 

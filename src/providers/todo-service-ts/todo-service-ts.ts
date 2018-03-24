@@ -891,6 +891,7 @@ export class TodoServiceProvider {
     return doc.valueChanges();
   }
 
+
   /****************************** REMOVAL NOTIFS ****************************/
 
   /**
