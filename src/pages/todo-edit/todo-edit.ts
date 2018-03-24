@@ -1,10 +1,14 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DocumentReference } from '@firebase/firestore-types';
-import { Contacts } from '@ionic-native/contacts';
+import { AndroidPermissions } from '@ionic-native/android-permissions';
+import { Base64 } from '@ionic-native/base64';
 import { DatePicker } from '@ionic-native/date-picker';
-import { ImagePicker } from '@ionic-native/image-picker';
+import { File } from '@ionic-native/file';
+import { PhotoViewer } from '@ionic-native/photo-viewer';
+import { AngularFireStorage } from 'angularfire2/storage';
 import { IonicPage, ModalController, NavController, NavParams } from 'ionic-angular';
+import { v4 as uuid } from 'uuid';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
@@ -13,6 +17,7 @@ import { ISimpleContact } from '../../model/simple-contact';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { GenericPage } from '../../shared/generic-page';
+import { IPicture } from './../../model/picture';
 import { ITodoItem } from './../../model/todo-item';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
@@ -33,9 +38,9 @@ export class TodoEditPage extends GenericPage {
 
   protected todoForm: FormGroup;
 
-  protected contactList: ISimpleContact[];
+  protected isInModdal: boolean = false;
 
-  protected isInModdal = false;
+  protected uploading: boolean = false;
 
   constructor(
     protected readonly navCtrl: NavController,
@@ -48,8 +53,11 @@ export class TodoEditPage extends GenericPage {
     private readonly formBuilder: FormBuilder,
     private readonly datePicker: DatePicker,
     private readonly modalCtrl: ModalController,
-    private readonly contactsCtrl: Contacts,
-    private readonly galleryCtrl: ImagePicker
+    private readonly storageCtrl: AngularFireStorage,
+    private readonly base64Ctrl: Base64,
+    private readonly fileCtrl: File,
+    private readonly permsCtrl: AndroidPermissions,
+    private readonly photoCtrl: PhotoViewer
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
@@ -66,8 +74,6 @@ export class TodoEditPage extends GenericPage {
       desc: [''],
       address: ['']
     });
-
-    this.contactList = [];
   }
 
   /**************************************************************************/
@@ -117,27 +123,6 @@ export class TodoEditPage extends GenericPage {
     return 'Mettre à jour cette tâche';
   }
 
-  private async defJoinContactList(): Promise<void> {
-    const contacts = await this.contactsCtrl.find(['displayName', 'phoneNumbers', 'emails'], {
-      desiredFields: ['displayName', 'phoneNumbers', 'emails']
-    });
-    this.contactList = [];
-    for (const contact of contacts) {
-      if (
-        contact.phoneNumbers != null &&
-        contact.phoneNumbers.length > 0 &&
-        this.todo.SMSNumbers.findIndex(p => p === contact.phoneNumbers[0].value) > -1
-      ) {
-        const simpleContact: ISimpleContact = {
-          displayName: contact.displayName,
-          mobile: contact.phoneNumbers[0].value,
-          id: contact.id
-        };
-        this.contactList.push(simpleContact);
-      }
-    }
-  }
-
   private async initPageForEdit(header: IPageData): Promise<void> {
     if (this.todoRef == null) {
       return;
@@ -148,7 +133,16 @@ export class TodoEditPage extends GenericPage {
         header.title = this.todo.name;
       }
       this.evtCtrl.setHeader(header);
-      this.defJoinContactList();
+
+      const name = this.todoForm.get('name');
+      const desc = this.todoForm.get('desc');
+      const address = this.todoForm.get('address');
+      if (name != null && desc != null && address != null) {
+        name.setValue(this.todo.name);
+        desc.setValue(this.todo.desc);
+        address.setValue(this.todo.address);
+      }
+
       sub.unsubscribe();
     });
   }
@@ -175,23 +169,26 @@ export class TodoEditPage extends GenericPage {
     }
 
     this.uiCtrl.showLoading('Mise à jour de la tâche...');
-    await this.todoService.editTodo(this.todoRef, this.todo);
+    await this.todoService.editTodo(this.todo);
     this.navCtrl.pop();
   }
 
   protected validate(): void {
-    if (!this.todoForm.valid) {
+    if (!this.todoForm.valid || this.uploading) {
       this.uiCtrl.displayToast('Opération impossible, veuillez vérifier le formulaire');
       return;
     }
 
     const name = this.todoForm.get('name');
     const desc = this.todoForm.get('desc');
-    if (name == null || desc == null) {
+    const address = this.todoForm.get('address');
+
+    if (name == null || desc == null || address == null) {
       return;
     }
     this.todo.name = name.value;
     this.todo.desc = desc.value;
+    this.todo.address = address.value;
 
     if (this.isInCreation) {
       this.defNewTodo();
@@ -254,7 +251,7 @@ export class TodoEditPage extends GenericPage {
   protected openContactPopup(): void {
     this.isInModdal = true;
     const contactModal = this.modalCtrl.create('ContactModalPage', {
-      contacts: this.contactList,
+      contacts: this.todo.contacts,
       onlyMobile: true
     });
     contactModal.present();
@@ -263,20 +260,106 @@ export class TodoEditPage extends GenericPage {
     });
   }
 
-  protected deleteContact(id: string): void {
-    const index = this.contactList.findIndex(c => c.id === id);
+  protected deleteContact(contact: ISimpleContact): void {
+    const index = this.todo.contacts.findIndex(
+      c => c.id === contact.id && c.machineId === this.authCtrl.getMachineId()
+    );
     if (index !== -1) {
-      this.contactList.splice(index, 1);
+      this.todo.contacts.splice(index, 1);
     }
   }
 
-  protected async openGallery(): Promise<void> {
-    if (!await this.galleryCtrl.hasReadPermission()) {
-      await this.galleryCtrl.requestReadPermission();
+  private async galleryResultHandler(URIs: string[]): Promise<void> {
+    const prepareUploadedPics: { uuid: string; url: string | null; dl: number }[] = [];
+    this.uploading = true;
+
+    for (let i = 0; i < URIs.length; i++) {
+      const entry: IPicture = { uuid: uuid(), dl: 0, url: null };
+      prepareUploadedPics.push(entry);
+      this.todo.pictures.push(entry);
     }
-    const res: string[] = await this.galleryCtrl.getPictures({});
-    for (const uri of res) {
-      console.log(uri);
+
+    for (const uri of URIs) {
+      const entry = prepareUploadedPics.pop();
+      if (entry == null) {
+        return;
+      }
+
+      const base64_full = await this.base64Ctrl.encodeFile(uri);
+      const base64_split = base64_full.split(',');
+      const base64 = base64_split[base64_split.length - 1];
+      this.uploadImage(base64, entry.uuid);
+      this.fileCtrl
+        .resolveLocalFilesystemUrl(uri)
+        .then(f => f.remove(() => {}, () => console.log('suppression PAS OK :/')));
     }
+
+    this.uploading = false;
+  }
+
+  private async requestPerms(): Promise<void> {
+    try {
+      await this.permsCtrl.checkPermission(this.permsCtrl.PERMISSION.READ_EXTERNAL_STORAGE);
+      await this.permsCtrl.checkPermission(this.permsCtrl.PERMISSION.WRITE_EXTERNAL_STORAGE);
+    } catch (error) {
+      this.permsCtrl.requestPermissions([
+        this.permsCtrl.PERMISSION.READ_EXTERNAL_STORAGE,
+        this.permsCtrl.PERMISSION.WRITE_EXTERNAL_STORAGE
+      ]);
+    }
+  }
+
+  protected async openGalleryWrapper(): Promise<void> {
+    this.requestPerms();
+    (<any>window).imagePicker.getPictures(
+      (res: string[]) => {
+        this.galleryResultHandler(res);
+      },
+      (error: any) => {
+        console.log('Erreur dans ImagePicker: ' + error);
+      },
+      {
+        maximumImagesCount: 10,
+        width: 800
+      }
+    );
+  }
+
+  protected deleteUploadedPic(uuidPic: string): void {
+    const path = '/' + this.todo.uuid + '/' + uuidPic;
+    const ref = this.storageCtrl.ref(path);
+    ref.delete();
+    const i = this.todo.pictures.findIndex(u => u.uuid === uuidPic);
+    if (i !== -1) {
+      this.todo.pictures.splice(i, 1);
+    }
+  }
+
+  private uploadImage(base64Pic: string, uuidPic: string): void {
+    const path = '/' + this.todo.uuid + '/' + uuidPic;
+    const ref = this.storageCtrl.ref(path);
+    const upload = ref.putString(base64Pic, 'base64', { contentType: 'image/png' });
+
+    upload.percentageChanges().subscribe((n: number) => {
+      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
+      if (entry == null) {
+        this.todo.pictures.push({ uuid: uuidPic, dl: n, url: null });
+      } else {
+        entry.dl = n;
+      }
+    });
+
+    upload.then().then((res: { downloadURL: string }) => {
+      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
+      if (entry == null) {
+        this.todo.pictures.push({ uuid: uuidPic, url: res.downloadURL, dl: 100 });
+      } else {
+        entry.url = res.downloadURL;
+      }
+    });
+  }
+
+  protected showPhoto(uri: string): void {
+    this.photoCtrl.show(uri);
   }
 }

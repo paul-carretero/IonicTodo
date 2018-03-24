@@ -49,12 +49,12 @@
             </ion-card-header>
             <ion-card-content>
                 <ion-list>
-                    <ion-item-sliding *ngFor="let contact of contactList">
+                    <ion-item-sliding *ngFor="let contact of this.todo.contacts">
                         <ion-item>
                             {{contact.displayName}} ({{contact.mobile}})
                         </ion-item>
                         <ion-item-options side="right">
-                            <button ion-button color="danger" (click)="deleteContact(contact.id)">
+                            <button ion-button color="danger" (click)="deleteContact(contact)">
                                 <ion-icon name="trash">
                                     supprimer
                                 </ion-icon>
@@ -76,11 +76,20 @@
             </ion-card-header>
             <ion-card-content>
                 <ion-list>
+                    <ion-item *ngFor="let pic of todo.pictures">
+                        <ion-thumbnail item-start>
+                            <img *ngIf="!(pic.url == null)" [src]="pic.url" (click)="showPhoto(pic.url)" />
+                        </ion-thumbnail>
+                        <progress [value]="pic.dl" max="100" min="0" class="progressbar">{{pic.dl}} %</progress>
+                        <button ion-button color="danger" type="button" large item-end *ngIf="!(pic.url == null)" (click)="deleteUploadedPic(pic.uuid)">
+                            <ion-icon name="trash" large></ion-icon>
+                        </button>
+                    </ion-item>
                     <button ion-item color="light" type="button">
                         <ion-icon name="camera" item-start></ion-icon>
                         Prendre une photo
                     </button>
-                    <button ion-item color="light" (click)="openGallery()" type="button">
+                    <button ion-item color="light" (click)="openGalleryWrapper()" type="button">
                         <ion-icon name="images" item-start></ion-icon>
                         Rechercher dans la gallerie
                     </button>

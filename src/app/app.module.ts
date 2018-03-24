@@ -1,7 +1,12 @@
+import { HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { AndroidPermissions } from '@ionic-native/android-permissions';
+import { Base64 } from '@ionic-native/base64';
 import { CameraPreview } from '@ionic-native/camera-preview';
 import { Contacts } from '@ionic-native/contacts';
+import { DatePicker } from '@ionic-native/date-picker';
+import { File } from '@ionic-native/file';
 import { Flashlight } from '@ionic-native/flashlight';
 import { Geolocation } from '@ionic-native/geolocation';
 import { GooglePlus } from '@ionic-native/google-plus';
@@ -10,6 +15,7 @@ import { LocalNotifications } from '@ionic-native/local-notifications';
 import { NativeGeocoder } from '@ionic-native/native-geocoder';
 import { Network } from '@ionic-native/network';
 import { Ndef, NFC } from '@ionic-native/nfc';
+import { PhotoViewer } from '@ionic-native/photo-viewer';
 import { QRScanner } from '@ionic-native/qr-scanner';
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
 import { Shake } from '@ionic-native/shake';
@@ -35,13 +41,12 @@ import { NfcProvider } from '../providers/nfc/nfc';
 import { NotifServiceProvider } from '../providers/notif-service/notif-service';
 import { SpeechRecServiceProvider } from '../providers/speech-rec-service/speech-rec-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
+import { StorageServiceProvider } from '../providers/storage-service/storage-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from '../providers/ui-service/ui-service';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-import { DatePicker } from '@ionic-native/date-picker';
-import { ImagePicker } from '@ionic-native/image-picker';
 
 const dateLocal = {
   monthNames: [
@@ -86,7 +91,8 @@ const dateLocal = {
     AngularFireAuthModule,
     AngularFirestoreModule.enablePersistence(),
     AngularFireStorageModule,
-    ComponentsModule
+    ComponentsModule,
+    HttpClientModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [MyApp],
@@ -126,7 +132,12 @@ const dateLocal = {
     UiServiceProvider,
     Network,
     DatePicker,
-    ImagePicker
+    Base64,
+    File,
+    AndroidPermissions,
+    StorageServiceProvider,
+    PhotoViewer,
+    HttpClientModule
   ]
 })
 export class AppModule {}

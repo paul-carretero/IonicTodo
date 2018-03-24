@@ -1,3 +1,5 @@
+import { IPicture } from './picture';
+import { ISimpleContact } from './simple-contact';
 import { DocumentReference } from '@firebase/firestore-types';
 import { IAuthor } from './author';
 export interface ITodoItem {
@@ -43,20 +45,20 @@ export interface ITodoItem {
   notif: Date | null;
 
   /**
-   * numéro auxquel envoyer un sms une fois la tâche complétée
+   * contact auquel il faut envoyer un sms lors de la complétion de la tâche
    *
    * @type {string}
    * @memberof ITodoItem
    */
-  SMSNumbers: string[];
+  contacts: ISimpleContact[];
 
   /**
-   * image en base64 de l'image
+   * data des images de ce todo sur firebase storage
    *
-   * @type {(string | null)}
+   * @type {IPicture[]}
    * @memberof ITodoItem
    */
-  picture: string | null;
+  pictures: IPicture[];
 
   /**
    * true si le todo est complété, false sinon
