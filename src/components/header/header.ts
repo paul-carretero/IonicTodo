@@ -5,7 +5,6 @@ import { MenuController, PopoverController, Searchbar } from 'ionic-angular';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { IPageData } from './../../model/page-data';
-import { SpeechRecServiceProvider } from '../../providers/speech-rec-service/speech-rec-service';
 
 /**
  * Composant angular gérant le menu haut de l'application et les différentes actions communes associés
@@ -65,8 +64,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private readonly popoverCtrl: PopoverController,
     private readonly menuCtrl: MenuController,
-    private readonly evtCtrl: EventServiceProvider,
-    private readonly sprec : SpeechRecServiceProvider
+    private readonly evtCtrl: EventServiceProvider
   ) {
     this.data = this.evtCtrl.getHeader();
     this.netStatus = this.evtCtrl.getNetStatusObs();
@@ -89,9 +87,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   ngOnInit(): void {
     // car  [ '' == false ]     (╯°□°）╯︵ ┻━┻
-    console.log("init de header");
+    console.log('init de header');
     this.evtCtrl.getSearchSubject().next('#');
-    this.sprec;
   }
 
   /**************************************************************************/
@@ -136,7 +133,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * @memberof HeaderComponent
    */
   public startSpeechRec() {
-    console.log("envoit evt speech rec");
+    console.log('envoit evt speech rec');
     this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.SPEECH_REC });
   }
 

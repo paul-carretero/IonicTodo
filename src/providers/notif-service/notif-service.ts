@@ -11,16 +11,6 @@ import { Settings } from '../../model/settings';
 @Injectable()
 export class NotifServiceProvider {
   /**
-   * flag permettant de ne recherche à rediriger vers un todo ayant une deadline
-   * proche ssi on vient de lancer l'application (propablement par notif du coup)
-   *
-   * @private
-   * @type {boolean}
-   * @memberof NotifServiceProvider
-   */
-  private firstLaunch: boolean;
-
-  /**
    * contient la liste des uuis des todo pour lesquels une action à été entreprise
    *
    * @private
@@ -39,7 +29,6 @@ export class NotifServiceProvider {
     private readonly evtCtrl: EventServiceProvider,
     private readonly todoCtrl: TodoServiceProvider
   ) {
-    this.firstLaunch = true;
     this.todoIAlreadyAnnoyedUserFor = [];
     this.todoCtrl.notifRegister(this);
   }
@@ -90,16 +79,14 @@ export class NotifServiceProvider {
       }
     });
     this.checkNowTodoForRedirect(items);
-    this.checkForAutoRedirect(items);
     if (this.authCtrl.isConnected() && this.evtCtrl.getNetStatus()) {
       this.allCheck(items);
     }
-    this.firstLaunch = false;
     this.timeoutLog = null;
   }
 
   /**
-   * Vérifie si un todo non complété arrive à échéance maintenant,
+   * Vérifie si un todo non complété arrive à échéance maintenant (+/- 15 min),
    * si c'est la cas alors propose à l'utilisateur de l'emmener sur la page du todo
    *
    * @private
@@ -113,44 +100,13 @@ export class NotifServiceProvider {
         todo.uuid != null &&
         todo.deadline != null &&
         this.todoIAlreadyAnnoyedUserFor.indexOf(todo.uuid) === -1 &&
-        this.roundTime(todo.deadline) === this.approxNow
+        this.roundTime(todo.deadline) <= this.approxNow + 15 &&
+        this.roundTime(todo.deadline) >= this.approxNow - 15
     );
 
     if (nowTodo != null && nowTodo.uuid != null) {
       this.todoIAlreadyAnnoyedUserFor.push(nowTodo.uuid);
       this.askForRedirect(nowTodo);
-    }
-  }
-
-  /**
-   * Recherche un todo ayant une date de notification imminante.
-   * Si un tel todo est trouvé et qu'il sagit du premier lancement
-   * de l'application alors redirige l'utilisateur vers ce todo
-   *
-   * @private
-   * @param {ITodoItem[]} items
-   * @memberof NotifServiceProvider
-   */
-  private checkForAutoRedirect(items: ITodoItem[]): void {
-    const nowTodoNotif = items.find(
-      todo =>
-        todo.complete === false &&
-        todo.notif != null &&
-        this.roundTime(todo.notif) === this.approxNow
-    );
-
-    if (
-      this.firstLaunch &&
-      nowTodoNotif != null &&
-      nowTodoNotif.uuid != null &&
-      nowTodoNotif.complete === false &&
-      this.roundTime(nowTodoNotif.notif) === this.approxNow
-    ) {
-      console.log('auto' + nowTodoNotif.uuid);
-      this.todoIAlreadyAnnoyedUserFor.push(nowTodoNotif.uuid);
-      this.evtCtrl
-        .getNavRequestSubject()
-        .next({ page: 'TodoPage', data: { todoRef: nowTodoNotif.ref } });
     }
   }
 

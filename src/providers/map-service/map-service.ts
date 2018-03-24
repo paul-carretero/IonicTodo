@@ -6,6 +6,9 @@ import { UiServiceProvider } from '../ui-service/ui-service';
 
 @Injectable()
 export class MapServiceProvider {
+  private myPosition: null | ILatLng;
+  private timeoutPos: any;
+
   constructor(
     private readonly nativeGeocoder: NativeGeocoder,
     private readonly geolocCtrl: Geolocation,
@@ -63,14 +66,63 @@ export class MapServiceProvider {
     );
   }
 
-  public async getMyPosition(): Promise<ILatLng | null> {
+  /**
+   * reset la position courrante au bout d'une certaine durée, (100s par défault)
+   *
+   * @private
+   * @memberof MapServiceProvider
+   */
+  private resetMyPosition(timeout?: number): void {
+    if (timeout == null) {
+      timeout = 100000;
+    }
+    if (this.timeoutPos != null) {
+      clearTimeout(this.timeoutPos);
+      this.timeoutPos = null;
+    }
+    this.timeoutPos = setTimeout(() => {
+      this.myPosition = null;
+    }, timeout);
+  }
+
+  /**
+   * en cas d'échec de géoposition, si le téléphone est en fait un grille-pain on alloue plus de temps et on conserve le résultat plus longtemps
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof MapServiceProvider
+   */
+  private async trySilentUpdate(): Promise<void> {
     try {
-      const geoPos = await this.geolocCtrl.getCurrentPosition({ timeout: 5000 });
-      return { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };
+      const geoPos = await this.geolocCtrl.getCurrentPosition({
+        timeout: 30000,
+        enableHighAccuracy: false
+      });
+      this.myPosition = { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };
+      this.resetMyPosition(1000000);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  public async getMyPosition(): Promise<ILatLng | null> {
+    if (this.myPosition != null) {
+      return this.myPosition;
+    }
+    try {
+      const geoPos = await this.geolocCtrl.getCurrentPosition({
+        timeout: 5000,
+        enableHighAccuracy: true
+      });
+      this.myPosition = { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };
+      this.resetMyPosition();
+      return this.myPosition;
     } catch (error) {
       this.uiCtrl.displayToast(
         "Impossible d'obtenir votre position, veuillez vérifier vos paramètres"
       );
+      console.log(error);
+      this.trySilentUpdate();
       return null;
     }
   }

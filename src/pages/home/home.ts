@@ -30,11 +30,19 @@ export class HomePage extends GenericPage {
    * Observable des liste privée de l'utilisateur connecté
    *
    * @protected
-   * @public
    * @type {ITodoList[]}
    * @memberof HomePage
    */
   protected todoList: ITodoList[];
+
+  /**
+   * Observable des liste privée et terminée de l'utilisateur connecté
+   *
+   * @protected
+   * @type {ITodoList[]}
+   * @memberof HomePage
+   */
+  protected completeTodoList: ITodoList[];
 
   /**
    * Liste partagé sur la machine courrante
@@ -125,9 +133,11 @@ export class HomePage extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoList = [];
+    this.completeTodoList = [];
     this.localTodoList = [];
+    this.sharedTodoList = [];
     this.search$ = this.evtCtrl.getSearchSubject();
   }
 
@@ -144,7 +154,7 @@ export class HomePage extends GenericPage {
   ionViewDidEnter() {
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Vos Listes de Tâches';
-    pageData.subtitle = 'Accueil OhMyTask';
+    pageData.subtitle = 'Accueil';
     pageData.searchable = true;
     pageData.searchPlaceholders = 'chercher par liste ou auteur';
     this.evtCtrl.setHeader(pageData);
@@ -201,9 +211,33 @@ export class HomePage extends GenericPage {
           todoListP.push(this.renforceList(list));
         }
         Promise.all(todoListP).then(res => {
-          this.todoList = res;
+          this.dispatchList(res);
         });
       });
+  }
+
+  /**
+   * Permet de créer deux liste en séparant les liste complétée et les liste non complétée
+   *
+   * @private
+   * @param {ITodoList[]} privateTodoList
+   * @memberof HomePage
+   */
+  private dispatchList(privateTodoList: ITodoList[]): void {
+    const completeList = [];
+    const notCompleteList = [];
+    for (const list of privateTodoList) {
+      if (
+        list.metadata.todoTotal === 0 ||
+        list.metadata.todoComplete < list.metadata.todoTotal
+      ) {
+        notCompleteList.push(list);
+      } else {
+        completeList.push(list);
+      }
+    }
+    this.todoList = notCompleteList;
+    this.completeTodoList = completeList;
   }
 
   /**

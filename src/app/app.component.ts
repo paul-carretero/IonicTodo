@@ -1,3 +1,4 @@
+import { SpeechRecServiceProvider } from './../providers/speech-rec-service/speech-rec-service';
 import { NotifServiceProvider } from './../providers/notif-service/notif-service';
 import { Component } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen';
@@ -19,7 +20,8 @@ export class MyApp {
     splashScreen: SplashScreen,
     private readonly cloudCtrl: CloudServiceProvider,
     private readonly nfcCtrl: NfcProvider,
-    private readonly notifCtrl: NotifServiceProvider
+    private readonly notifCtrl: NotifServiceProvider,
+    private readonly speechCtrl: SpeechRecServiceProvider
   ) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
@@ -36,5 +38,6 @@ export class MyApp {
     this.cloudCtrl.listenForUpdate();
     this.nfcCtrl.listenForEvents();
     this.notifCtrl.listenForEvents();
+    this.speechCtrl.listenForSpeechRequest();
   }
 }

@@ -79,8 +79,9 @@ export class QrReaderPage extends GenericReceiver {
   }
 
   ionViewDidEnter() {
-    this.checkAuthForScan();
-    this.startPreview();
+    this.checkAuthForScan().then(() => {
+      this.startPreview();
+    });
     this.screenCtrl.lock(this.screenCtrl.ORIENTATIONS.PORTRAIT);
 
     const pageData = Global.getDefaultPageData();

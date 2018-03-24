@@ -39,6 +39,8 @@ export class TodoPage extends GenericPage {
 
   protected completeLoading: boolean = false;
 
+  private readonly editable: boolean;
+
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
@@ -52,9 +54,15 @@ export class TodoPage extends GenericPage {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
     this.fromListUuid = this.navParams.get('listUuid');
+
     if (this.navParams.get('isExternal') == null) {
       this.isExternal = false;
     } else {
+      if (this.fromListUuid != null) {
+        this.editable = this.todoCtrl.isReadOnly(this.fromListUuid);
+      } else {
+        console.log('[TODO PAGE]:[DEPRECATED]: fromListUuid required');
+      }
       this.isExternal = this.navParams.get('isExternal');
     }
   }
@@ -67,6 +75,7 @@ export class TodoPage extends GenericPage {
 
     this.todoObs = this.todoCtrl.getTodo(this.todoRef);
     const pageData = Global.getEditCopyPageData();
+    pageData.editable = this.editable;
     pageData.subtitle = 'Détail de la tâche';
     this.initPage(pageData);
   }

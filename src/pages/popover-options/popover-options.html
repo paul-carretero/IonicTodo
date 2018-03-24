@@ -10,13 +10,13 @@
   <button *ngIf="shareable && editable" ion-item (click)="send()" icon-start [disabled]="!onLine | async">
     <ion-icon name="send"></ion-icon>Envoyer
   </button>
-  <button *ngIf="importable" ion-item (click)="basicRequest(request.IMPORT)" icon-start [disabled]="!onLine | async">
+  <button *ngIf="importable && editable" ion-item (click)="basicRequest(request.IMPORT)" icon-start [disabled]="!onLine | async">
     <ion-icon name="cloud-download"></ion-icon>Importer
   </button>
   <button *ngIf="pastable && editable" ion-item (click)="basicRequest(request.PASTE)" icon-start>
     <ion-icon name="link"></ion-icon>Coller
   </button>
-  <button *ngIf="copiable" ion-item (click)="basicRequest(request.COPY)" icon-start>
+  <button *ngIf="copiable && editable" ion-item (click)="basicRequest(request.COPY)" icon-start>
     <ion-icon name="link"></ion-icon>Copier
   </button>
   <button *ngIf="editable && isList" ion-item (click)="basicRequest(request.OCR)" icon-start>

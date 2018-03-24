@@ -38,6 +38,7 @@ export interface ITodoItem {
 
   /**
    * contient optionelement une date à laquelle envoyer une notification
+   * Attention: firebase les retoune en Timestamp et non en js date :/
    *
    * @type {{Date | null}}
    * @memberof TodoItem
@@ -69,7 +70,8 @@ export interface ITodoItem {
   complete: boolean;
 
   /**
-   * Deadline optionelle du todo, passé cette date il sera considéré comme en retard si pas complété
+   * Deadline optionelle du todo, passé cette date il sera considéré comme en retard si pas complété.
+   * Attention: firebase les retoune en Timestamp et non en js date :/
    *
    * @type {(Date | null)}
    * @memberof ITodoItem

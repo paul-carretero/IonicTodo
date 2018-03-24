@@ -140,9 +140,6 @@
         "API_KEY_FOR_IOS": "(API_KEY_FOR_IOS)"
       },
       "cordova-plugin-camera": {},
-      "com.synconset.imagepicker": {
-        "PHOTO_LIBRARY_USAGE_DESCRIPTION": "your usage message"
-      },
       "cordova-plugin-datepicker": {},
       "cordova-plugin-image-picker": {},
       "cordova-plugin-local-notification": {},

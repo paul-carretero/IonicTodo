@@ -837,9 +837,14 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public isReadOnly(listUuid: string): boolean {
-    const listShareData = this.currentUserData
-      .getValue()
-      .todoListSharedWithMe.find(d => d.listUUID === listUuid);
+    let listShareData: ITodoListPath | undefined;
+    try {
+      listShareData = this.currentUserData
+        .getValue()
+        .todoListSharedWithMe.find(d => d.listUUID === listUuid);
+    } catch (error) {
+      return false;
+    }
 
     if (listShareData != null) {
       if (listShareData.locked != null) {
@@ -890,7 +895,6 @@ export class TodoServiceProvider {
     }
     return doc.valueChanges();
   }
-
 
   /****************************** REMOVAL NOTIFS ****************************/
 
@@ -1294,14 +1298,12 @@ export class TodoServiceProvider {
    *
    * @param {string} listUuid
    * @param {ITodoItem} newItem
-   * @param {boolean} overrideReturn si true alors la fonction retournera l'uuid du todo créé
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
   public async addTodo(
     listUuid: string,
-    newItem: ITodoItem,
-    overrideReturn?: boolean
+    newItem: ITodoItem
   ): Promise<DocumentReference | null | string> {
     let listDoc: AngularFirestoreDocument<ITodoList>;
     try {
@@ -1322,9 +1324,6 @@ export class TodoServiceProvider {
     this.notifCtrl.onTodoUpdate(newItem);
     this.addTodoSnap(newItem, listUuid);
 
-    if (overrideReturn === true) {
-      return newItem.uuid;
-    }
     return newItem.ref;
   }
 
@@ -1550,16 +1549,7 @@ export class TodoServiceProvider {
       if (todos != null) {
         for (const todo of todos) {
           if (todo != null) {
-            this.addTodo(listUuidDest, this.deepCloneTodo(todo), true);
-            /*this.addTodo(listUuidDest, this.deepCloneTodo(todo), true).then(
-              (newTodoUuid: string) => {
-                for (const pictureUuid of todo.pictures) {
-                  if (todo.uuid != null) {
-                    this.storageCtrl.copyMedia(todo.uuid, newTodoUuid, pictureUuid);
-                  }
-                }
-              }
-            );*/
+            this.addTodo(listUuidDest, this.deepCloneTodo(todo));
           }
           this.refreshTodoSnapForList(listUuidDest);
         }
@@ -1578,18 +1568,18 @@ export class TodoServiceProvider {
    */
   private deepCloneTodo(todo: ITodoItem): ITodoItem {
     return {
-      uuid: String(todo.uuid),
+      uuid: null,
       name: String(todo.name),
       address: String(todo.address),
       author: todo.author,
       complete: Boolean(todo.complete),
       completeAuthor: todo.completeAuthor,
-      contacts: todo.contacts,
+      contacts: todo.contacts.slice(0),
       deadline: todo.deadline,
       notif: todo.notif,
       desc: String(todo.desc),
       order: Number(todo.order),
-      pictures: todo.pictures,
+      pictures: [],
       ref: todo.ref
     };
   }

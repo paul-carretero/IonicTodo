@@ -114,18 +114,22 @@ export class EventServiceProvider {
 
   private listenForNetworkChange(): void {
     this.netCtrl.onConnect().subscribe(() => {
-      this.netSubject.next(true);
-      this.uiCtrl.displayToast(
-        'vous êtes maintenant connecté aux intertubes en "' +
-          this.netCtrl.type +
-          '". Certaines fonctionalités sont de nouveau disponibles!'
-      );
+      if (!this.netSubject.getValue()) {
+        this.netSubject.next(true);
+        this.uiCtrl.displayToast(
+          'vous êtes maintenant connecté aux intertubes en "' +
+            this.netCtrl.type +
+            '". Certaines fonctionalités sont de nouveau disponibles!'
+        );
+      }
     });
     this.netCtrl.onDisconnect().subscribe(() => {
-      this.netSubject.next(false);
-      this.uiCtrl.displayToast(
-        "vous n'êtes plus connecté aux intertubes, certaines fonctionalités sont désactivées :/"
-      );
+      if (this.netSubject.getValue()) {
+        this.netSubject.next(false);
+        this.uiCtrl.displayToast(
+          "vous n'êtes plus connecté aux intertubes, certaines fonctionalités sont désactivées :/"
+        );
+      }
     });
   }
 
@@ -151,7 +155,7 @@ export class EventServiceProvider {
    * @memberof EventServiceProvider
    */
   private shakeDetect(): void {
-    this.shakeCtrl.startWatch(60).subscribe(() => {
+    this.shakeCtrl.startWatch(50).subscribe(() => {
       this.menuRequestSubject.next({ request: MenuRequestType.SHAKE });
     });
   }

@@ -26,26 +26,28 @@
                 </ng-container>
             </ng-container>
         </ion-item-group>
+
         <ion-item-divider color="light" icon-start>
             <ion-icon name="done-all" small></ion-icon> Tâches Terminées
         </ion-item-divider>
-
-        <ng-container *ngFor="let todo of completedTodoItem">
-            <ng-container *ngIf="search$ | async as search">
-                <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
-                    <ion-item detail-push>
-                        <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
-                        <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
-                        <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
-                    </ion-item>
-                    <ion-item-options side="right" *ngIf="editable">
-                        <button (click)="deleteTodo(todo, false)" ion-button color="danger">
-                            <ion-icon name="trash">supprimer</ion-icon>
-                        </button>
-                    </ion-item-options>
-                </ion-item-sliding>
+        <ion-item-group reorder="true" (ionItemReorder)="reorder($event,completedTodoItem)">
+            <ng-container *ngFor="let todo of completedTodoItem">
+                <ng-container *ngIf="search$ | async as search">
+                    <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
+                        <ion-item detail-push>
+                            <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
+                            <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
+                            <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
+                        </ion-item>
+                        <ion-item-options side="right" *ngIf="editable">
+                            <button (click)="deleteTodo(todo, false)" ion-button color="danger">
+                                <ion-icon name="trash">supprimer</ion-icon>
+                            </button>
+                        </ion-item-options>
+                    </ion-item-sliding>
+                </ng-container>
             </ng-container>
-        </ng-container>
+        </ion-item-group>
 
         <ion-item-divider color="light" icon-start>
             <ion-icon name="link" small></ion-icon> Tâches importées
