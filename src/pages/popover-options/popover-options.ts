@@ -1,10 +1,10 @@
-import { Observable } from 'rxjs/Rx';
 import { Component } from '@angular/core';
 import { ActionSheetController, IonicPage, ViewController } from 'ionic-angular';
+import { Subscription } from 'rxjs/Subscription';
 
+import { MenuRequestType } from '../../model/menu-request-type';
 import { Media } from './../../model/media';
 import { EventServiceProvider } from './../../providers/event/event-service';
-import { MenuRequestType } from '../../model/menu-request-type';
 
 @IonicPage()
 @Component({
@@ -18,9 +18,11 @@ export class PopoverOptionsPage {
   protected pastable: boolean;
   protected copiable: boolean;
   protected isList: boolean;
-  protected onLine: Observable<boolean>;
+  protected onLine: boolean;
 
   protected request = MenuRequestType;
+
+  private onlineSub: Subscription;
 
   /**
    * Creates an instance of PopoverOptionsPage.
@@ -34,9 +36,18 @@ export class PopoverOptionsPage {
     private readonly evtCtrl: EventServiceProvider,
     public readonly actionSheetCtrl: ActionSheetController
   ) {
-    this.onLine = this.evtCtrl.getNetStatusObs();
+    this.onLine = true;
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * défini les constante du header en fonction de la page
+   *
+   * @memberof PopoverOptionsPage
+   */
   ionViewDidLoad() {
     this.editable = this.evtCtrl.getHeader().editable;
     this.shareable = this.evtCtrl.getHeader().shareable;
@@ -47,54 +58,33 @@ export class PopoverOptionsPage {
       this.evtCtrl.getHeader().pastable && this.evtCtrl.getCopiedTodoRef() != null;
   }
 
-  private openSendMenu(): void {
-    const actionSheet = this.actionSheetCtrl.create({
-      title: '⇄ Envoyer Cette liste',
-      subTitle:
-        'Vos destinataires recevront une copie de cette liste. Les listes seront complètement indépendante',
-      buttons: [
-        {
-          text: 'Envoyer sur le cloud',
-          icon: 'cloud-upload',
-          handler: () => {
-            this.evtCtrl
-              .getMenuRequestSubject()
-              .next({ request: MenuRequestType.SEND, media: Media.CLOUD });
-          }
-        },
-        {
-          text: 'Envoyer par NFC',
-          icon: 'phone-portrait',
-          handler: () => {
-            this.evtCtrl
-              .getMenuRequestSubject()
-              .next({ request: MenuRequestType.SEND, media: Media.NFC });
-          }
-        },
-        {
-          text: 'Afficher un QRCode à flasher',
-          icon: 'qr-scanner',
-          handler: () => {
-            this.evtCtrl
-              .getMenuRequestSubject()
-              .next({ request: MenuRequestType.SEND, media: Media.QR_CODE });
-          }
-        },
-        {
-          text: 'Annuler',
-          role: 'cancel',
-          icon: 'close'
-        }
-      ]
+  /**
+   * s'ajoute en observer du status de la connexion
+   *
+   * @memberof PopoverOptionsPage
+   */
+  ionViewWillEnter(): void {
+    this.onlineSub = this.evtCtrl.getNetStatusObs().subscribe(res => {
+      this.onLine = res;
     });
-    actionSheet.present();
+  }
+
+  /**
+   * se désinscrit du sujet du status de la connexion
+   *
+   * @memberof PopoverOptionsPage
+   */
+  ionViewWillExit(): void {
+    if (this.onlineSub != null) {
+      this.onlineSub.unsubscribe();
+    }
   }
 
   private openShareMenu(): void {
     const actionSheet = this.actionSheetCtrl.create({
       title: '⇄ Partager Cette liste',
       subTitle:
-        'Vos destinataires recevront un lien de cette liste. Les listes seront complètement synchronisée',
+        'Vos destinataires recevront un lien de cette liste. Vous pourrez choisir de cloner ou lier votre liste',
       buttons: [
         {
           text: 'Partager sur le cloud',
@@ -145,16 +135,6 @@ export class PopoverOptionsPage {
   protected share() {
     this.viewCtrl.dismiss();
     this.openShareMenu();
-  }
-
-  /**
-   * Demande utilisateur pour partager une liste par valeur
-   *
-   * @memberof PopoverOptionsPage
-   */
-  protected send() {
-    this.viewCtrl.dismiss();
-    this.openSendMenu();
   }
 
   /**

@@ -65,7 +65,8 @@ export class TodoPage extends GenericPage {
     }
   }
 
-  ionViewDidEnter() {
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     if (this.todoRef == null) {
       this.navCtrl.popToRoot();
       this.uiCtrl.displayToast('Une erreur est survenue pendant le chargement de la tâche');
@@ -80,6 +81,7 @@ export class TodoPage extends GenericPage {
 
   ionViewWillLeave() {
     this.tryUnSub(this.todoSub);
+    this.evtCtrl.setCurrentContext(null, null);
   }
 
   private defIsMine(todo: ITodoItem): void {
@@ -105,6 +107,7 @@ export class TodoPage extends GenericPage {
           this.evtCtrl.setHeader(pageData);
         }
       }
+      this.evtCtrl.setCurrentContext(todo.uuid, null);
     });
   }
 

@@ -118,5 +118,9 @@
                 </ion-item>
             </ion-card-content>
         </ion-card>
+
+        <ion-card padding>
+            <button ion-button full round (click)="validate()" [disabled]="!todoForm.valid">Valider</button>
+        </ion-card>
     </form>
 </ion-content>

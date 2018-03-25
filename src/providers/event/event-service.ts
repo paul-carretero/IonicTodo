@@ -80,6 +80,24 @@ export class EventServiceProvider {
    */
   private readonly netSubject: BehaviorSubject<boolean>;
 
+  /**
+   * retourne l'uuid context de liste courrant, soit une liste, soit null
+   *
+   * @private
+   * @type {(string | null)}
+   * @memberof EventServiceProvider
+   */
+  private currentContextList: string | null;
+
+  /**
+   * retourne l'uuid context de todo courrant, soit un todo, soit null
+   *
+   * @private
+   * @type {(string | null)}
+   * @memberof EventServiceProvider
+   */
+  private currentContextTodo: string | null;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -97,6 +115,8 @@ export class EventServiceProvider {
     private readonly netCtrl: Network,
     private readonly uiCtrl: UiServiceProvider
   ) {
+    this.currentContextList = null;
+    this.currentContextTodo = null;
     this.authCtrl.registerEvtCtrl(this);
     this.headerData = Global.getDefaultPageData();
     this.menuRequestSubject = new Subject<IMenuRequest>();
@@ -163,6 +183,32 @@ export class EventServiceProvider {
   /**************************************************************************/
   /************************ METHODES PUBLIQUE/GETTER ************************/
   /**************************************************************************/
+
+  /**
+   * permet de récupérer l'uuid de la liste ou du todo context courrant
+   *
+   * @param {boolean} list true si l'on veut le context de liste, false si l'on veut le context de todo
+   * @returns {(null | string)}
+   * @memberof EventServiceProvider
+   */
+  public getCurrentContext(list: boolean): null | string {
+    if (list) {
+      return this.currentContextList;
+    }
+    return this.currentContextTodo;
+  }
+
+  /**
+   * Défini l'uuid du contexte courrant, si l'on est sur une liste ou un todo ou rien
+   *
+   * @param {(null | string)} contextTodo
+   * @param {(null | string)} contextlist
+   * @memberof EventServiceProvider
+   */
+  public setCurrentContext(todoUuid: null | string, listUuid: null | string): void {
+    this.currentContextList = listUuid;
+    this.currentContextTodo = todoUuid;
+  }
 
   /**
    * retourne un observable sur status de la connexion (true si online, false sinon)

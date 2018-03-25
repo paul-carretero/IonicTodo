@@ -101,24 +101,29 @@ export class OcrModdalPage extends GenericPage {
   /**************************************************************************/
 
   /**
-   * défini la page et initialise la prévisualisation
+   * initialise le header de la page
    *
    * @memberof OcrModdalPage
    */
-  ionViewDidEnter() {
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Importer par OCR';
     pageData.subtitle = 'Importer vos tâches';
     this.evtCtrl.setHeader(pageData);
-    this.takePicture();
   }
 
   /**
-   * Termine la visualisation et déverrouille l'écran
+   * prépare la prise d'une photo pour analyse OCR
    *
    * @memberof OcrModdalPage
    */
-  ionViewWillLeave() {}
+  ionViewDidEnter(): void {
+    if (this.listUuid == null) {
+      this.navCtrl.pop();
+    }
+    this.takePicture();
+  }
 
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/

@@ -27,6 +27,7 @@ import { EventServiceProvider } from '../event/event-service';
 import { IListMetadata } from '../../model/list-metadata';
 import { StorageServiceProvider } from '../storage-service/storage-service';
 import { ContactServiceProvider } from '../contact-service/contact-service';
+import { UiServiceProvider } from '../ui-service/ui-service';
 
 @Injectable()
 export class TodoServiceProvider {
@@ -257,6 +258,10 @@ export class TodoServiceProvider {
    * (en fonction du status de la connexion, des listes de todo locales et partagées)
    * @param {AngularFirestore} firestoreCtrl
    * @param {AuthServiceProvider} authCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {StorageServiceProvider} storageCtrl
+   * @param {ContactServiceProvider} contactCtrl
+   * @param {UiServiceProvider} uiCtrl
    * @memberof TodoServiceProvider
    */
   constructor(
@@ -264,7 +269,8 @@ export class TodoServiceProvider {
     private readonly authCtrl: AuthServiceProvider,
     private readonly evtCtrl: EventServiceProvider,
     private readonly storageCtrl: StorageServiceProvider,
-    private readonly contactCtrl: ContactServiceProvider
+    private readonly contactCtrl: ContactServiceProvider,
+    private readonly uiCtrl: UiServiceProvider
   ) {
     this.todoLists = new BehaviorSubject<ITodoList[]>([]);
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
@@ -519,8 +525,8 @@ export class TodoServiceProvider {
    * @private
    * @memberof TodoServiceProvider
    */
-  private updateLocalDBLink(): void {
-    const machineId: string = this.authCtrl.getMachineId();
+  private async updateLocalDBLink(): Promise<void> {
+    const machineId: string = await this.authCtrl.getMachineId();
     this.localTodoListCollection = this.firestoreCtrl.collection<ITodoList>(
       'machine/' + machineId + '/list',
       ref => ref.orderBy('order', 'asc')
@@ -591,6 +597,13 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public async addListLink(path: ITodoListPath): Promise<void> {
+    const lists: ITodoList[] = this.getAllList();
+    const alreadyExist: boolean = lists.find(l => l.uuid === path.listUUID) != null;
+    if (alreadyExist) {
+      this.uiCtrl.alert('Echec', 'Vous avez déjà importer cette liste');
+      return;
+    }
+
     const listsPathTab = this.getSharedListPathSnapchot();
     listsPathTab.push(path);
     await this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab }).catch(() => {
@@ -652,11 +665,8 @@ export class TodoServiceProvider {
     const listData = await this.getAListSnapshotFromPath(path);
     listData.uuid = null;
     listData.order = 0;
-    const p = this.addList(listData);
-    if (this.online) {
-      const listUuid = await p;
-      this.cloneTodo(path.listUUID, path.userUUID, listUuid);
-    }
+    const listUuid = await this.addList(listData);
+    this.cloneTodo(path.listUUID, path.userUUID, listUuid);
   }
 
   /**
@@ -1312,7 +1322,8 @@ export class TodoServiceProvider {
    */
   public async addTodo(
     listUuid: string,
-    newItem: ITodoItem
+    newItem: ITodoItem,
+    keepUuid?: boolean
   ): Promise<DocumentReference | null | string> {
     let listDoc: AngularFirestoreDocument<ITodoList>;
     try {
@@ -1321,10 +1332,17 @@ export class TodoServiceProvider {
       return null;
     }
 
-    const todoUuid = uuid();
-    newItem.uuid = todoUuid;
+    if (keepUuid == null || keepUuid === false) {
+      const todoUuid = uuid();
+      newItem.uuid = todoUuid;
+    }
+
+    if (newItem.uuid == null) {
+      return null;
+    }
+
     newItem.author = await this.authCtrl.getAuthor(false);
-    const doc = listDoc.collection('todo').doc<ITodoItem>(todoUuid);
+    const doc = listDoc.collection('todo').doc<ITodoItem>(newItem.uuid);
     newItem.ref = doc.ref as DocumentReference;
     const p = doc.set(newItem);
     if (this.online) {

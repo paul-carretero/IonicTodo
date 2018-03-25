@@ -49,12 +49,9 @@ export class GenericSharer extends GenericPage {
    *
    * @memberof GenericSharer
    */
-  ionViewDidEnter() {
-    if (this.request.request === MenuRequestType.SEND) {
-      this.choice = 'send';
-    } else {
-      this.choice = 'unlock';
-    }
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
+    this.choice = 'unlock';
 
     this.deleteSub = this.todoCtrl
       .getDeleteSubject(this.listUUID)

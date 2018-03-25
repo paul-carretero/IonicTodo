@@ -6,9 +6,7 @@
  * @interface ISimpleContact
  */
 export interface ISimpleContact {
-  id: string | null;
-
-  machineId: string | null;
+  id: number;
 
   displayName: string | null;
 

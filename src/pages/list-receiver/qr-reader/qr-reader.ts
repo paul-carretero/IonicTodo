@@ -78,6 +78,11 @@ export class QrReaderPage extends GenericReceiver {
     super(navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
 
+  /**
+   * initialise la page une fois qu'on est entrée (preview oblige)
+   *
+   * @memberof QrReaderPage
+   */
   ionViewDidEnter() {
     this.checkAuthForScan().then(() => {
       this.startPreview();
@@ -90,6 +95,11 @@ export class QrReaderPage extends GenericReceiver {
     this.evtCtrl.setHeader(pageData);
   }
 
+  /**
+   * termine la preview et débloque la rotation de la page
+   *
+   * @memberof QrReaderPage
+   */
   ionViewWillLeave() {
     if (this.scanSub != null && !this.scanSub.closed) {
       this.scanSub.unsubscribe();

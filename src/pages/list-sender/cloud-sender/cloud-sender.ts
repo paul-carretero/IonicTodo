@@ -44,8 +44,8 @@ export class CloudSenderPage extends GenericSharer {
     this.contactList = [];
   }
 
-  ionViewDidEnter() {
-    super.ionViewDidEnter();
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Exporter en ligne';
     pageData.subtitle = this.evtCtrl.getHeader().title;
@@ -59,7 +59,7 @@ export class CloudSenderPage extends GenericSharer {
     return ['partager', 'partagée', 'partage'];
   }
 
-  public async share(email: string | null): Promise<void> {
+  private async share(email: string | null): Promise<void> {
     this.uiCtrl.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
 
@@ -76,7 +76,7 @@ export class CloudSenderPage extends GenericSharer {
     this.navCtrl.pop();
   }
 
-  public shareWrapper(): void {
+  protected shareWrapper(): void {
     if (this.contactList.length > 0) {
       for (const contact of this.contactList) {
         if (contact.email == null) {
@@ -93,7 +93,7 @@ export class CloudSenderPage extends GenericSharer {
     }
   }
 
-  public openContactPopup(): void {
+  protected openContactPopup(): void {
     const contactModal = this.modalCtrl.create('ContactModalPage', {
       contacts: this.contactList,
       onlyEmail: true
@@ -101,20 +101,11 @@ export class CloudSenderPage extends GenericSharer {
     contactModal.present();
   }
 
-  get textContact(): string {
-    if (this.contactList.length === 0) {
-      return (
-        'Cette opération est facultative.<br/> ' +
-        'Les contacts choisis seront automatiquement <br/> ' +
-        'ajoutés à votre ' +
-        this.sendPartage[2] +
-        " s'ils possèdent un <br/> " +
-        "compte sur l'application"
-      );
+  protected deleteContact(contact: ISimpleContact): void {
+    const index = this.contactList.findIndex(c => c.id === contact.id);
+    if (index !== -1) {
+      this.contactList.splice(index, 1);
     }
-    return (
-      'Vous avez associé ' + this.contactList.length + ' contacts à ce ' + this.sendPartage[2]
-    );
   }
 
   /**

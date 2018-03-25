@@ -1,16 +1,15 @@
 import { Component } from '@angular/core';
-import { Contact, Contacts, IContactField } from '@ionic-native/contacts';
 import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
-import { IPageData } from '../../model/page-data';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ISimpleContact } from './../../model/simple-contact';
+import { ContactServiceProvider } from './../../providers/contact-service/contact-service';
 import { Global } from './../../shared/global';
 
 /**
@@ -27,33 +26,23 @@ import { Global } from './../../shared/global';
 })
 export class ContactModalPage extends GenericPage {
   /**************************** PRIVATE FIELDS ******************************/
-
   /**
-   * Optionnel, permet de spécifier s'il ne faut afficher que les contacts ayant un mobile
+   * vrai si un mobile est obligatoire
    *
    * @private
    * @type {boolean}
    * @memberof ContactModalPage
    */
-  private readonly onlyMobile: boolean = false;
+  private readonly mobileRequired: boolean;
 
   /**
-   * Optionnel, permet de spécifier s'il ne faut afficher que les contacts ayant un email
+   * vrai si un email est obligatoire
    *
    * @private
    * @type {boolean}
    * @memberof ContactModalPage
    */
-  private readonly onlyEmail: boolean = false;
-
-  /**
-   * Header de la dernière page (si elle ne le redéfini pas, permet de le conserver)
-   *
-   * @private
-   * @type {IPageData}
-   * @memberof ContactModalPage
-   */
-  private lastHeader: IPageData;
+  private readonly emailRequired: boolean;
 
   /***************************** PUBLIC FIELDS ******************************/
 
@@ -69,10 +58,10 @@ export class ContactModalPage extends GenericPage {
   /**
    * Ensemble des contacts du terminal
    *
-   * @type {Promise<Contact[]>}
+   * @type {Promise<ISimpleContact[]>}
    * @memberof ContactModalPage
    */
-  protected contactList: Promise<Contact[]>;
+  protected fullContactList: ISelectableSimpleContact[];
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -98,19 +87,23 @@ export class ContactModalPage extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider,
     private readonly viewCtrl: ViewController,
     private readonly navParams: NavParams,
-    private readonly contactsCtrl: Contacts
+    private readonly contactsCtrl: ContactServiceProvider
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl ,authCtrl, uiCtrl);
+    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
     this.exportedContacts = this.navParams.get('contacts');
 
+    this.emailRequired = false;
     if (this.navParams.get('onlyEmail') != null) {
-      this.onlyEmail = this.navParams.get('onlyEmail');
+      this.emailRequired = this.navParams.get('onlyEmail');
     }
 
+    this.mobileRequired = false;
     if (this.navParams.get('onlyMobile') != null) {
-      this.onlyMobile = this.navParams.get('onlyMobile');
+      this.mobileRequired = this.navParams.get('onlyMobile');
     }
+
+    this.fullContactList = [];
   }
 
   /**************************************************************************/
@@ -122,24 +115,12 @@ export class ContactModalPage extends GenericPage {
    *
    * @memberof ContactModalPage
    */
-  ionViewDidEnter() {
-    this.contactList = this.contactsCtrl.find(['displayName', 'emails', 'phoneNumbers'], {
-      desiredFields: ['displayName', 'emails', 'phoneNumbers']
-    });
-
-    this.lastHeader = this.evtCtrl.getHeader();
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     const header = Global.getValidablePageData();
     header.title = 'Vos contacts';
     this.evtCtrl.setHeader(header);
-  }
-
-  /**
-   * Redéfini le header comme il l'était avant (pas nécessairement utile...)
-   *
-   * @memberof ContactModalPage
-   */
-  ionViewWillLeave() {
-    this.evtCtrl.setHeader(this.lastHeader);
+    this.initSelected();
   }
 
   /**************************************************************************/
@@ -158,79 +139,19 @@ export class ContactModalPage extends GenericPage {
   }
 
   /**
-   * retourne true si le contact satisfait les critère de filtre (sms et/ou email)
-   *
-   * @protected
-   * @param {Contact} contact
-   * @returns {boolean}
-   * @memberof ContactModalPage
-   */
-  protected shouldDisplay(contact: Contact): boolean {
-    if (this.onlyEmail && contact.emails == null) {
-      return false;
-    }
-
-    if (this.onlyMobile && contact.phoneNumbers == null) {
-      return false;
-    }
-
-    if (this.onlyMobile && !this.haveMobile(contact.phoneNumbers)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * retourne true si le contact est selectionné
-   *
-   * @protected
-   * @param {Contact} contact
-   * @returns {boolean}
-   * @memberof ContactModalPage
-   */
-  protected isSelected(contact: Contact): boolean {
-    const finded = this.exportedContacts.find(
-      c => c.id === contact.id && c.machineId === this.authCtrl.getMachineId()
-    );
-    return finded != null;
-  }
-
-  private deleteFromContact(contactId: string): void {
-    const id = this.exportedContacts.findIndex(c => c.id === contactId);
-    if (id !== -1) {
-      this.exportedContacts.splice(id, 1);
-    }
-  }
-
-  /**
    * permet de selectionné ou de déselectionné un contact
    *
    * @protected
-   * @param {Contact} contact
+   * @param {ISimpleContact} contact
    * @memberof ContactModalPage
    */
-  protected select(contact: Contact): void {
+  protected select(contact: ISelectableSimpleContact): void {
     if (this.isSelected(contact)) {
-      this.deleteFromContact(contact.id);
+      this.deleteFromContact(contact);
+      contact.isSelected = false;
     } else {
-      let email: string | null | undefined;
-      if (contact.emails != null) {
-        email = contact.emails[0].value;
-      }
-      if (email === undefined) {
-        email = null;
-      }
-
-      const newSimpleContact: ISimpleContact = {
-        id: contact.id,
-        machineId: this.authCtrl.getMachineId(),
-        displayName: contact.displayName,
-        email: email,
-        mobile: this.getMobile(contact)
-      };
-
-      this.exportedContacts.push(newSimpleContact);
+      this.exportedContacts.push(contact);
+      contact.isSelected = true;
     }
   }
 
@@ -239,37 +160,53 @@ export class ContactModalPage extends GenericPage {
   /**************************************************************************/
 
   /**
-   * retourne le numéro de téléphone mobile associé à ce contact (si précisé)
+   * ne réalise les opération de sélection qu'au début
    *
    * @private
-   * @param {Contact} contact
-   * @returns {string}
    * @memberof ContactModalPage
    */
-  private getMobile(contact: Contact): string | null {
-    for (const phone of contact.phoneNumbers) {
-      if (phone.type != null && phone.type === 'mobile' && phone.value != null) {
-        return phone.value;
+  private async initSelected(): Promise<void> {
+    const contactList: ISelectableSimpleContact[] = await this.contactsCtrl.getContactList(
+      this.mobileRequired,
+      this.emailRequired
+    );
+
+    for (const entry of contactList) {
+      if (this.isSelected(entry)) {
+        entry.isSelected = true;
+      } else {
+        entry.isSelected = false;
       }
     }
-    return null;
+
+    this.fullContactList = contactList;
   }
 
   /**
-   * return true si le contact dispose d'au moins un mobile
+   * retourne true si le contact est selectionné
+   * A fixer, attente active pas top :/
    *
    * @private
-   * @param {IContactField[]} phones
+   * @param {ISimpleContact} contact
    * @returns {boolean}
    * @memberof ContactModalPage
    */
-  private haveMobile(phones: IContactField[]): boolean {
-    for (const phone of phones) {
-      if (phone.type != null && phone.type === 'mobile') {
-        return true;
-      }
+  private isSelected(contact: ISimpleContact): boolean {
+    return this.exportedContacts.find(c => c.id === contact.id) != null;
+  }
+
+  /**
+   * Supprime un contact de la liste des contacts exportés
+   *
+   * @private
+   * @param {ISimpleContact} contact
+   * @memberof ContactModalPage
+   */
+  private deleteFromContact(contact: ISimpleContact): void {
+    const id = this.exportedContacts.findIndex(c => c.id === contact.id);
+    if (id !== -1) {
+      this.exportedContacts.splice(id, 1);
     }
-    return false;
   }
 
   /**************************************************************************/
@@ -288,4 +225,15 @@ export class ContactModalPage extends GenericPage {
         break;
     }
   }
+}
+
+/**
+ * permet d'ajouter un champs de selection sur les contact afin d'éviter un refresh en boucle sur le template
+ *
+ * @export
+ * @interface ISelectableSimpleContact
+ * @extends {ISimpleContact}
+ */
+export interface ISelectableSimpleContact extends ISimpleContact {
+  isSelected?: boolean;
 }

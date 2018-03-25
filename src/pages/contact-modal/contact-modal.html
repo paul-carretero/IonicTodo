@@ -9,10 +9,12 @@
     </ion-card-header>
 
     <ion-list>
-      <ng-container *ngFor="let contact of contactList | async">
-        <button ion-item *ngIf="shouldDisplay(contact)" (click)="select(contact)">
-          <ion-icon *ngIf="isSelected(contact)" name="checkmark" item-end></ion-icon>
+      <ng-container *ngFor="let contact of fullContactList">
+        <button ion-item (click)="select(contact)">
           {{contact.displayName}}
+          <ion-icon *ngIf="contact.mobile" name="phone-portrait" small></ion-icon>
+          <ion-icon *ngIf="contact.email" name="mail" small></ion-icon>
+          <ion-icon *ngIf="isSelected(contact)" name="checkmark" item-end></ion-icon>
         </button>
       </ng-container>
     </ion-list>

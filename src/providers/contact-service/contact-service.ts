@@ -8,6 +8,7 @@ import { ISimpleContact } from './../../model/simple-contact';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { DBServiceProvider } from './../db/db-service';
 import { ITodoItem } from '../../model/todo-item';
+import { Contacts, Contact, IContactField } from '@ionic-native/contacts';
 
 @Injectable()
 export class ContactServiceProvider {
@@ -20,7 +21,8 @@ export class ContactServiceProvider {
     private readonly dbCtrl: DBServiceProvider,
     private readonly permsCtrl: AndroidPermissions,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly uiCtrl: UiServiceProvider
+    private readonly uiCtrl: UiServiceProvider,
+    private readonly contactsCtrl: Contacts
   ) {}
 
   public async sendSMS(
@@ -119,5 +121,142 @@ export class ContactServiceProvider {
       }
       this.sendCompleteSms(contact, todo.name, desc);
     }
+  }
+
+  public async getContactList(
+    mobileRequired: boolean,
+    emailRequired: boolean
+  ): Promise<ISimpleContact[]> {
+    const nativesContact = await this.contactsCtrl.find(
+      ['displayName', 'emails', 'phoneNumbers'],
+      {
+        desiredFields: ['displayName', 'emails', 'phoneNumbers']
+      }
+    );
+
+    const res: ISimpleContact[] = [];
+
+    for (const contact of nativesContact) {
+      if (this.canAdd(contact, mobileRequired, emailRequired)) {
+        const id = await this.getHashID(contact.id);
+
+        let email: string | null | undefined = null;
+        if (contact.emails != null && contact.emails.length > 0) {
+          email = contact.emails[0].value;
+        }
+        if (email === undefined) {
+          email = null;
+        }
+
+        const sContact: ISimpleContact = {
+          id: id,
+          displayName: contact.displayName,
+          email: email,
+          mobile: this.getMobile(contact)
+        };
+
+        res.push(sContact);
+      }
+    }
+
+    return res;
+  }
+
+  private canAdd(contact: Contact, mobileRequired: boolean, emailRequired: boolean): boolean {
+    if (emailRequired && (contact.emails == null || contact.emails.length === 0)) {
+      return false;
+    }
+
+    if (mobileRequired && contact.phoneNumbers == null) {
+      return false;
+    }
+
+    if (mobileRequired && !this.haveMobile(contact.phoneNumbers)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * retourne le numéro de téléphone mobile associé à ce contact (si précisé)
+   *
+   * @private
+   * @param {Contact} contact
+   * @returns {string}
+   * @memberof ContactModalPage
+   */
+  private getMobile(contact: Contact): string | null {
+    for (const phone of contact.phoneNumbers) {
+      if (
+        phone.type != null &&
+        phone.type === 'mobile' &&
+        phone.value != null &&
+        (phone.value.charAt(1) === '6' || phone.value.charAt(1) === '7')
+      ) {
+        return phone.value;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * return true si le contact dispose d'au moins un mobile
+   *
+   * @private
+   * @param {IContactField[]} phones
+   * @returns {boolean}
+   * @memberof ContactModalPage
+   */
+  private haveMobile(phones: IContactField[]): boolean {
+    for (const phone of phones) {
+      if (
+        phone.type != null &&
+        phone.type === 'mobile' &&
+        phone.value != null &&
+        (phone.value.charAt(1) === '6' || phone.value.charAt(1) === '7')
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * retourne un identifiant quasi unique pour un contact (non critique et plus performant)
+   *
+   * @private
+   * @param {string} contactId
+   * @returns {Promise<number>}
+   * @memberof ContactServiceProvider
+   */
+  private async getHashID(contactId: string): Promise<number> {
+    const machineId = await this.authCtrl.getMachineId();
+    return this.getHash(machineId + ' - ' + contactId);
+  }
+
+  /**
+   * retourne un hash d'une chaine de caractère.
+   * Basé sur http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+   *
+   * @private
+   * @param {string} str
+   * @returns {number}
+   * @memberof ContactServiceProvider
+   */
+  private getHash(str: string): number {
+    let hash = 0;
+
+    if (str.length === 0) {
+      return hash;
+    }
+
+    for (let i = 0; i < str.length; i++) {
+      const chr = str.charCodeAt(i);
+      hash = (hash << 5) - hash + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+
+    return hash;
   }
 }

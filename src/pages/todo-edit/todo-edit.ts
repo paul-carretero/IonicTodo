@@ -111,6 +111,7 @@ export class TodoEditPage extends GenericPage {
       header.title = 'Nouvelle Tâche';
       header.subtitle = 'Menu création';
       this.evtCtrl.setHeader(header);
+      this.todo.uuid = uuid();
     }
 
     this.authCtrl.getAuthor(false).then((res: IAuthor) => {
@@ -177,7 +178,7 @@ export class TodoEditPage extends GenericPage {
     }
 
     this.uiCtrl.showLoading('Création de la tâche...');
-    const newTodoRef = await this.todoService.addTodo(this.listUuid, this.todo);
+    const newTodoRef = await this.todoService.addTodo(this.listUuid, this.todo, true);
     if (newTodoRef == null) {
       this.uiCtrl.displayToast('unexpected error is unexpected');
       this.navCtrl.popToRoot();
@@ -288,9 +289,7 @@ export class TodoEditPage extends GenericPage {
   }
 
   protected deleteContact(contact: ISimpleContact): void {
-    const index = this.todo.contacts.findIndex(
-      c => c.id === contact.id && c.machineId === this.authCtrl.getMachineId()
-    );
+    const index = this.todo.contacts.findIndex(c => c.id === contact.id);
     if (index !== -1) {
       this.todo.contacts.splice(index, 1);
     }
@@ -343,7 +342,7 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
-  protected async openGalleryWrapper(): Promise<void> {
+  protected openGalleryWrapper(): void {
     this.requestPerms();
     (<any>window).imagePicker.getPictures(
       (res: string[]) => {
@@ -413,6 +412,7 @@ export class TodoEditPage extends GenericPage {
   protected takePicture(): void {
     this.cameraCtrl.getPicture(this.cameraOpts).then(
       imageData => {
+        console.log(imageData);
         this.imgResultHandler([imageData], this.curAuthor);
       },
       () => this.uiCtrl.alert('Erreur', "Impossible d'acceder à la camera")

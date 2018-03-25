@@ -151,7 +151,8 @@ export class HomePage extends GenericPage {
    *
    * @memberof HomePage
    */
-  ionViewDidEnter() {
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Vos Listes de Tâches';
     pageData.subtitle = 'Accueil';

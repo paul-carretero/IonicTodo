@@ -197,6 +197,7 @@ export class CloudServiceProvider {
       data.list == null ||
       data.list.userUUID === this.authCtrl.getUserId()
     ) {
+      console.log('<3>');
       return;
     }
 
@@ -374,7 +375,7 @@ export class CloudServiceProvider {
    */
   private async importByPassword(data: ICloudSharedList): Promise<void> {
     let pass: string = '';
-    let hasCancel: boolean = true;
+    let hasCancel: boolean = false;
     const name: string | null = await this.getListName(data.list as ITodoListPath);
 
     while (pass !== data.password && !hasCancel) {
@@ -383,7 +384,7 @@ export class CloudServiceProvider {
           'Veuillez saisir le mot de passe pour la liste "' + name + '"'
         );
       } catch (error) {
-        hasCancel = false;
+        hasCancel = true;
       }
     }
 
@@ -453,6 +454,7 @@ export class CloudServiceProvider {
       data.author == null ||
       data.author.uuid === this.authCtrl.getUserId()
     ) {
+      console.log('<1>');
       return;
     }
 

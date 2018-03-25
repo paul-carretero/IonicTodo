@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MenuController, PopoverController, Searchbar } from 'ionic-angular';
 
 import { MenuRequestType } from '../../model/menu-request-type';
@@ -19,25 +19,34 @@ import { IPageData } from './../../model/page-data';
   selector: 'HeaderComponent',
   templateUrl: 'header.html'
 })
-export class HeaderComponent implements OnInit, OnDestroy {
+export class HeaderComponent implements OnInit {
   /***************************** PUBLIC FIELDS ******************************/
 
   /**
    * donnée d'affichage du header courrante
    *
+   * @protected
    * @type {IPageData}
    * @memberof HeaderComponent
    */
-  public data: IPageData;
+  protected data: IPageData;
 
   /**
    * true si l'on doit afficher la barre de recherche, false si l'on affiche les options et le sous titre
    *
+   * @protected
    * @type {boolean}
    * @memberof HeaderComponent
    */
-  public displaySearchBar: boolean = false;
+  protected displaySearchBar: boolean = false;
 
+  /**
+   * status de la connexion au réseau (on ne peut pas lancer la reconnaissance vocale sans)
+   *
+   * @protected
+   * @type {Observable<boolean>}
+   * @memberof HeaderComponent
+   */
   protected readonly netStatus: Observable<boolean>;
 
   /**************************** PRIVATE FIELDS ******************************/
@@ -75,19 +84,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   /**************************************************************************/
 
   /**
-   *
-   * @memberof HeaderComponent
-   */
-  ngOnDestroy(): void {}
-
-  /**
    * initialise la subscription au flux de mise à jour du header
    *
    * @memberof HeaderComponent
    */
   ngOnInit(): void {
     // car  [ '' == false ]     (╯°□°）╯︵ ┻━┻
-    console.log('init de header');
     this.evtCtrl.getSearchSubject().next('#');
   }
 
@@ -133,7 +135,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * @memberof HeaderComponent
    */
   public startSpeechRec() {
-    console.log('envoit evt speech rec');
     this.evtCtrl.getMenuRequestSubject().next({ request: MenuRequestType.SPEECH_REC });
   }
 

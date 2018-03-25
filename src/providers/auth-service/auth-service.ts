@@ -19,7 +19,6 @@ export class AuthServiceProvider {
   private useHorsConnexion = false;
   private readonly connexionSubject: BehaviorSubject<User | null>;
   private evtCtrl: EventServiceProvider;
-  private machineId: string;
 
   constructor(
     private readonly firebaseAuth: AngularFireAuth,
@@ -30,9 +29,6 @@ export class AuthServiceProvider {
   ) {
     this.connexionSubject = new BehaviorSubject<User | null>(null);
     this.applyAutoLoginSetting();
-    this.devideIdCtrl.get().then(res => {
-      this.machineId = res;
-    });
   }
 
   public registerEvtCtrl(e: EventServiceProvider): void {
@@ -69,8 +65,8 @@ export class AuthServiceProvider {
     return user.uid;
   }
 
-  public getMachineId(): string {
-    return this.machineId;
+  public getMachineId(): Promise<string> {
+    return this.devideIdCtrl.get();
   }
 
   public logout(): Promise<any> {

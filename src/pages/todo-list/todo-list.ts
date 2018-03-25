@@ -198,7 +198,8 @@ export class TodoListPage extends GenericPage {
    *
    * @memberof TodoListPage
    */
-  ionViewDidEnter() {
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     try {
       this.listType = this.todoService.getListType(this.listUUID);
     } catch (error) {
@@ -217,17 +218,27 @@ export class TodoListPage extends GenericPage {
   }
 
   /**
+   * Une fois que la vue est initialisé, défini le contexte courrant de la liste
+   *
+   * @memberof TodoListPage
+   */
+  ionViewDidEnter(): void {
+    this.evtCtrl.setCurrentContext(null, this.listUUID);
+  }
+
+  /**
    * Termines les subscriptions de la page
    *
    * @memberof TodoListPage
    */
-  ionViewWillLeave() {
+  ionViewWillLeave(): void {
     this.todoService.unsubscribeOfTodo();
     this.todoService.unsubDeleteSubject();
     this.tryUnSub(this.listeSub);
     this.tryUnSub(this.exportedSub);
     this.tryUnSub(this.todoSub);
     this.tryUnSub(this.completedSub);
+    this.evtCtrl.setCurrentContext(null, null);
   }
 
   /**************************************************************************/
@@ -376,29 +387,6 @@ export class TodoListPage extends GenericPage {
           });
         }
         break;
-      case MenuRequestType.SEND: {
-        switch (req.media) {
-          case Media.QR_CODE:
-            this.navCtrl.push('QrcodeGeneratePage', {
-              uuid: this.listUUID,
-              request: { request: MenuRequestType.SEND, media: Media.QR_CODE }
-            });
-            break;
-          case Media.NFC:
-            this.navCtrl.push('NfcSenderPage', {
-              uuid: this.listUUID,
-              request: { request: MenuRequestType.SEND, media: Media.NFC }
-            });
-            break;
-          case Media.CLOUD:
-            this.navCtrl.push('CloudSenderPage', {
-              uuid: this.listUUID,
-              request: { request: MenuRequestType.SEND, media: Media.CLOUD }
-            });
-            break;
-        }
-        break;
-      }
       case MenuRequestType.SHARE: {
         switch (req.media) {
           case Media.QR_CODE:

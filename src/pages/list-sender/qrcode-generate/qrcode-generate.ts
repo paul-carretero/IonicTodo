@@ -27,8 +27,8 @@ export class QrcodeGeneratePage extends GenericSharer {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
 
-  ionViewDidEnter() {
-    super.ionViewDidEnter();
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Exporter par QR Code';
     pageData.subtitle = this.evtCtrl.getHeader().title;

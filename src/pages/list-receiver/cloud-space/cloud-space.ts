@@ -10,7 +10,6 @@ import { GenericPage } from '../../../shared/generic-page';
 import { Global } from '../../../shared/global';
 import { ICloudSharedList } from './../../../model/cloud-shared-list';
 import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-service';
-import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 
 @IonicPage()
 @Component({
@@ -42,7 +41,6 @@ export class CloudSpacePage extends GenericPage {
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    public readonly todoCtrl: TodoServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider
@@ -56,7 +54,8 @@ export class CloudSpacePage extends GenericPage {
   /**************************** LIFECYCLE EVENTS ****************************/
   /**************************************************************************/
 
-  ionViewDidEnter() {
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Listes Publiques';
     pageData.subtitle = 'Listes disponibles';
