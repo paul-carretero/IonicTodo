@@ -1,33 +1,42 @@
 HeaderComponent {
-    ion-toolbar {
-        min-height: 35px !important;
-        max-height: 35px !important;
-        height: 35px !important;
-        padding-bottom: 0 !important;
-        padding-top: 0 !important;
-    }
-    ion-searchbar {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    .subtitle {
-        font-size: 1.2em;
-        vertical-align: middle;
-    }
-    .icon-sized {
-        border: 1px solid black;
-        width: 3em;
-        padding-left: 0.5em;
-        padding-right: 0.5em;
-        margin-right: 0.3em;
-        margin-left: 0.3em;
-        vertical-align: middle;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-    }
-    ion-buttons {
-        margin: 0 !important;
-        padding: 0 !important;
-        max-height: 30px!important;
-    }
+  ion-toolbar {
+    min-height: 35px !important;
+    max-height: 35px !important;
+    height: 35px !important;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+  }
+  ion-searchbar {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .subtitle {
+    font-size: 1.2em;
+    vertical-align: middle;
+    text-align: center;
+    display: inline-block;
+    width: 100%;
+    color: white;
+  }
+  .icon-sized {
+    border: 1px solid black;
+    width: 3em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    margin-right: 0.3em;
+    margin-left: 0.3em;
+    vertical-align: middle;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    color: white;
+    border: none;
+  }
+  ion-buttons {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-height: 30px !important;
+  }
+  .toolbar-background {
+    background-color: color($colors, dark, base);
+  }
 }

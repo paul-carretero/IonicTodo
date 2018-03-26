@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { DocumentReference } from '@firebase/firestore-types';
 import { IonicPage, NavController, NavParams, reorderArray } from 'ionic-angular';
 import { Subscription } from 'rxjs';
@@ -95,6 +95,24 @@ export class TodoListPage extends GenericPage {
    */
   private exportedSub: Subscription;
 
+  /**
+   * interval JS pour la detection des changement de la page
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoListPage
+   */
+  private changeInterval: any;
+
+  /**
+   * timeoutJS a supprimer si la page est détruite trop vite
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoListPage
+   */
+  private changeTimeout: any;
+
   /***************************** PUBLIC FIELDS ******************************/
 
   /**
@@ -167,6 +185,7 @@ export class TodoListPage extends GenericPage {
    * @param {NavParams} navParams
    * @param {DBServiceProvider} settingCtrl
    * @param {CloudServiceProvider} cloudCtrl
+   * @param {ChangeDetectorRef} changeCtrl
    * @memberof TodoListPage
    */
   constructor(
@@ -178,7 +197,8 @@ export class TodoListPage extends GenericPage {
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams,
     private readonly settingCtrl: DBServiceProvider,
-    private readonly cloudCtrl: CloudServiceProvider
+    private readonly cloudCtrl: CloudServiceProvider,
+    private readonly changeCtrl: ChangeDetectorRef
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -218,16 +238,28 @@ export class TodoListPage extends GenericPage {
   }
 
   /**
-   * Une fois que la vue est initialisé, défini le contexte courrant de la liste
+   * Une fois que la vue est initialisé, défini le contexte courrant de la liste.
+   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
+   * pour n'effectuer une detection des changemenents que toutes les 3s.
    *
    * @memberof TodoListPage
    */
   ionViewDidEnter(): void {
     this.evtCtrl.setCurrentContext(null, this.listUUID);
+
+    this.changeTimeout = setTimeout(() => {
+      this.changeCtrl.detach();
+      this.changeCtrl.detectChanges();
+      this.changeInterval = setInterval(() => {
+        this.changeCtrl.detectChanges();
+      }, 2000);
+    }, 500);
   }
 
   /**
    * Termines les subscriptions de la page
+   *
+   * réinitialise le détecteur de changement en mode normal et termine le contexte de la liste
    *
    * @memberof TodoListPage
    */
@@ -239,6 +271,15 @@ export class TodoListPage extends GenericPage {
     this.tryUnSub(this.todoSub);
     this.tryUnSub(this.completedSub);
     this.evtCtrl.setCurrentContext(null, null);
+
+    if (this.changeTimeout != null) {
+      clearTimeout(this.changeTimeout);
+    }
+
+    if (this.changeInterval != null) {
+      clearInterval(this.changeInterval);
+    }
+    this.changeCtrl.reattach();
   }
 
   /**************************************************************************/
@@ -554,11 +595,18 @@ export class TodoListPage extends GenericPage {
     this.orderableReady = true;
   }
 
+  /**
+   * vérifie et retourne si un todo est en retard
+   *
+   * @protected
+   * @param {ITodoItem} todo
+   * @returns {boolean}
+   * @memberof TodoListPage
+   */
   protected isLate(todo: ITodoItem): boolean {
-    if (todo.complete === false || todo.deadline == null) {
+    if (todo.complete === true || todo.deadline == null) {
       return false;
     }
-    const deadline = new Date(todo.deadline).getTime();
-    return deadline < new Date().getTime();
+    return todo.deadline < new Date();
   }
 }

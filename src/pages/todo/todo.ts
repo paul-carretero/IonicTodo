@@ -1,21 +1,33 @@
-import { Subscription } from 'rxjs/Rx';
-import { Global } from './../../shared/global';
-import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
-import { Component } from '@angular/core';
+import { StorageServiceProvider } from './../../providers/storage-service/storage-service';
+import { ContactServiceProvider } from './../../providers/contact-service/contact-service';
+import { Calendar } from '@ionic-native/calendar';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { DocumentReference } from '@firebase/firestore-types';
+import { PhotoViewer } from '@ionic-native/photo-viewer';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import moment from 'moment';
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Rx';
 
 import { IMenuRequest } from '../../model/menu-request';
+import { MenuRequestType } from '../../model/menu-request-type';
+import { IPageData } from '../../model/page-data';
 import { ITodoItem } from '../../model/todo-item';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
-import { MenuRequestType } from '../../model/menu-request-type';
-import { IPageData } from '../../model/page-data';
-import { PhotoViewer } from '@ionic-native/photo-viewer';
+import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
+import { Global } from './../../shared/global';
+import { ISimpleContact } from '../../model/simple-contact';
+import {
+  GoogleMapOptions,
+  GoogleMap,
+  GoogleMaps,
+  GoogleMapsEvent,
+  Marker
+} from '@ionic-native/google-maps';
 
 @IonicPage()
 @Component({
@@ -23,23 +35,50 @@ import { PhotoViewer } from '@ionic-native/photo-viewer';
   templateUrl: 'todo.html'
 })
 export class TodoPage extends GenericPage {
+  /***************************** PUBLIC FIELDS ******************************/
+  protected completeLoading: boolean;
+
+  protected todo: ITodoItem;
+
+  protected isInCalendar: boolean;
+
+  protected readonly mapHeiht: number = window.screen.height;
+
+  /**************************** PRIVATE FIELDS ******************************/
+
   private readonly todoRef: DocumentReference;
 
   private readonly fromListUuid: string | null;
 
   private readonly isExternal: boolean;
 
-  private todoSub: Subscription;
+  private readonly editable: boolean;
 
-  protected todo: ITodoItem;
+  private todoSub: Subscription;
 
   private todoObs: Observable<ITodoItem>;
 
-  private isMine: boolean = false;
+  private isMine: boolean;
 
-  protected completeLoading: boolean = false;
+  private map: GoogleMap;
 
-  private readonly editable: boolean = true;
+  /**
+   * interval JS pour la detection des changement de la page
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoPage
+   */
+  private changeInterval: any;
+
+  /**
+   * timeoutJS a supprimer si la page est détruite trop vite
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoPage
+   */
+  private changeTimeout: any;
 
   constructor(
     protected readonly navCtrl: NavController,
@@ -49,11 +88,19 @@ export class TodoPage extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider,
     private readonly navParams: NavParams,
     private readonly todoCtrl: TodoServiceProvider,
-    private readonly photoCtrl: PhotoViewer
+    private readonly photoCtrl: PhotoViewer,
+    private readonly changeCtrl: ChangeDetectorRef,
+    private readonly calendarCtrl: Calendar,
+    private readonly contactCtrl: ContactServiceProvider,
+    private readonly storageCtrl: StorageServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
     this.fromListUuid = this.navParams.get('listUuid');
+    this.editable = true;
+    this.completeLoading = false;
+    this.isMine = false;
+    this.isInCalendar = false;
 
     if (this.navParams.get('isExternal') == null) {
       this.isExternal = false;
@@ -65,6 +112,12 @@ export class TodoPage extends GenericPage {
     }
   }
 
+  /**
+   * Effectue des vérifications sur les entrée.
+   * Défini la page.
+   *
+   * @memberof TodoPage
+   */
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     if (this.todoRef == null) {
@@ -79,9 +132,51 @@ export class TodoPage extends GenericPage {
     this.initPage(pageData);
   }
 
-  ionViewWillLeave() {
+  /**
+   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
+   * pour n'effectuer une detection des changemenents que toutes les 3s.
+   * Attends quand même 1 seconde avant de le faire pour laisser l'initialisation normal se faire...
+   *
+   * @memberof TodoPage
+   */
+  ionViewDidEnter(): void {
+    this.changeTimeout = setTimeout(() => {
+      this.changeCtrl.detach();
+      this.changeCtrl.detectChanges();
+      this.changeInterval = setInterval(() => {
+        this.changeCtrl.detectChanges();
+      }, 2000);
+    }, 500);
+    this.askForCalendarPerms();
+  }
+
+  /**
+   * réinitialise le détecteur de changement en mode normal et termine le contexte du todo
+   *
+   * @memberof TodoPage
+   */
+  ionViewWillLeave(): void {
     this.tryUnSub(this.todoSub);
     this.evtCtrl.setCurrentContext(null, null);
+
+    if (this.changeTimeout != null) {
+      clearTimeout(this.changeTimeout);
+    }
+
+    if (this.changeInterval != null) {
+      clearInterval(this.changeInterval);
+    }
+    this.changeCtrl.reattach();
+  }
+
+  private async askForCalendarPerms(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      try {
+        this.calendarCtrl.requestReadWritePermission();
+      } catch (error) {
+        this.uiCtrl.displayToast('Les fonctionalités lié au calendrier sont désactivée');
+      }
+    }
   }
 
   private defIsMine(todo: ITodoItem): void {
@@ -105,9 +200,12 @@ export class TodoPage extends GenericPage {
             pageData.title = todo.name;
           }
           this.evtCtrl.setHeader(pageData);
+          this.todoExistInCalendar();
         }
       }
+      this.storageCtrl.refreshDownloadLink(this.todo);
       this.evtCtrl.setCurrentContext(todo.uuid, null);
+      this.loadMap();
     });
   }
 
@@ -149,6 +247,215 @@ export class TodoPage extends GenericPage {
   }
 
   protected showPhoto(uri: string): void {
+    if (uri == null) {
+      return;
+    }
     this.photoCtrl.show(uri);
+  }
+
+  protected async exportToCalendar(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      return;
+    }
+    if (this.todo.name == null) {
+      return;
+    }
+
+    let address = '';
+    let desc = '';
+    let start = new Date();
+    let end = new Date(start.getTime() + 3600000);
+    if (this.todo.address != null) {
+      address = this.todo.address;
+    }
+    if (this.todo.desc != null) {
+      desc = this.todo.desc;
+    }
+    if (this.todo.deadline != null) {
+      start = new Date(this.todo.deadline);
+      end = new Date(start.getTime() + 3600000);
+    }
+
+    try {
+      await this.calendarCtrl.createEventInteractively(
+        this.todo.name,
+        address,
+        desc,
+        start,
+        end
+      );
+      this.todoExistInCalendar();
+    } catch (error) {
+      this.uiCtrl.displayToast(
+        "Une erreur est survenue lors de la tentative d'ajout au calendrier"
+      );
+    }
+  }
+
+  protected openCalendar(): void {
+    if (this.todo.deadline == null) {
+      this.calendarCtrl.openCalendar(new Date());
+    } else {
+      this.calendarCtrl.openCalendar(this.todo.deadline);
+    }
+  }
+
+  protected async deleteFromCaldendar(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      return;
+    }
+    if (this.todo.name == null) {
+      return;
+    }
+
+    let address = '';
+    let desc = '';
+    let start = new Date();
+    let end = new Date(start.getTime() + 3600000);
+    if (this.todo.address != null) {
+      address = this.todo.address;
+    }
+    if (this.todo.desc != null) {
+      desc = this.todo.desc;
+    }
+    if (this.todo.deadline != null) {
+      start = new Date(this.todo.deadline);
+      end = new Date(start.getTime() + 3600000);
+    }
+    try {
+      this.calendarCtrl.deleteEvent(this.todo.name, address, desc, start, end);
+      this.uiCtrl.displayToast('Tâche supprimée de votre calendrier');
+    } catch (error) {
+      this.uiCtrl.displayToast('Une erreur est survenue pendant la suppression de la tâche');
+    }
+    this.isInCalendar = false;
+  }
+
+  private async todoExistInCalendar(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      return;
+    }
+    if (this.todo.name == null) {
+      return;
+    }
+
+    let address = '';
+    let desc = '';
+    let start = new Date();
+    let end = new Date(start.getTime() + 3600000);
+    if (this.todo.address != null) {
+      address = this.todo.address;
+    }
+    if (this.todo.desc != null) {
+      desc = this.todo.desc;
+    }
+    if (this.todo.deadline != null) {
+      start = new Date(this.todo.deadline);
+      end = new Date(start.getTime() + 3600000);
+    }
+    try {
+      const res: any[] = await this.calendarCtrl.findEvent(
+        this.todo.name,
+        address,
+        desc,
+        start,
+        end
+      );
+      this.isInCalendar = res.length > 0;
+    } catch (error) {
+      this.isInCalendar = false;
+    }
+  }
+
+  get deadlineStr(): string {
+    if (this.todo.deadline == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.deadline)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
+  }
+
+  get notifStr(): string {
+    if (this.todo.notif == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.notif)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
+  }
+
+  get remainingDeadlineStr(): string {
+    if (this.todo.deadline == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.deadline)
+      .locale('fr')
+      .fromNow();
+  }
+
+  protected getHuman(d: Date): string {
+    if (d == null) {
+      return 'Non définie';
+    }
+    return moment(d)
+      .locale('fr')
+      .format('ddd D MMM YYYY');
+  }
+
+  protected openSMS(contact: ISimpleContact): void {
+    if (contact == null) {
+      return;
+    }
+    this.contactCtrl.openNativeSMS(contact);
+  }
+
+  protected call(contact: ISimpleContact): void {
+    if (contact == null) {
+      return;
+    }
+    this.contactCtrl.call(contact);
+  }
+
+  protected openEmail(contact: ISimpleContact): void {
+    if (contact == null) {
+      return;
+    }
+    this.contactCtrl.prepareEmail(contact);
+  }
+
+  private async loadMap(): Promise<void> {
+    const mapOptions: GoogleMapOptions = {
+      camera: {
+        target: {
+          lat: 43.0741904,
+          lng: -89.3809802
+        },
+        zoom: 18,
+        tilt: 30
+      }
+    };
+
+    this.map = GoogleMaps.create('mapwrapper', mapOptions);
+
+    try {
+      await this.map.one(GoogleMapsEvent.MAP_READY);
+      this.map.setMyLocationEnabled(true);
+      this.map.setMyLocationButtonEnabled(true);
+      const marker: Marker = await this.map.addMarker({
+        title: 'Ionic',
+        icon: 'blue',
+        animation: 'DROP',
+        position: {
+          lat: 43.0741904,
+          lng: -89.3809802
+        }
+      });
+      marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
+        alert('clicked');
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

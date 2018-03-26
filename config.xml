@@ -118,10 +118,13 @@
     <plugin name="cordova-plugin-android-permissions" spec="^1.0.0" />
     <plugin name="com-sarriaroman-photoviewer" spec="^1.1.16" />
     <plugin name="cordova-plugin-camera" spec="^4.0.2" />
+    <plugin name="cordova-sms-plugin" spec="^0.1.11" />
+    <plugin name="cordova-plugin-background-mode" spec="^0.7.2" />
+    <plugin name="cordova-plugin-calendar" spec="^5.0.0" />
+    <plugin name="mx.ferreyra.callnumber" spec="~0.0.2" />
+    <plugin name="cordova-plugin-email-composer" spec="^0.8.15" />
     <allow-navigation href="http://192.168.1.76:8100" />
     <allow-navigation href="http://192.168.0.6:8101" />
     <engine name="browser" spec="^5.0.3" />
     <engine name="android" spec="~6.4.0" />
-    <plugin name="cordova-sms-plugin" spec="^0.1.11" />
-    <plugin name="cordova-plugin-background-mode" spec="^0.7.2" />
 </widget>

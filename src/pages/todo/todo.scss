@@ -1,1 +1,10 @@
-page-todo {}
+page-todo {
+  ion-content {
+    background-color: lightgrey !important;
+  }
+  .sub-option {
+    width: 4.5em;
+    vertical-align: middle;
+    border-left: 1px solid white !important;
+  }
+}

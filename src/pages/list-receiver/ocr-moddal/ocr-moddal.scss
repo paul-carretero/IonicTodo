@@ -1,7 +1,10 @@
 page-ocr-moddal {
-    .center {
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
-    }
+  .center {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  ion-content {
+    background-color: lightgrey !important;
+  }
 }

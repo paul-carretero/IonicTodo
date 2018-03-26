@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { IonicPage, NavController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 
@@ -17,13 +17,14 @@ import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-s
   templateUrl: 'cloud-space.html'
 })
 export class CloudSpacePage extends GenericPage {
+  /***************************** PUBLIC FIELDS ******************************/
   /**
    * flux des liste disponibles sur le cloud
    *
    * @type {Observable<ICloudSharedList[]>}
    * @memberof CloudSpacePage
    */
-  public readonly cloudList$: Observable<ICloudSharedList[]>;
+  protected readonly cloudList$: Observable<ICloudSharedList[]>;
 
   /**
    * Flux de recherche utilisateur
@@ -31,19 +32,51 @@ export class CloudSpacePage extends GenericPage {
    * @type {Observable<string>}
    * @memberof CloudSpacePage
    */
-  public readonly search$: Observable<string>;
+  protected readonly search$: Observable<string>;
+
+  /**************************** PRIVATE FIELDS ******************************/
+
+  /**
+   * interval JS pour la detection des changement de la page
+   *
+   * @private
+   * @type {*}
+   * @memberof CloudSpacePage
+   */
+  private changeInterval: any;
+
+  /**
+   * timeoutJS a supprimer si la page est détruite trop vite
+   *
+   * @private
+   * @type {*}
+   * @memberof CloudSpacePage
+   */
+  private changeTimeout: any;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
+  /**
+   * Creates an instance of CloudSpacePage.
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {CloudServiceProvider} cloudCtrl
+   * @param {ChangeDetectorRef} changeCtrl
+   * @memberof CloudSpacePage
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
-    private readonly cloudCtrl: CloudServiceProvider
+    private readonly cloudCtrl: CloudServiceProvider,
+    private readonly changeCtrl: ChangeDetectorRef
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.cloudList$ = this.cloudCtrl.getCloudLists();
@@ -54,6 +87,11 @@ export class CloudSpacePage extends GenericPage {
   /**************************** LIFECYCLE EVENTS ****************************/
   /**************************************************************************/
 
+  /**
+   * initialise la page
+   *
+   * @memberof CloudSpacePage
+   */
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
@@ -64,11 +102,43 @@ export class CloudSpacePage extends GenericPage {
     this.evtCtrl.setHeader(pageData);
   }
 
+  /**
+   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
+   * pour n'effectuer une detection des changemenents que toutes les 3s.
+   *
+   * @memberof CloudSpacePage
+   */
+  ionViewDidEnter(): void {
+    this.changeTimeout = setTimeout(() => {
+      this.changeCtrl.detach();
+      this.changeCtrl.detectChanges();
+      this.changeInterval = setInterval(() => {
+        this.changeCtrl.detectChanges();
+      }, 2000);
+    }, 500);
+  }
+
+  /**
+   * réinitialise le détecteur de changement en mode normal et termine le contexte du todo
+   *
+   * @memberof CloudSpacePage
+   */
+  ionViewWillLeave(): void {
+    if (this.changeTimeout != null) {
+      clearTimeout(this.changeTimeout);
+    }
+
+    if (this.changeInterval != null) {
+      clearInterval(this.changeInterval);
+    }
+    this.changeCtrl.reattach();
+  }
+
   /**************************************************************************/
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/
 
-  public async importList(list: ICloudSharedList): Promise<void> {
+  protected async importList(list: ICloudSharedList): Promise<void> {
     this.uiCtrl.showLoading('Importation de la liste ' + list.name + ' en cours');
     await this.cloudCtrl.importCloudList(list);
     this.uiCtrl.dismissLoading();

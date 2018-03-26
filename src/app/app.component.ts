@@ -9,7 +9,7 @@ import { NfcProvider } from '../providers/nfc/nfc';
 import { CloudServiceProvider } from './../providers/cloud-service/cloud-service';
 
 @Component({
-  templateUrl: 'app.html'
+  templateUrl: 'app.html' 
 })
 export class MyApp {
   public rootPage: any = 'TabsPage';

@@ -20,12 +20,32 @@
 
         <ion-card>
             <ion-card-header icon-start>
-                <ion-icon name="alarm"></ion-icon>
-                Notifications
+                <ion-icon name="time"></ion-icon>
+                Date et Notification
             </ion-card-header>
             <ion-card-content>
                 <ion-list>
+                    <ion-item color="light" (click)="openCalendar()">
+                        <ion-icon name="calendar" item-start></ion-icon>
+                        {{deadlineStr}}
+                    </ion-item>
+                    <ion-item color="light">
+                        <ion-icon name="time" item-start></ion-icon>
+                        {{remainingDeadlineStr}}
+                    </ion-item>
+                    <ion-item color="light">
+                        <ion-icon name="alarm" item-start></ion-icon>
+                        {{notifStr}}
+                    </ion-item>
 
+                    <button *ngIf="!isInCalendar" ion-item (click)="exportToCalendar()" type="button" color="secondary">
+                        <ion-icon name="phone-portrait" item-start></ion-icon>
+                        Ajouter au calendrier
+                    </button>
+                    <button *ngIf="isInCalendar" ion-item (click)="deleteFromCaldendar()" type="button" color="danger">
+                        <ion-icon name="trash" item-start></ion-icon>
+                        Retirer au calendrier
+                    </button>
                 </ion-list>
             </ion-card-content>
         </ion-card>
@@ -33,11 +53,27 @@
         <ion-card>
             <ion-card-header icon-start>
                 <ion-icon name="contacts"></ion-icon>
-                Contacts
+                Contacts (SMS à la complétion)
             </ion-card-header>
             <ion-card-content>
                 <ion-list>
-
+                    <ion-item-sliding *ngFor="let contact of this.todo.contacts">
+                        <ion-item>
+                            {{contact.displayName}} ({{contact.mobile}})
+                            <ion-icon name="arrow-back" item-end color="light"></ion-icon>
+                        </ion-item>
+                        <ion-item-options side="right">
+                            <button ion-button color="secondary" *ngIf="contact.mobile" class="sub-option">
+                                <ion-icon name="call" (click)="call(contact)"></ion-icon>
+                            </button>
+                            <button ion-button color="secondary" *ngIf="contact.mobile" (click)="openSMS(contact)" class="sub-option">
+                                <ion-icon name="text"></ion-icon>
+                            </button>
+                            <button ion-button color="secondary" (click)="openEmail(contact)" class="sub-option">
+                                <ion-icon name="mail"></ion-icon>
+                            </button>
+                        </ion-item-options>
+                    </ion-item-sliding>
                 </ion-list>
             </ion-card-content>
         </ion-card>
@@ -48,19 +84,45 @@
                 Photo
             </ion-card-header>
             <ion-card-content>
-
+                <ion-list>
+                    <ng-container *ngFor="let pic of todo.pictures">
+                        <ion-item (click)="showPhoto(pic.url)">
+                            <ion-thumbnail item-start>
+                                <img [src]="pic.url" />
+                            </ion-thumbnail>
+                            <h2>{{pic.name}}</h2>
+                            <p *ngIf="pic.author != null">
+                                <ng-container *ngIf="pic.author.displayName != null">
+                                    <ion-icon name="person"></ion-icon> {{pic.author.displayName}}
+                                    <br/>
+                                </ng-container>
+                                <ng-container *ngIf="pic.author.city != null">
+                                    <ion-icon name="pin"></ion-icon> {{pic.author.city}}
+                                    <br/>
+                                </ng-container>
+                                <ng-container *ngIf="pic.author.timestamp != null">
+                                    <ion-icon name="calendar"></ion-icon> {{getHuman(pic.author.timestamp)}}
+                                </ng-container>
+                            </p>
+                            <ion-icon name="arrow-forward" item-end color="dark"></ion-icon>
+                        </ion-item>
+                    </ng-container>
+                </ion-list>
             </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card *ngIf="todo.address != null">
             <ion-card-header icon-start>
                 <ion-icon name="pin"></ion-icon>
                 Localisation
             </ion-card-header>
             <ion-card-content>
-
+                <ion-card>{{todo.address}}</ion-card>
+                <hr/>
+                <div style="height : 500px" #mapwrapper id="mapwrapper"></div>
             </ion-card-content>
         </ion-card>
+
 
         <ion-card *ngIf="todo.author != null">
             <ion-card-header icon-start>

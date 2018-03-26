@@ -1,13 +1,13 @@
-import { IAuthor } from './../../model/author';
-import { StorageServiceProvider } from './../../providers/storage-service/storage-service';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DocumentReference } from '@firebase/firestore-types';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { Base64 } from '@ionic-native/base64';
+import { Camera, CameraOptions } from '@ionic-native/camera';
 import { DatePicker } from '@ionic-native/date-picker';
 import { File } from '@ionic-native/file';
 import { IonicPage, ModalController, NavController, NavParams } from 'ionic-angular';
+import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 
 import { IMenuRequest } from '../../model/menu-request';
@@ -17,13 +17,14 @@ import { ISimpleContact } from '../../model/simple-contact';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { GenericPage } from '../../shared/generic-page';
+import { IAuthor } from './../../model/author';
 import { IPicture } from './../../model/picture';
 import { ITodoItem } from './../../model/todo-item';
 import { EventServiceProvider } from './../../providers/event/event-service';
+import { StorageServiceProvider } from './../../providers/storage-service/storage-service';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
-import { Camera, CameraOptions } from '@ionic-native/camera';
 
 @IonicPage()
 @Component({
@@ -31,9 +32,7 @@ import { Camera, CameraOptions } from '@ionic-native/camera';
   templateUrl: 'todo-edit.html'
 })
 export class TodoEditPage extends GenericPage {
-  private readonly todoRef: DocumentReference | null;
-
-  private readonly listUuid: string | null;
+  /***************************** PUBLIC FIELDS ******************************/
 
   protected todo: ITodoItem;
 
@@ -43,12 +42,56 @@ export class TodoEditPage extends GenericPage {
 
   protected uploading: boolean = false;
 
-  private imgCacheClean: boolean = true;
+  /**************************** PRIVATE FIELDS ******************************/
+
+  private readonly todoRef: DocumentReference | null;
+
+  private readonly listUuid: string | null;
 
   private readonly cameraOpts: CameraOptions;
 
+  private imgCacheClean: boolean = true;
+
   private curAuthor: IAuthor;
 
+  /**
+   * interval JS pour la detection des changement de la page
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoEditPage
+   */
+  private changeInterval: any;
+
+  /**
+   * timeoutJS a supprimer si la page est détruite trop vite
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoEditPage
+   */
+  private changeTimeout: any;
+
+  /**
+   * Creates an instance of TodoEditPage.
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {NavParams} navParams
+   * @param {TodoServiceProvider} todoService
+   * @param {FormBuilder} formBuilder
+   * @param {DatePicker} datePicker
+   * @param {ModalController} modalCtrl
+   * @param {Base64} base64Ctrl
+   * @param {File} fileCtrl
+   * @param {AndroidPermissions} permsCtrl
+   * @param {StorageServiceProvider} storageCtrl
+   * @param {Camera} cameraCtrl
+   * @param {ChangeDetectorRef} changeCtrl
+   * @memberof TodoEditPage
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
@@ -64,7 +107,8 @@ export class TodoEditPage extends GenericPage {
     private readonly fileCtrl: File,
     private readonly permsCtrl: AndroidPermissions,
     private readonly storageCtrl: StorageServiceProvider,
-    private readonly cameraCtrl: Camera
+    private readonly cameraCtrl: Camera,
+    private readonly changeCtrl: ChangeDetectorRef
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
@@ -97,7 +141,8 @@ export class TodoEditPage extends GenericPage {
   /**************************** LIFECYCLE EVENTS ****************************/
   /**************************************************************************/
 
-  ionViewDidEnter(): void {
+  ionViewWillEnter(): void {
+    super.ionViewWillEnter();
     const header = Global.getValidablePageData();
 
     if (this.todoRef != null) {
@@ -119,11 +164,37 @@ export class TodoEditPage extends GenericPage {
     });
   }
 
+  /**
+   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
+   * pour n'effectuer une detection des changemenents que toutes les 2s.
+   * Attends quand même 0.5 seconde avant de le faire pour laisser l'initialisation normal se faire...
+   *
+   * @memberof TodoPage
+   */
+  ionViewDidEnter(): void {
+    this.changeTimeout = setTimeout(() => {
+      this.changeCtrl.detach();
+      this.changeCtrl.detectChanges();
+      this.changeInterval = setInterval(() => {
+        this.changeCtrl.detectChanges();
+      }, 2000);
+    }, 500);
+  }
+
   ionViewWillLeave(): void {
     this.todoService.unsubDeleteSubject();
     if (!this.imgCacheClean) {
       this.todoService.updateTodoPictures(this.todo);
     }
+
+    if (this.changeTimeout != null) {
+      clearTimeout(this.changeTimeout);
+    }
+
+    if (this.changeInterval != null) {
+      clearInterval(this.changeInterval);
+    }
+    this.changeCtrl.reattach();
   }
 
   protected menuEventHandler(req: IMenuRequest): void {
@@ -233,8 +304,8 @@ export class TodoEditPage extends GenericPage {
       }
     } else {
       title = 'Choisisser une date de notification';
-      if (this.todo.deadline != null) {
-        date = new Date(this.todo.deadline);
+      if (this.todo.notif != null) {
+        date = new Date(this.todo.notif);
       }
     }
 
@@ -260,20 +331,22 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
-  get ISOdeadline(): string | null {
+  get deadlineStr(): string {
     if (this.todo.deadline == null) {
-      return null;
+      return 'Non définie';
     }
-    const date = new Date(this.todo.deadline.getTime() + 3600000); // à fixer quand on sera heure d'été, vivement qu'on supprime cette stupidité
-    return date.toISOString();
+    return moment(this.todo.deadline)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
   }
 
-  get ISOnotif(): string | null {
+  get notifStr(): string {
     if (this.todo.notif == null) {
-      return null;
+      return 'Non définie';
     }
-    const date = new Date(this.todo.notif.getTime() + 3600000); // idem
-    return date.toISOString();
+    return moment(this.todo.notif)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
   }
 
   protected openContactPopup(): void {
@@ -412,7 +485,6 @@ export class TodoEditPage extends GenericPage {
   protected takePicture(): void {
     this.cameraCtrl.getPicture(this.cameraOpts).then(
       imageData => {
-        console.log(imageData);
         this.imgResultHandler([imageData], this.curAuthor);
       },
       () => this.uiCtrl.alert('Erreur', "Impossible d'acceder à la camera")

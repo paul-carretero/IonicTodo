@@ -197,7 +197,6 @@ export class CloudServiceProvider {
       data.list == null ||
       data.list.userUUID === this.authCtrl.getUserId()
     ) {
-      console.log('<3>');
       return;
     }
 
@@ -454,7 +453,6 @@ export class CloudServiceProvider {
       data.author == null ||
       data.author.uuid === this.authCtrl.getUserId()
     ) {
-      console.log('<1>');
       return;
     }
 

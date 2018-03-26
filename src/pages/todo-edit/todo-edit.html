@@ -23,21 +23,25 @@
 
         <ion-card>
             <ion-card-header icon-start>
-                <ion-icon name="alarm"></ion-icon>
-                Notifications
+                <ion-icon name="time"></ion-icon>
+                Date et Notification
             </ion-card-header>
             <ion-card-content>
                 <ion-list>
-                    <ion-item (click)="selectDate(true)">
-                        <ion-label color="primary" stacked>Deadline:</ion-label>
-                        <ion-datetime displayFormat="DDDD DD MMMM YYYY - HH:mm" [(ngModel)]="ISOdeadline" [ngModelOptions]="{standalone: true}" disabled>
-                        </ion-datetime>
+                    <ion-item color="light">
+                        <ion-icon name="calendar" item-start></ion-icon>
+                        Programmer la tâche pour:
                     </ion-item>
-                    <ion-item (click)="selectDate(false)">
-                        <ion-label color="primary" stacked>Notification:</ion-label>
-                        <ion-datetime displayFormat="DDDD DD MMMM YYYY - HH:mm" [(ngModel)]="ISOnotif" [ngModelOptions]="{standalone: true}" disabled>
-                        </ion-datetime>
+                    <button ion-item (click)="selectDate(true)" type="button" color="secondary">
+                        {{deadlineStr}}
+                    </button>
+                    <ion-item color="light">
+                        <ion-icon name="alarm" item-start></ion-icon>
+                        Programmer une notification:
                     </ion-item>
+                    <button ion-item (click)="selectDate(false)" type="button" color="secondary">
+                        {{notifStr}}
+                    </button>
                 </ion-list>
             </ion-card-content>
         </ion-card>
@@ -120,7 +124,7 @@
         </ion-card>
 
         <ion-card padding>
-            <button ion-button full round (click)="validate()" [disabled]="!todoForm.valid">Valider</button>
+            <button ion-button full round type="submit" [disabled]="!todoForm.valid">Valider</button>
         </ion-card>
     </form>
 </ion-content>

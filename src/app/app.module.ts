@@ -1,13 +1,15 @@
-import { ContactServiceProvider } from './../providers/contact-service/contact-service';
 import { HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { Base64 } from '@ionic-native/base64';
+import { Calendar } from '@ionic-native/calendar';
+import { CallNumber } from '@ionic-native/call-number';
 import { Camera } from '@ionic-native/camera';
 import { CameraPreview } from '@ionic-native/camera-preview';
 import { Contacts } from '@ionic-native/contacts';
 import { DatePicker } from '@ionic-native/date-picker';
+import { EmailComposer } from '@ionic-native/email-composer';
 import { File } from '@ionic-native/file';
 import { Flashlight } from '@ionic-native/flashlight';
 import { Geolocation } from '@ionic-native/geolocation';
@@ -47,6 +49,7 @@ import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/sp
 import { StorageServiceProvider } from '../providers/storage-service/storage-service';
 import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from '../providers/ui-service/ui-service';
+import { ContactServiceProvider } from './../providers/contact-service/contact-service';
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
@@ -143,7 +146,10 @@ const dateLocal = {
     HttpClientModule,
     Camera,
     ContactServiceProvider,
-    SMS
+    SMS,
+    Calendar,
+    CallNumber,
+    EmailComposer
   ]
 })
 export class AppModule {}

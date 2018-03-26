@@ -1,3 +1,4 @@
+import { EmailComposer } from '@ionic-native/email-composer';
 import { Injectable } from '@angular/core';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { SMS, SmsOptions } from '@ionic-native/sms';
@@ -9,6 +10,7 @@ import { AuthServiceProvider } from './../auth-service/auth-service';
 import { DBServiceProvider } from './../db/db-service';
 import { ITodoItem } from '../../model/todo-item';
 import { Contacts, Contact, IContactField } from '@ionic-native/contacts';
+import { CallNumber } from '@ionic-native/call-number';
 
 @Injectable()
 export class ContactServiceProvider {
@@ -22,7 +24,9 @@ export class ContactServiceProvider {
     private readonly permsCtrl: AndroidPermissions,
     private readonly authCtrl: AuthServiceProvider,
     private readonly uiCtrl: UiServiceProvider,
-    private readonly contactsCtrl: Contacts
+    private readonly contactsCtrl: Contacts,
+    private readonly callCtrl: CallNumber,
+    private readonly emailCtrl: EmailComposer
   ) {}
 
   public async sendSMS(
@@ -258,5 +262,71 @@ export class ContactServiceProvider {
     }
 
     return hash;
+  }
+
+  /**
+   * permet de préparer l'envoi d'un sms par le service de sms natif d'android.
+   * Il s'agit d'un simplecontact, une vérification simple est effectuée
+   *
+   * @param {ISimpleContact} contact
+   * @returns {void}
+   * @memberof ContactServiceProvider
+   */
+  public async openNativeSMS(contact: ISimpleContact): Promise<void> {
+    if (contact.mobile == null) {
+      return;
+    }
+
+    const permsOK = await this.smsCtrl.hasPermission();
+    if (!permsOK) {
+      try {
+        this.permsCtrl.requestPermission(this.permsCtrl.PERMISSION.SEND_SMS);
+      } catch (error) {
+        console.log('pas de permission pour envoyer un sms :/');
+        return;
+      }
+    }
+
+    this.smsCtrl.send(contact.mobile, '', {
+      replaceLineBreaks: true,
+      android: { intent: 'INTENT' }
+    });
+  }
+
+  public call(contact: ISimpleContact): void {
+    if (contact.mobile == null) {
+      return;
+    }
+    this.callCtrl.callNumber(contact.mobile, true);
+  }
+
+  public async prepareEmail(contact: ISimpleContact): Promise<void> {
+    if (contact.email == null) {
+      return;
+    }
+
+    let perm = await this.emailCtrl.hasPermission();
+    if (!perm) {
+      perm = await this.emailCtrl.requestPermission();
+      if (!perm) {
+        this.uiCtrl.displayToast(
+          "Vous devez authoriser l'application à utiliser votre boîte mail pour pouvoir utiliser ce service"
+        );
+        return;
+      }
+    }
+
+    const email = {
+      to: contact.email,
+      subject: "message d'OhMyTask",
+      body: 'Bonjour ' + contact.displayName + ',',
+      isHtml: true
+    };
+
+    try {
+      this.emailCtrl.open(email);
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

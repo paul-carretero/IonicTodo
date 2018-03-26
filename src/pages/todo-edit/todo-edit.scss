@@ -1,5 +1,8 @@
 page-todo-edit {
-    progress {
-        width: 100%;
-    }
+  progress {
+    width: 100%;
+  }
+  ion-content {
+    background-color: lightgrey !important;
+  }
 }
