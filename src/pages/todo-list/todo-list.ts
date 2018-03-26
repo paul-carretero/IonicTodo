@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { DocumentReference } from '@firebase/firestore-types';
 import { IonicPage, NavController, NavParams, reorderArray } from 'ionic-angular';
 import { Subscription } from 'rxjs';
@@ -95,6 +95,24 @@ export class TodoListPage extends GenericPage {
    */
   private exportedSub: Subscription;
 
+  /**
+   * interval JS pour la detection des changement de la page
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoListPage
+   */
+  private changeInterval: any;
+
+  /**
+   * timeoutJS a supprimer si la page est détruite trop vite
+   *
+   * @private
+   * @type {*}
+   * @memberof TodoListPage
+   */
+  private changeTimeout: any;
+
   /***************************** PUBLIC FIELDS ******************************/
 
   /**
@@ -179,7 +197,8 @@ export class TodoListPage extends GenericPage {
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams,
     private readonly settingCtrl: DBServiceProvider,
-    private readonly cloudCtrl: CloudServiceProvider
+    private readonly cloudCtrl: CloudServiceProvider,
+    private readonly changeCtrl: ChangeDetectorRef
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -227,6 +246,14 @@ export class TodoListPage extends GenericPage {
    */
   ionViewDidEnter(): void {
     this.evtCtrl.setCurrentContext(null, this.listUUID);
+
+    this.changeTimeout = setTimeout(() => {
+      this.changeCtrl.detach();
+      this.changeCtrl.detectChanges();
+      this.changeInterval = setInterval(() => {
+        this.changeCtrl.detectChanges();
+      }, 250);
+    }, 250);
   }
 
   /**
@@ -244,6 +271,15 @@ export class TodoListPage extends GenericPage {
     this.tryUnSub(this.todoSub);
     this.tryUnSub(this.completedSub);
     this.evtCtrl.setCurrentContext(null, null);
+
+    if (this.changeTimeout != null) {
+      clearTimeout(this.changeTimeout);
+    }
+
+    if (this.changeInterval != null) {
+      clearInterval(this.changeInterval);
+    }
+    this.changeCtrl.reattach();
   }
 
   /**************************************************************************/

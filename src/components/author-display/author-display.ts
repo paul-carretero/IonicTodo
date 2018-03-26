@@ -1,7 +1,6 @@
 import { IAuthor } from './../../model/author';
-import { Component, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import moment from 'moment';
-import { AfterViewInit, OnDestroy } from '@angular/core/src/metadata/lifecycle_hooks';
 
 /**
  * permet de réprésenter un autheur d'un objet
@@ -14,7 +13,7 @@ import { AfterViewInit, OnDestroy } from '@angular/core/src/metadata/lifecycle_h
   selector: 'author-display',
   templateUrl: 'author-display.html'
 })
-export class AuthorDisplayComponent implements AfterViewInit, OnDestroy {
+export class AuthorDisplayComponent {
   /***************************** PUBLIC FIELDS ******************************/
   /**
    * autheur à représenter
@@ -24,10 +23,6 @@ export class AuthorDisplayComponent implements AfterViewInit, OnDestroy {
    */
   @Input() author: IAuthor;
 
-  private changeTimeout: any;
-
-  private changeInterval: any;
-
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -36,31 +31,7 @@ export class AuthorDisplayComponent implements AfterViewInit, OnDestroy {
    * Creates an instance of AuthorDisplayComponent.
    * @memberof AuthorDisplayComponent
    */
-  constructor(private readonly changeCtrl: ChangeDetectorRef) {}
-
-  ngAfterViewInit(): void {
-    this.changeTimeout = setTimeout(() => {
-      this.changeCtrl.detach();
-      this.changeCtrl.detectChanges();
-      this.changeInterval = setInterval(() => {
-        try {
-          this.changeCtrl.detectChanges();
-        } catch (error) {
-          console.log(error);
-        }
-      }, 2000);
-    }, 500);
-  }
-
-  ngOnDestroy(): void {
-    if (this.changeTimeout != null) {
-      clearTimeout(this.changeTimeout);
-    }
-
-    if (this.changeInterval != null) {
-      clearInterval(this.changeInterval);
-    }
-  }
+  constructor() {}
 
   /**************************************************************************/
   /********************************* GETTER *********************************/
