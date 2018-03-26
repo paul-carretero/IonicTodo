@@ -1657,9 +1657,12 @@ export class TodoServiceProvider {
     }
 
     const snap: ITodoSnapshot = todo;
+
     if (listUuid != null && listUuids.indexOf(listUuid) === -1) {
       listUuids.push(listUuid);
     }
+    snap.listUuids = listUuids;
+
     this.lastAllTodosSnapshot.push(snap);
   }
 
