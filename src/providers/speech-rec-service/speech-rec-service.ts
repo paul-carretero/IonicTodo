@@ -149,7 +149,7 @@ export class SpeechRecServiceProvider {
           // on veux reconnaitre l'action associée
           res_rec = this.reconnaissanceAction(mots);
           // si une action a réussi, alors on quitte la reconnaissance
-          if (res_rec.action_success) {
+          if (res_rec.reconnu !== undefined && res_rec.reconnu) {
             break;
           }
         }
@@ -187,6 +187,12 @@ export class SpeechRecServiceProvider {
     const contain_delete = this.contain_motclef(mots, this.motClefs.delete);
     const contain_view = this.contain_motclef(mots, this.motClefs.view);
 
+
+    console.log("update ? " + contain_update);
+    console.log("liste ? " + contain_list);
+    console.log("tache ? " + contain_todo);
+
+
     let phrase_reconnue = false;
     let resultat_action: { action_success: boolean; message_error: string };
     resultat_action = {
@@ -204,15 +210,28 @@ export class SpeechRecServiceProvider {
       phrase_reconnue = true;
       resultat_action = this.creerTache(mots);
     }
+    // AJOUTER UNE TACHE CONTEXTUELLEMENT ?
+    if( contain_create && !contain_list && contain_todo){
+      phrase_reconnue = true;
+      resultat_action = this.creerTacheContext(mots);
+    }
     // METTRE A JOUR UNE LISTE ?
     if (contain_update && contain_list && !contain_todo) {
+      console.log("update liste ?");
       phrase_reconnue = true;
       resultat_action = this.updateListe(mots);
     }
     // METTRE A JOUR UNE TACHE ?
     if (contain_update && contain_list && contain_todo) {
+      console.log("update todo ? ");
       phrase_reconnue = true;
       resultat_action = this.updateTache(mots);
+    }
+    // METTRE A JOUR UNE TACHE CONTEXTUELLEMENT ?
+    if (contain_update && !contain_list && contain_todo) {
+      console.log("update todo ? ");
+      phrase_reconnue = true;
+      resultat_action = this.updateTacheContext(mots);
     }
     // SUPPRIMER UNE LISTE ?
     if (contain_delete && contain_list && !contain_todo) {
@@ -223,6 +242,11 @@ export class SpeechRecServiceProvider {
     if (contain_delete && contain_list && contain_todo) {
       phrase_reconnue = true;
       resultat_action = this.supprimerTache(mots);
+    }
+    // SUPPRIMER UNE TACHE CONTEXTUELLEMENT ?
+    if (contain_delete && !contain_list && contain_todo) {
+      phrase_reconnue = true;
+      resultat_action = this.deleteTacheContext(mots);
     }
     //AFFICHER UNE LISTES ?
     if (contain_view && contain_list && !contain_todo) {
@@ -273,7 +297,13 @@ Méthodes liées à la reconnaissance de mots
    * Méthode permettant de récupérer le nom de la tâche, dans un ensemble de mots
    */
   private getNameTodo(mots: string[]): string {
-    return mots[mots.indexOf('tâche') + 1];
+    let name = "";
+    for(const todo of this.motClefs.todo ){
+      if(mots.includes(todo)){
+        name = mots[mots.indexOf(todo) + 1] 
+      }
+    }
+    return name;
   }
 
   /********************************************
@@ -291,6 +321,7 @@ Méthodes de vérification et de recherche
     let is_success: boolean = false;
     this.todoService.getAllList().forEach(liste => {
       if (liste.name === name) {
+        console.log("name liste : " + liste.name);
         list_found = liste;
         is_success = true;
       }
@@ -309,7 +340,9 @@ Méthodes de vérification et de recherche
   ): { todo: ITodoItem; success: boolean } {
     let todo_found: ITodoItem = Global.getBlankTodo();
     let is_success: boolean = false;
+    console.log("todo existe ? : " + this.todoService.getAllTodos(uuidList).length );
     this.todoService.getAllTodos(uuidList).forEach(todo => {
+      console.log("todo name : " + todo.name);
       if (todo.name === name) {
         todo_found = todo;
         is_success = true;
@@ -409,7 +442,7 @@ Méthodes pour les actions liées aux listes
     let message_error = "L'action n'a pas pu être réalisée";
     const nomListe: string = this.getNameList(mots);
     const liste_search = this.does_list_exist(nomListe);
-    console.log('uuid liste : ' + liste_search.list);
+    console.log('update liste uuid liste : ' + liste_search.list);
 
     if (liste_search.exist) {
       action_success = true;
@@ -509,6 +542,7 @@ Méthodes pour les actions liées aux tâches
     const list_found = this.does_list_exist(nameList);
     if (list_found.exist && list_found.list.uuid != null) {
       const nameTodo = this.getNameTodo(mots);
+      console.log("nom tache " + nameTodo);
       const todo_found = this.does_todo_existed(nameTodo, list_found.list.uuid);
       if (todo_found.success) {
         this.evtCtrl
@@ -576,4 +610,116 @@ Méthodes pour les actions liées aux tâches
     }
     return { action_success: action_success, message_error: message_error };
   }
+
+  /********************************************
+
+Méthodes contextuelles
+
+*******************************************/
+  /**
+   * Méthode permettant de créer une tâche dans la liste courante, à partir des mots entendus
+   *
+   * @private
+   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @returns {ISpeechReqResult}
+   * @memberof SpeechRecServiceProvider
+   */
+  private creerTacheContext(mots : string[]) : ISpeechReqResult {
+    const res : ISpeechReqResult = {action_success : false, message_error : "L'action n'a pas pu être réalisée"};
+
+    const nameTodo = this.getNameTodo(mots);
+    const uuidList = this.evtCtrl.getCurrentContext(true);
+
+    if(uuidList != null){
+
+      const todo_found = this.does_todo_existed(nameTodo, uuidList);
+      if(!todo_found.success){
+        const new_todo = Global.getBlankTodo();
+        new_todo.name = nameTodo;
+        this.todoService.addTodo(uuidList, new_todo);
+        this.speechSynthService.synthText("Ajout de la tâche " + nameTodo);
+        res.action_success = true;
+      }
+      else {
+        res.message_error = "La tâche " + nameTodo + " existe déjà dans la liste";
+      }
+    }
+    else {
+      res.message_error = "Veuillez indiquer dans quelle liste créer la tâche " + nameTodo + " .";
+    }
+    return res;
+  }
+
+
+  /**
+   * Méthode permettant de modifier une tâche dans la liste courante, à partir des mots entendus
+   *
+   * @private
+   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @returns {ISpeechReqResult}
+   * @memberof SpeechRecServiceProvider
+   */
+  private updateTacheContext(mots : string[]) : ISpeechReqResult {
+    const res : ISpeechReqResult = {action_success : false, message_error : "L'action n'a pas pu être réalisée"};
+
+    const nameTodo = this.getNameTodo(mots);
+    const uuidList = this.evtCtrl.getCurrentContext(true);
+
+    if(uuidList != null){
+
+      const todo_found = this.does_todo_existed(nameTodo, uuidList);
+      if(todo_found.success){
+        this.evtCtrl.getNavRequestSubject()
+          .next({ page: 'TodoEditPage', data: { todoRef: todo_found.todo.ref } });
+        this.speechSynthService.synthText(
+          'Vous pouvez maintenant modifier la tâche ' + nameTodo 
+        );
+        res.action_success = true;
+      }
+      else {
+        res.message_error = "La tâche " +  nameTodo + " n'existe pas dans la liste";
+      }
+    }
+    else {
+      res.message_error = "Veuillez indiquer dans quelle liste modifier la tâche " + nameTodo + " .";
+    }
+    return res;
+  }
+
+
+  /**
+   * Méthode permettant de supprimer une tâche dans la liste courante, à partir des mots entendus
+   *
+   * @private
+   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @returns {ISpeechReqResult}
+   * @memberof SpeechRecServiceProvider
+   */
+  private deleteTacheContext(mots : string[]) : ISpeechReqResult {
+    const res : ISpeechReqResult = {action_success : false, message_error : "L'action n'a pas pu être réalisée"};
+
+    const nameTodo = this.getNameTodo(mots);
+    const uuidList = this.evtCtrl.getCurrentContext(true);
+
+    if(uuidList != null){
+
+      const todo_found = this.does_todo_existed(nameTodo, uuidList);
+      if(todo_found.success && todo_found.todo.ref != null && todo_found.todo.uuid != null){
+        this.todoService.deleteTodo(todo_found.todo.ref, todo_found.todo.uuid);
+        this.speechSynthService.synthText(
+          "La tâche " + nameTodo + " a été supprimée. "
+        );
+        res.action_success = true;
+      }
+      else {
+        res.message_error = "La tâche " +  nameTodo + " n'existe pas dans la liste";
+      }
+    }
+    else {
+      res.message_error = "Veuillez indiquer dans quelle liste supprimer la tâche " + nameTodo + " .";
+    }
+    return res;
+  }
+
+
 }
