@@ -53,46 +53,14 @@ import { ContactServiceProvider } from './../providers/contact-service/contact-s
 import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-
-const dateLocal = {
-  monthNames: [
-    'Janvier',
-    'Fevrier',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Aout',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Decembre'
-  ],
-  monthShortNames: [
-    'jan',
-    'fev',
-    'mar',
-    'avr',
-    'mai',
-    'jun',
-    'jui',
-    'aou',
-    'sep',
-    'oct',
-    'nov',
-    'dec'
-  ],
-  dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-  dayShortNames: ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam']
-};
+import { appOpts } from './app-opts';
 
 @NgModule({
   declarations: [MyApp],
   imports: [
     BrowserModule,
     NgxQRCodeModule,
-    IonicModule.forRoot(MyApp, dateLocal),
+    IonicModule.forRoot(MyApp, appOpts),
     AngularFireModule.initializeApp(FirebaseCredentials),
     AngularFireAuthModule,
     AngularFirestoreModule.enablePersistence(),

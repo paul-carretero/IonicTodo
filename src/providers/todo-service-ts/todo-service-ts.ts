@@ -1245,15 +1245,17 @@ export class TodoServiceProvider {
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async complete(todoRef: DocumentReference, status: boolean): Promise<void> {
-    const doc = new AngularFirestoreDocument<ITodoItem>(todoRef as any);
+  public async complete(todo: ITodoItem): Promise<void> {
+    const doc = new AngularFirestoreDocument<ITodoItem>(todo.ref as any);
     let auth: IAuthor | null = null;
-    if (status) {
+
+    if (todo.complete) {
       auth = await this.authCtrl.getAuthor(false);
     }
+
     try {
       const p = doc.update({
-        complete: status,
+        complete: todo.complete,
         completeAuthor: auth,
         order: 0
       });
@@ -1264,12 +1266,8 @@ export class TodoServiceProvider {
     } catch (error) {
       return;
     }
-
-    if (status) {
-      const sub = doc.valueChanges().subscribe(todo => {
-        this.contactCtrl.publishCompleteSms(todo);
-        sub.unsubscribe();
-      });
+    if (todo.complete && todo.sendSMS) {
+      this.contactCtrl.publishCompleteSms(todo);
     }
   }
 

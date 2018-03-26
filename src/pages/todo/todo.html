@@ -51,12 +51,14 @@
         </ion-card>
 
         <ion-card>
-            <ion-card-header icon-start>
-                <ion-icon name="contacts"></ion-icon>
+            <ion-card-header>
+                <ion-icon name="contacts" start></ion-icon>
                 Contacts
-                <ng-container *ngIf="todo.sendSMS">
-                    <ion-icon name="text" item-end></ion-icon>
-                </ng-container>
+                <span class="align-right-green" *ngIf="todo.sendSMS">
+                    <ion-icon name="checkmark" end></ion-icon>
+                    <ion-icon name="arrow-forward" end></ion-icon>
+                    <ion-icon name="text" end></ion-icon>
+                </span>
             </ion-card-header>
             <ion-card-content>
                 <ion-list>

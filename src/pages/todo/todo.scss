@@ -7,4 +7,9 @@ page-todo {
     vertical-align: middle;
     border-left: 1px solid white !important;
   }
+  .align-right-green {
+    float: right;
+    border: 1px solid black;
+    background-color: color($colors, secondary, base);
+  }
 }

@@ -1,0 +1,31 @@
+<form [formGroup]="authForm">
+  <ion-item class="margin-input">
+    <ion-icon name="ios-at-outline" item-left></ion-icon>
+    <ion-input formControlName="email" type="email" placeholder="Votre addresse e-mail"></ion-input>
+  </ion-item>
+  <ion-item class="margin-input">
+    <ion-icon name="ios-key-outline" item-left></ion-icon>
+    <ion-input formControlName="password" type="password" placeholder="Votre mot de passe"></ion-input>
+  </ion-item>
+
+  <button ion-button (click)="firebaseLogin()" block [disabled]="!authForm.valid" class="margin-button">
+    <ion-icon name="cloud" class="button-icon"></ion-icon>
+    Connexion
+  </button>
+</form>
+
+
+<button ion-button (click)="loginGooglePlus()" color="danger" block class="margin-button">
+  <ion-icon name="logo-googleplus" class="button-icon"></ion-icon>
+  Connecter avec Google +
+</button>
+
+<button ion-button (click)="offlineMode()" color="dark" small block [disabled]="isOffline || offlineDisabled" class="margin-button">
+  <ion-icon name="cloud-outline" class="button-icon"></ion-icon>
+  Mode Hors Connexion
+</button>
+
+<button ion-button (click)="resetPassword()" small block class="margin-button">
+  <ion-icon name="mail" class="button-icon"></ion-icon>
+  Mot de passe oublié
+</button>

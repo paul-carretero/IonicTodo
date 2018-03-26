@@ -56,16 +56,6 @@ export class MapServiceProvider {
     return promise;
   }
 
-  public lol() {
-    this.AddressToCoord('23 rue du marechal Lyautey 33500 Libourne').then(
-      (coordinate: ILatLng) => {
-        this.coordToAddress(coordinate.lat, coordinate.lng).then((res: string) => {
-          console.log(res);
-        });
-      }
-    );
-  }
-
   /**
    * reset la position courrante au bout d'une certaine durée, (100s par défault)
    *

@@ -102,7 +102,7 @@ export class DBServiceProvider {
     if (result.rows.length === 0) {
       return false;
     }
-    return Boolean(result.rows.item(0).value);
+    return result.rows.item(0).value === 'true';
   }
 
   /**

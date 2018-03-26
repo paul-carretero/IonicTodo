@@ -531,12 +531,8 @@ export class TodoListPage extends GenericPage {
       this.uiCtrl.displayToast('Unexpected error is unexpected');
       return;
     }
-    if (todo.complete === false) {
-      this.todoService.complete(todo.ref, true);
-    } else {
-      this.todoService.complete(todo.ref, false);
-    }
     todo.complete = !todo.complete;
+    this.todoService.complete(todo);
   }
 
   /**

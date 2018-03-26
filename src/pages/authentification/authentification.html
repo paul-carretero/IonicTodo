@@ -1,67 +1,33 @@
 <ion-header>
     <ion-navbar color="dark">
-        <ion-title>Connexion</ion-title>
+        <ion-title>Authentification</ion-title>
     </ion-navbar>
 </ion-header>
 
-<ion-content padding>
-    <ng-container *ngIf="!userProfile">
-        <ion-card>
-            <ion-card-content>
-                <form [formGroup]="authForm">
-                    <ion-item>
-                        <ion-label floating>Adresse email</ion-label>
-                        <ion-input formControlName="email" type="email"></ion-input>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label floating>Mot de passe</ion-label>
-                        <ion-input formControlName="password" type="password"></ion-input>
-                    </ion-item>
-                    <button ion-button (click)="firebaseLogin()" icon-start round full [disabled]="!authForm.valid">
-                        <ion-icon name="cloud"></ion-icon>
-                        Connexion
-                    </button>
-                    <button ion-button (click)="createCount()" icon-start round small full [disabled]="!authForm.valid">
-                        <ion-icon name="log-in"></ion-icon>
-                        Inscription
-                    </button>
-                    <button ion-button (click)="resetPassword()" icon-start round small full [disabled]="!isEmailValid">
-                        <ion-icon name="mail"></ion-icon>
-                        Mot de passe oublié
-                    </button>
-                </form>
-            </ion-card-content>
-        </ion-card>
-        <ion-card>
-            <ion-card-content>
-                <button ion-button (click)="loginGooglePlus()" color="danger" icon-start round full>
-                    <ion-icon name="logo-googleplus"></ion-icon>
-                    Connecter avec Google +
-                </button>
-            </ion-card-content>
-        </ion-card>
-        <ion-card>
-            <ion-card-content>
-                <button ion-button (click)="offlineMode()" color="dark" icon-start small round full [disabled]="isOffline || offlineDisabled">
-                    <ion-icon name="cloud-outline"></ion-icon>
-                    Mode Hors Connexion
-                </button>
-            </ion-card-content>
-        </ion-card>
-    </ng-container>
-    <ng-container *ngIf="userProfile">
-        <ion-card>
-            <ion-card-header>
-                {{userProfile.email}}
-            </ion-card-header>
-        </ion-card>
-        <ion-card>
-            <ion-card-content>
-                <button ion-button (click)="logout()" color="danger" icon-start round full>
-                    <ion-icon name="log-out"></ion-icon>
-                    Me déconnecter
-                </button>
-            </ion-card-content>
-        </ion-card>
-    </ng-container>
+<ion-content>
+    <div class="wrapper">
+        <div class="logo-container">
+            <img src="assets/imgs/logow.png" />
+        </div>
+        <div class="content">
+            <ng-container *ngIf="userProfile == null">
+                <ion-segment [(ngModel)]="choice">
+                    <ion-segment-button value="login" icon-start>
+                        Me Connecter
+                    </ion-segment-button>
+                    <ion-segment-button value="create" icon-start>
+                        M'Enregistrer
+                    </ion-segment-button>
+                </ion-segment>
+                <div class="scrollable-content">
+                    <login-account *ngIf="choice === 'login'"></login-account>
+                    <create-account *ngIf="choice === 'create'"></create-account>
+                </div>
+            </ng-container>
+
+            <ng-container *ngIf="userProfile">
+                <account></account>
+            </ng-container>
+        </div>
+    </div>
 </ion-content>

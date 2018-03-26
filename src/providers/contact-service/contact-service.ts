@@ -54,6 +54,7 @@ export class ContactServiceProvider {
     const permsOKP = this.smsCtrl.hasPermission();
     const cancel = await this.dbCtrl.getSetting(Settings.DISABLE_SMS);
     if (cancel) {
+      console.log('SMS désactivés');
       return;
     }
 
@@ -66,7 +67,6 @@ export class ContactServiceProvider {
         return;
       }
     }
-
     this.smsCtrl.send(contact.mobile, message, ContactServiceProvider.smsOpts);
   }
 
@@ -123,6 +123,7 @@ export class ContactServiceProvider {
       if (todo.desc != null) {
         desc = todo.desc;
       }
+      console.log(contact);
       this.sendCompleteSms(contact, todo.name, desc);
     }
   }

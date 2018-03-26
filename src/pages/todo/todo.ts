@@ -274,7 +274,7 @@ export class TodoPage extends GenericPage {
 
   protected async updateComplete(): Promise<void> {
     this.completeLoading = true;
-    await this.todoCtrl.complete(this.todoRef, this.todo.complete);
+    await this.todoCtrl.complete(this.todo);
     this.completeLoading = false;
   }
 

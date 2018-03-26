@@ -1,0 +1,22 @@
+<ion-card>
+  <ion-card-content>
+    <form [formGroup]="authForm">
+      <ion-item>
+        <ion-label floating>Votre Nom</ion-label>
+        <ion-input formControlName="name" type="text"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label floating>Adresse email</ion-label>
+        <ion-input formControlName="email" type="email"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label floating>Mot de passe</ion-label>
+        <ion-input formControlName="password" type="password"></ion-input>
+      </ion-item>
+      <button ion-button (click)="createCount()" icon-start round small full [disabled]="!authForm.valid">
+        <ion-icon name="log-in"></ion-icon>
+        Inscription
+      </button>
+    </form>
+  </ion-card-content>
+</ion-card>
