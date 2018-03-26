@@ -46,12 +46,20 @@ export interface ITodoItem {
   notif: Date | null;
 
   /**
-   * contact auquel il faut envoyer un sms lors de la complétion de la tâche
+   * contacts associés à la tâche
    *
    * @type {string}
    * @memberof ITodoItem
    */
   contacts: ISimpleContact[];
+
+  /**
+   * true si l'on doit envoyer un sms à la complétion de cette tâche
+   *
+   * @type {boolean}
+   * @memberof ITodoItem
+   */
+  sendSMS: boolean;
 
   /**
    * data des images de ce todo sur firebase storage

@@ -53,7 +53,10 @@
         <ion-card>
             <ion-card-header icon-start>
                 <ion-icon name="contacts"></ion-icon>
-                Contacts (SMS à la complétion)
+                Contacts
+                <ng-container *ngIf="todo.sendSMS">
+                    <ion-icon name="text" item-end></ion-icon>
+                </ng-container>
             </ion-card-header>
             <ion-card-content>
                 <ion-list>
@@ -111,18 +114,15 @@
             </ion-card-content>
         </ion-card>
 
-        <ion-card *ngIf="todo.address != null">
+        <ion-card>
             <ion-card-header icon-start>
-                <ion-icon name="pin"></ion-icon>
+                <ion-icon name="pin" color="primary"></ion-icon>
                 Localisation
             </ion-card-header>
-            <ion-card-content>
-                <ion-card>{{todo.address}}</ion-card>
-                <hr/>
-                <div style="height : 500px" #mapwrapper id="mapwrapper"></div>
-            </ion-card-content>
+            <ion-item>{{todo.address}}</ion-item>
         </ion-card>
 
+        <ion-card style="height : 500px" #mapwrapper id="mapwrapper"></ion-card>
 
         <ion-card *ngIf="todo.author != null">
             <ion-card-header icon-start>

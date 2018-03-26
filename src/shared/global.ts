@@ -196,6 +196,7 @@ export class Global {
       notif: null,
       address: null,
       complete: false,
+      sendSMS: false,
       contacts: [],
       pictures: [],
       order: 0,

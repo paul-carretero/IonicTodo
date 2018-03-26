@@ -25,6 +25,7 @@ import { StorageServiceProvider } from './../../providers/storage-service/storag
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
+import { Observable } from 'rxjs/Observable';
 
 @IonicPage()
 @Component({
@@ -41,6 +42,8 @@ export class TodoEditPage extends GenericPage {
   protected isInModdal: boolean = false;
 
   protected uploading: boolean = false;
+
+  protected netStatus$: Observable<boolean>;
 
   /**************************** PRIVATE FIELDS ******************************/
 
@@ -115,6 +118,7 @@ export class TodoEditPage extends GenericPage {
     this.todoRef = this.navParams.get('todoRef');
     this.listUuid = this.navParams.get('listUUID');
     this.todo = Global.getBlankTodo();
+    this.netStatus$ = this.evtCtrl.getNetStatusObs();
 
     if (this.todoRef == null && this.listUuid == null) {
       throw new Error('Invalid Parameters for todoEdit task');
@@ -123,7 +127,8 @@ export class TodoEditPage extends GenericPage {
     this.todoForm = this.formBuilder.group({
       name: ['', Validators.required],
       desc: [''],
-      address: ['']
+      address: [''],
+      sendSMS: [false, Validators.required]
     });
 
     this.cameraOpts = {
@@ -177,8 +182,8 @@ export class TodoEditPage extends GenericPage {
       this.changeCtrl.detectChanges();
       this.changeInterval = setInterval(() => {
         this.changeCtrl.detectChanges();
-      }, 2000);
-    }, 500);
+      }, 250);
+    }, 250);
   }
 
   ionViewWillLeave(): void {
@@ -233,10 +238,12 @@ export class TodoEditPage extends GenericPage {
       const name = this.todoForm.get('name');
       const desc = this.todoForm.get('desc');
       const address = this.todoForm.get('address');
-      if (name != null && desc != null && address != null) {
+      const sendSMS = this.todoForm.get('sendSMS');
+      if (name != null && desc != null && address != null && sendSMS != null) {
         name.setValue(this.todo.name);
         desc.setValue(this.todo.desc);
         address.setValue(this.todo.address);
+        sendSMS.setValue(this.todo.sendSMS);
       }
       this.storageCtrl.refreshDownloadLink(this.todo);
       sub.unsubscribe();
@@ -278,13 +285,15 @@ export class TodoEditPage extends GenericPage {
     const name = this.todoForm.get('name');
     const desc = this.todoForm.get('desc');
     const address = this.todoForm.get('address');
+    const sendSMS = this.todoForm.get('sendSMS');
 
-    if (name == null || desc == null || address == null) {
+    if (name == null || desc == null || address == null || sendSMS == null) {
       return;
     }
     this.todo.name = name.value;
     this.todo.desc = desc.value;
     this.todo.address = address.value;
+    this.todo.sendSMS = sendSMS.value;
 
     if (this.isInCreation) {
       this.defNewTodo();

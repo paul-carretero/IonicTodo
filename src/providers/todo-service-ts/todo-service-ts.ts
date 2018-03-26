@@ -1294,7 +1294,8 @@ export class TodoServiceProvider {
         address: editedItem.address,
         contacts: editedItem.contacts,
         notif: editedItem.notif,
-        pictures: editedItem.pictures
+        pictures: editedItem.pictures,
+        sendSMS: editedItem.sendSMS
       });
       if (this.online) {
         await p;
@@ -1607,7 +1608,8 @@ export class TodoServiceProvider {
       desc: String(todo.desc),
       order: Number(todo.order),
       pictures: [],
-      ref: todo.ref
+      ref: todo.ref,
+      sendSMS: Boolean(todo.sendSMS)
     };
   }
 

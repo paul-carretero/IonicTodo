@@ -184,7 +184,7 @@ export abstract class GenericPage {
    * @param {Subscription} sub
    * @memberof GenericPage
    */
-  protected tryUnSub(sub: Subscription) {
+  protected tryUnSub(sub: Subscription | null) {
     if (sub != null) {
       sub.unsubscribe();
     }
