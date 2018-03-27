@@ -381,10 +381,19 @@ export class HomePage extends GenericPage {
     let have_list = false; 
     for(const list of todoList){
       have_list = true;
-      list_desc += " " + list.name + " ,";
+      if(list.metadata.atLeastOneLate){
+        list_desc += " " + list.name + " . Attention la liste " + list.name + " a au moins une tâche en retard ! " ;
+      }
+      else{
+        list_desc += " " + list.name + " ,";
+      }
     }
-    if(have_list){
-      description += "Vos listes " + type +" sont : " + list_desc + " . ";
+    if(have_list && todoList.length > 1){
+      description += " Vos listes " + type +" sont : " + list_desc + " . ";
+    }
+
+    if(have_list && todoList.length === 1){
+      description += " Votre liste " + type +" est : " + list_desc + " . ";
     }
 
     return description;

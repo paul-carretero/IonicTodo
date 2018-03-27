@@ -617,12 +617,16 @@ export class TodoListPage extends GenericPage {
   protected generateDescription(): string {
     let description : string = "";
     const list = this.todoService.getAListSnapshot(this.listUUID);
-    description = " Pour la liste " + list.name + " ";
     
-    description += this.getDescription(this.todoItems, " en cours ");
-    description += this.getDescription(this.completedTodoItem, " terminées ");
-    description += this.getDescription(this.exportedTodoItems, " importées ");
-   
+    if( this.todoItems.length + this.completedTodoItem.length + this.exportedTodoItems.length === 0 ){
+      description = "La liste " + list.name + " est vide. " ;
+    }
+    else {
+      description = " Pour la liste " + list.name + " ";
+      description += this.getDescription(this.todoItems, " en cours ");
+      description += this.getDescription(this.completedTodoItem, " terminées ");
+      description += this.getDescription(this.exportedTodoItems, " importées ");
+    }
     return description;
   }
 
@@ -634,8 +638,11 @@ export class TodoListPage extends GenericPage {
         have_todo = true ;
         todos_desc += " " + todo.name + " , ";
     }
-    if(have_todo){
+    if(have_todo && todoItems.length > 1){
       description += "Les tâches " + type + " sont " + todos_desc + " . ";
+    }
+    if(have_todo && todoItems.length === 1){
+      description += "La tâche " + type + " est " + todos_desc + " . ";
     }
     return description;
   }
