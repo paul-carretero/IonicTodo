@@ -749,4 +749,39 @@ export class TodoPage extends GenericPage {
       console.log(error);
     }
   }
+
+  /**
+   * Permet de générer une description de la page, notament pour la synthèse vocale
+   *
+   * @protected
+   * @returns {string} une description textuelle de la page
+   * @memberof GenericPage
+   */
+  protected generateDescription(): string {
+    let description : string = "";
+    description = " Détails de la tâche " + this.todo.name + " . ";
+    
+    if(this.todo.desc != null) {
+      description += " Description de la tâche : " + this.todo.desc + " . ";
+    }
+
+    if(this.deadlineStr !== "Non définie"){
+      description += " La tâche doit être réalisée avant le " + this.deadlineStr + " . " ;
+    }
+
+    if(this.remainingDeadlineStr !== "Non définie"){
+      description += "La tâche doit être terminée " + this.remainingDeadlineStr + " . ";
+    }
+
+    if(this.notifStr !== "Non définie"){
+      description += "La notification est prévue pour le " + this.notifStr + " . ";
+    }
+
+    if(this.todo.address != null){
+      description += "La tâche à lieu à " + this.todo.address + " . ";
+    }
+
+    return description;
+  }
+
 }

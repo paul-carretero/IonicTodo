@@ -347,4 +347,39 @@ export class HomePage extends GenericPage {
     await Promise.all(promises);
     this.orderableReady = true;
   }
+
+  /**
+   * Permet de générer une description de la page, notament pour la synthèse vocale
+   *
+   * @protected
+   * @returns {string} une description textuelle de la page
+   * @memberof GenericPage
+   */
+  protected generateDescription(): string {
+    let description = "";
+    description += this.getDescription(this.todoList, " de tâches en cours ");
+    description += this.getDescription(this.completeTodoList, " terminées ");
+    description += this.getDescription(this.sharedTodoList, " partagées " );
+    description += this.getDescription(this.localTodoList, " locales " );
+
+    return description;
+  }
+
+
+  private getDescription(todoList : ITodoList[], type : string) : string {
+    let description = "";
+
+    let list_desc = "";
+    let have_list = false; 
+    for(const list of todoList){
+      have_list = true;
+      list_desc += " " + list.name + " ,";
+    }
+    if(have_list){
+      description += "Vos listes " + type +" sont : " + list_desc + " . ";
+    }
+
+    return description;
+  }
+
 }
