@@ -605,4 +605,39 @@ export class TodoListPage extends GenericPage {
     }
     return todo.deadline < new Date();
   }
+
+
+  /**
+   * Permet de générer une description de la page, notament pour la synthèse vocale
+   *
+   * @protected
+   * @returns {string} une description textuelle de la page
+   * @memberof GenericPage
+   */
+  protected generateDescription(): string {
+    let description : string = "";
+    const list = this.todoService.getAListSnapshot(this.listUUID);
+    description = " Pour la liste " + list.name + " ";
+    
+    description += this.getDescription(this.todoItems, " en cours ");
+    description += this.getDescription(this.completedTodoItem, " terminées ");
+    description += this.getDescription(this.exportedTodoItems, " importées ");
+   
+    return description;
+  }
+
+  private getDescription(todoItems : ITodoItem[], type : string) : string {
+    let description = "";
+    let todos_desc = "";
+    let have_todo = false;
+    for(const todo of todoItems ){
+        have_todo = true ;
+        todos_desc += " " + todo.name + " , ";
+    }
+    if(have_todo){
+      description += "Les tâches " + type + " sont " + todos_desc + " . ";
+    }
+    return description;
+  }
+
 }
