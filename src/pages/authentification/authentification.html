@@ -24,9 +24,19 @@
                     <create-account *ngIf="choice === 'create'"></create-account>
                 </div>
             </ng-container>
-
-            <ng-container *ngIf="userProfile">
-                <account></account>
+            <ng-container *ngIf="userProfile != null">
+                <ion-segment [(ngModel)]="choice">
+                    <ion-segment-button value="login" icon-start>
+                        Mon Compte
+                    </ion-segment-button>
+                    <ion-segment-button value="create" icon-start>
+                        Mettre à jour
+                    </ion-segment-button>
+                </ion-segment>
+                <div class="scrollable-content">
+                    <account *ngIf="choice === 'login'"></account>
+                    <create-account *ngIf="choice === 'create'"></create-account>
+                </div>
             </ng-container>
         </div>
     </div>

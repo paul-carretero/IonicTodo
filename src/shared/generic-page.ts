@@ -178,6 +178,18 @@ export abstract class GenericPage {
   /**************************************************************************/
 
   /**
+   * retourne si l'utilisateur est connecté
+   *
+   * @readonly
+   * @protected
+   * @type {boolean}
+   * @memberof GenericPage
+   */
+  protected get isConnected(): boolean {
+    return this.authCtrl.isConnected();
+  }
+
+  /**
    * tente de terminer une subscription
    *
    * @protected

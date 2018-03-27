@@ -2,9 +2,9 @@
 
   <ion-navbar color="dark">
     <ion-title>Paramètres Locaux</ion-title>
-    <ion-buttons right>
-      <button (click)="reset()" button-right>
-        <ion-icon name="close"></ion-icon>
+    <ion-buttons right class="dark-icon">
+      <button (click)="reset()" class="dark-icon">
+        <ion-icon name="close" class="dark-icon"></ion-icon>
       </button>
     </ion-buttons>
   </ion-navbar>
@@ -42,12 +42,16 @@
       <ion-label>Désactiver notifications:</ion-label>
       <ion-toggle [(ngModel)]="disableNotification" (ionChange)="defSetting($event,setting.DISABLE_NOTIF)"></ion-toggle>
     </ion-item>
+    <ion-item>
+      <ion-label>Lecture automatique des notifications (internes):</ion-label>
+      <ion-toggle [(ngModel)]="autoReadAlert" (ionChange)="defSetting($event,setting.AUTO_READ_ALERT)"></ion-toggle>
+    </ion-item>
     <ion-item-divider color="light">
       Divers
     </ion-item-divider>
     <ion-item>
-      <ion-label>Lecture automatique des notifications (internes):</ion-label>
-      <ion-toggle [(ngModel)]="autoReadAlert" (ionChange)="defSetting($event,setting.AUTO_READ_ALERT)"></ion-toggle>
+      <ion-label>Confirmation avant suppression:</ion-label>
+      <ion-toggle [(ngModel)]="enableUnsure" (ionChange)="defSetting($event,setting.ENABLE_UNSURE_MODE)"></ion-toggle>
     </ion-item>
     <ion-item>
       <ion-label>Import automatique de liste:</ion-label>

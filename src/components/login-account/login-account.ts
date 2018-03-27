@@ -1,3 +1,5 @@
+import { Subscription } from 'rxjs/Subscription';
+import { EventServiceProvider } from './../../providers/event/event-service';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
 import { Component, OnInit } from '@angular/core';
@@ -11,12 +13,13 @@ import { Global } from '../../shared/global';
 import { Settings } from '../../model/settings';
 import { FirebaseCredentials } from '../../app/firebase.credentials';
 import * as firebase from 'firebase/app';
+import { OnDestroy } from '@angular/core/src/metadata/lifecycle_hooks';
 
 @Component({
   selector: 'login-account',
   templateUrl: 'login-account.html'
 })
-export class LoginAccountComponent implements OnInit {
+export class LoginAccountComponent implements OnInit, OnDestroy {
   /**
    * Formulaire de connexion
    *
@@ -35,6 +38,10 @@ export class LoginAccountComponent implements OnInit {
    */
   protected offlineDisabled: boolean = true;
 
+  protected netStatus: boolean;
+
+  private netSub: Subscription;
+
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly authCtrl: AuthServiceProvider,
@@ -42,21 +49,18 @@ export class LoginAccountComponent implements OnInit {
     protected readonly googlePlus: GooglePlus,
     protected readonly formBuilder: FormBuilder,
     protected readonly settingCtrl: DBServiceProvider,
-    protected readonly fireAuthCtrl: AngularFireAuth
+    protected readonly fireAuthCtrl: AngularFireAuth,
+    protected readonly evtCtrl: EventServiceProvider
   ) {
     this.authForm = this.formBuilder.group({
       email: ['', Validators.email],
       password: ['', Validators.required]
     });
+    this.netStatus = false;
   }
 
   ngOnInit(): void {
-    this.settingCtrl.getSettingStr(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
-      const email = this.authForm.get('email');
-      if (email != null) {
-        email.setValue(res);
-      }
-    });
+    this.setDefaultEmail();
 
     const pass = this.authForm.get('password');
     if (pass != null) {
@@ -66,6 +70,22 @@ export class LoginAccountComponent implements OnInit {
     this.settingCtrl.getSetting(Settings.DISABLE_OFFLINE).then((res: boolean) => {
       this.offlineDisabled = res;
     });
+
+    this.netSub = this.evtCtrl.getNetStatusObs().subscribe(res => {
+      this.netStatus = res;
+      if (!this.netStatus) {
+        this.uiCtrl.alert(
+          'Information',
+          'Sans connexion réseau, il ne vous sera pas possible de vous authentifier ou de créer un compte'
+        );
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.netSub != null) {
+      this.netSub.unsubscribe();
+    }
   }
 
   /**
@@ -77,6 +97,15 @@ export class LoginAccountComponent implements OnInit {
    */
   get isOffline(): boolean {
     return this.authCtrl.isOffline();
+  }
+
+  protected setDefaultEmail(): void {
+    this.settingCtrl.getSettingStr(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
+      const email = this.authForm.get('email');
+      if (email != null) {
+        email.setValue(res);
+      }
+    });
   }
 
   /**
@@ -114,7 +143,7 @@ export class LoginAccountComponent implements OnInit {
 
     try {
       this.uiCtrl.showLoading('tentative de login...');
-      const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+      const result = await this.fireAuthCtrl.auth.signInWithEmailAndPassword(email, password);
       if (result) {
         this.uiCtrl.displayToast('Connexion avec votre compte effectuée avec succès!');
       }

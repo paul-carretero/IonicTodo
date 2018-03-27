@@ -8,14 +8,14 @@
     <ion-input formControlName="password" type="password" placeholder="Votre mot de passe"></ion-input>
   </ion-item>
 
-  <button ion-button (click)="firebaseLogin()" block [disabled]="!authForm.valid" class="margin-button">
+  <button ion-button (click)="firebaseLogin()" block [disabled]="!authForm.valid || !netStatus" class="margin-button">
     <ion-icon name="cloud" class="button-icon"></ion-icon>
     Connexion
   </button>
 </form>
 
 
-<button ion-button (click)="loginGooglePlus()" color="danger" block class="margin-button">
+<button ion-button (click)="loginGooglePlus()" color="danger" block class="margin-button" [disabled]="!netStatus">
   <ion-icon name="logo-googleplus" class="button-icon"></ion-icon>
   Connecter avec Google +
 </button>
@@ -25,7 +25,7 @@
   Mode Hors Connexion
 </button>
 
-<button ion-button (click)="resetPassword()" small block class="margin-button">
+<button ion-button (click)="resetPassword()" small block class="margin-button" [disabled]="!netStatus">
   <ion-icon name="mail" class="button-icon"></ion-icon>
   Mot de passe oublié
 </button>

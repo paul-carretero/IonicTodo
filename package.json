@@ -1,8 +1,8 @@
 {
-  "name": "todo3",
-  "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "http://ionicframework.com/",
+  "name": "ohmytask",
+  "version": "0.9.0",
+  "author": "Myriam Clouet et Paul Carretero",
+  "homepage": "http://carretero.ovh/",
   "private": true,
   "scripts": {
     "clean": "ionic-app-scripts clean",
