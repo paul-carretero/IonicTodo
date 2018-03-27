@@ -14,4 +14,12 @@ export interface IAppUser {
    * @memberof AppUser
    */
   todoListSharedWithMe: ITodoListPath[];
+
+  /**
+   * nombre de todo complété par cet utilisateur
+   *
+   * @type {number}
+   * @memberof IAppUser
+   */
+  todoValide: number;
 }

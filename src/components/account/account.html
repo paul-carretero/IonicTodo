@@ -1,13 +1,26 @@
-<ion-card *ngIf="userProfile">
-  <ion-card-header>
-    {{userProfile.email}}
-  </ion-card-header>
+<ion-card *ngIf="userProfile" class="margin-button">
+  <ion-item>
+    <ion-avatar item-start>
+      <img *ngIf="userProfile.photoURL" [src]="userProfile.photoURL">
+      <ion-icon *ngIf="!userProfile.photoURL" name="person" class="large-icon"></ion-icon>
+    </ion-avatar>
+    <h2>{{userProfile.displayName}}</h2>
+    <p>{{userProfile.email}}</p>
+  </ion-item>
 </ion-card>
-<ion-card>
-  <ion-card-content>
-    <button ion-button (click)="logout()" color="danger" icon-start round full>
-      <ion-icon name="log-out"></ion-icon>
-      Me déconnecter
-    </button>
-  </ion-card-content>
+
+<ion-card *ngIf="userProfile" class="margin-button">
+  <ion-item>
+    <p>
+      <ion-icon name="ribbon" class="align-icon"></ion-icon>Création du compte : {{createDate}}
+    </p>
+    <p>
+      <ion-icon name="information-circle" class="align-icon"></ion-icon>Dernière connexion : {{lastLogin}}
+    </p>
+  </ion-item>
 </ion-card>
+
+<button ion-button (click)="logout()" block class="margin-button" color="danger">
+  <ion-icon name="log-out" class="button-icon"></ion-icon>
+  Me déconnecter
+</button>

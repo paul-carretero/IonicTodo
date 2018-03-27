@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { User } from '@firebase/auth-types';
 import { IonicPage, NavController } from 'ionic-angular';
-import moment from 'moment';
 import { Subscription } from 'rxjs/Rx';
 
 import { EventServiceProvider } from '../../providers/event/event-service';
@@ -77,9 +76,6 @@ export class AuthentificationPage extends GenericPage {
    * @param {SpeechSynthServiceProvider} ttsCtrl
    * @param {AuthServiceProvider} authCtrl
    * @param {UiServiceProvider} uiCtrl
-   * @param {GooglePlus} googlePlus
-   * @param {FormBuilder} formBuilder
-   * @param {DBServiceProvider} settingCtrl
    * @memberof AuthentificationPage
    */
   constructor(
@@ -91,9 +87,6 @@ export class AuthentificationPage extends GenericPage {
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.choice = 'login';
-    const data = moment().format('YYYYMMDD');
-    const time = moment().format('HHmmss');
-    console.log('today is: ', data + ' and time: ', time);
   }
 
   /**************************************************************************/
@@ -128,18 +121,6 @@ export class AuthentificationPage extends GenericPage {
       this.connSub.unsubscribe();
     }
   }
-
-  /**************************************************************************/
-  /*********************** METHODES PRIVATES/INTERNES ***********************/
-  /**************************************************************************/
-
-  /**************************************************************************/
-  /********************************* GETTER *********************************/
-  /**************************************************************************/
-
-  /**************************************************************************/
-  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
-  /**************************************************************************/
 
   /**************************************************************************/
   /******************************* OVERRIDES ********************************/

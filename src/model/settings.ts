@@ -44,5 +44,10 @@ export enum Settings {
   /**
    * Dernier email renseigné pour une connexion firebase standard
    */
-  LAST_FIRE_EMAIL_LOGIN
+  LAST_FIRE_EMAIL_LOGIN,
+
+  /**
+   * demande confiramtion avant de supprimer une liste ou un todo
+   */
+  ENABLE_UNSURE_MODE
 }

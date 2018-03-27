@@ -276,7 +276,8 @@ export class TodoServiceProvider {
     this.localTodoLists = new BehaviorSubject<ITodoList[]>([]);
     this.sharedTodoLists = new BehaviorSubject<ITodoList[]>([]);
     this.currentUserData = new BehaviorSubject<IAppUser>({
-      todoListSharedWithMe: []
+      todoListSharedWithMe: [],
+      todoValide: 0
     });
     this.extTodoSubject = new Subject<ITodoItem[]>();
     this.deleteSubject = new Subject<void>();
@@ -497,7 +498,8 @@ export class TodoServiceProvider {
         this.defSharedTodoCollection();
       } else {
         this.currentUserData.next({
-          todoListSharedWithMe: []
+          todoListSharedWithMe: [],
+          todoValide: 0
         });
         this.todoLists.next([]);
       }
@@ -608,7 +610,8 @@ export class TodoServiceProvider {
     listsPathTab.push(path);
     await this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab }).catch(() => {
       this.currentUserDataDoc.set({
-        todoListSharedWithMe: [path]
+        todoListSharedWithMe: [path],
+        todoValide: 0
       });
     });
 
@@ -638,7 +641,8 @@ export class TodoServiceProvider {
         }
       } catch (error) {
         this.currentUserDataDoc.set({
-          todoListSharedWithMe: listsPathTab
+          todoListSharedWithMe: listsPathTab,
+          todoValide: 0
         });
       }
 

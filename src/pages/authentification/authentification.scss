@@ -1,44 +1,48 @@
 page-authentification {
-    ion-content {
-        background: url('../assets/imgs/back.jpg') !important;
-        background-size: cover !important;
-        background-repeat: repeat-y;
-        min-height: 100%;
-        height: 100% !important;
-        max-height: 100%;
-    }
-    .wrapper {
-        min-height: 100%;
-        height: 100% !important;
-        max-height: 100%;
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-    .logo-container {
-        border-bottom: 3px solid black;
-        width: 100%;
-        height: 30%;
-        max-height: 30%;
-    }
-    .logo-container img {
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
-        max-height: 100%;
-        width: auto;
-        padding-top: 15px;
-        padding-bottom: 15px;
-    }
-    .content {
-        background-color: rgba(255, 255, 255, 0.7);
-        height: 70%;
-        max-height: 70%;
-    }
-    ion-segment {
-        background-color: rgba(255, 255, 255, 0.7);
-        height: 13%;
-    }
-    .scrollable-content {
-        height: 87%;
-        overflow-y: scroll;
-    }
+  ion-content {
+    background: url('../assets/imgs/back.jpg') !important;
+    background-size: cover !important;
+    background-repeat: repeat-y;
+    min-height: 100%;
+    height: 100% !important;
+    max-height: 100%;
+  }
+  .wrapper {
+    min-height: 100%;
+    height: 100% !important;
+    max-height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  .logo-container {
+    border-bottom: 3px solid black;
+    width: 100%;
+    height: 30%;
+    max-height: 30%;
+  }
+  .logo-container img {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    max-height: 100%;
+    width: auto;
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+  .content {
+    background-color: rgba(255, 255, 255, 0.7);
+    height: 70%;
+    max-height: 70%;
+  }
+  ion-segment {
+    background-color: rgba(255, 255, 255, 0.7);
+    height: 13%;
+  }
+  .scrollable-content {
+    height: 87%;
+    overflow-y: scroll;
+  }
+  .user-div {
+    height: 100%;
+    overflow-y: scroll;
+  }
 }

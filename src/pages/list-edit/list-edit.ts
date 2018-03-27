@@ -355,7 +355,7 @@ export class ListEditPage extends GenericPage {
    * @type {string}
    * @memberof ListEditPage
    */
-  get submitText(): string {
+  protected get submitText(): string {
     if (this.listUUID == null) {
       return 'Créer une nouvelle liste';
     }
@@ -371,7 +371,7 @@ export class ListEditPage extends GenericPage {
    * @type {boolean}
    * @memberof ListEditPage
    */
-  get localChoice(): boolean {
+  protected get localChoice(): boolean {
     return this.authCtrl.isConnected() && this.listType !== ListType.SHARED;
   }
 

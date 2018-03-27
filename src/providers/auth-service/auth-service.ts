@@ -21,7 +21,7 @@ export class AuthServiceProvider {
   private evtCtrl: EventServiceProvider;
 
   constructor(
-    private readonly firebaseAuth: AngularFireAuth,
+    private readonly fireAuthCtrl: AngularFireAuth,
     private readonly devideIdCtrl: UniqueDeviceID,
     private readonly settingCtrl: DBServiceProvider,
     private readonly firestoreCtrl: AngularFirestore,
@@ -29,6 +29,8 @@ export class AuthServiceProvider {
   ) {
     this.connexionSubject = new BehaviorSubject<User | null>(null);
     this.applyAutoLoginSetting();
+    this.fireAuthCtrl.auth.useDeviceLanguage();
+    this.fireAuthCtrl.auth.setPersistence('local');
   }
 
   public registerEvtCtrl(e: EventServiceProvider): void {
@@ -47,7 +49,7 @@ export class AuthServiceProvider {
   }
 
   private listenForUpdate(): void {
-    this.firebaseAuth.auth.onAuthStateChanged(user => {
+    this.fireAuthCtrl.auth.onAuthStateChanged(user => {
       this.useHorsConnexion = false;
       if (user != null && user.uid != null) {
         this.connexionSubject.next(user);
@@ -71,7 +73,7 @@ export class AuthServiceProvider {
 
   public logout(): Promise<any> {
     this.useHorsConnexion = false;
-    return this.firebaseAuth.auth.signOut();
+    return this.fireAuthCtrl.auth.signOut();
   }
 
   public getConnexionSubject(): BehaviorSubject<User | null> {
@@ -110,21 +112,21 @@ export class AuthServiceProvider {
   }
 
   public getDisplayName(): string | null {
-    if (!this.isConnected() || this.firebaseAuth.auth.currentUser == null) {
+    if (!this.isConnected() || this.fireAuthCtrl.auth.currentUser == null) {
       throw new Error('Utilisateur non connecté');
     }
 
-    if (this.firebaseAuth.auth.currentUser.displayName != null) {
-      return this.firebaseAuth.auth.currentUser.displayName;
+    if (this.fireAuthCtrl.auth.currentUser.displayName != null) {
+      return this.fireAuthCtrl.auth.currentUser.displayName;
     }
-    return this.firebaseAuth.auth.currentUser.email;
+    return this.fireAuthCtrl.auth.currentUser.email;
   }
 
   public getEmail(): string | null {
-    if (!this.isConnected() || this.firebaseAuth.auth.currentUser == null) {
+    if (!this.isConnected() || this.fireAuthCtrl.auth.currentUser == null) {
       throw new Error('Utilisateur non connecté');
     }
-    return this.firebaseAuth.auth.currentUser.email;
+    return this.fireAuthCtrl.auth.currentUser.email;
   }
 
   public async getServerTimestamp(): Promise<Date> {
