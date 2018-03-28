@@ -39,6 +39,8 @@ export class TodoListPage extends GenericPage {
    */
   private readonly listUUID: string;
 
+  private listName : string; 
+
   /**
    * Type (courrant) de la liste affiché
    * Le type dépend de l'utilisateur
@@ -349,6 +351,7 @@ export class TodoListPage extends GenericPage {
 
     this.listeSub = todoList.subscribe((res: ITodoList) => {
       if (res != null && res.name != null) {
+        this.listName = res.name;
         pageData.title = 'Liste "' + res.name + '"';
         this.evtCtrl.setHeader(pageData);
         this.listAuthor = res.author;
@@ -616,13 +619,13 @@ export class TodoListPage extends GenericPage {
    */
   protected generateDescription(): string {
     let description : string = "";
-    const list = this.todoService.getAListSnapshot(this.listUUID);
+    //const list = this.todoService.getAListSnapshot(this.listUUID);
     
     if( this.todoItems.length + this.completedTodoItem.length + this.exportedTodoItems.length === 0 ){
-      description = "La liste " + list.name + " est vide. " ;
+      description = "La liste " + this.listName + " est vide. " ;
     }
     else {
-      description = " Pour la liste " + list.name + " ";
+      description = " Pour la liste " + this.listName + " ";
       description += this.getDescription(this.todoItems, " en cours ");
       description += this.getDescription(this.completedTodoItem, " terminées ");
       description += this.getDescription(this.exportedTodoItems, " importées ");
