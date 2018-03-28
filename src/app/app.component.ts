@@ -1,3 +1,4 @@
+import { AdsServiceProvider } from './../providers/ads-service/ads-service';
 import { SpeechRecServiceProvider } from './../providers/speech-rec-service/speech-rec-service';
 import { NotifServiceProvider } from './../providers/notif-service/notif-service';
 import { Component } from '@angular/core';
@@ -9,7 +10,7 @@ import { NfcProvider } from '../providers/nfc/nfc';
 import { CloudServiceProvider } from './../providers/cloud-service/cloud-service';
 
 @Component({
-  templateUrl: 'app.html' 
+  templateUrl: 'app.html'
 })
 export class MyApp {
   public rootPage: any = 'TabsPage';
@@ -21,7 +22,8 @@ export class MyApp {
     private readonly cloudCtrl: CloudServiceProvider,
     private readonly nfcCtrl: NfcProvider,
     private readonly notifCtrl: NotifServiceProvider,
-    private readonly speechCtrl: SpeechRecServiceProvider
+    private readonly speechCtrl: SpeechRecServiceProvider,
+    private readonly adsCtrl: AdsServiceProvider
   ) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
@@ -39,5 +41,6 @@ export class MyApp {
     this.nfcCtrl.listenForEvents();
     this.notifCtrl.listenForEvents();
     this.speechCtrl.listenForSpeechRequest();
+    this.adsCtrl.refreshBanner();
   }
 }

@@ -206,19 +206,21 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
       }
     ];
 
-    const emailInput = await this.uiCtrl.presentPrompt(
-      'Réinitialisation du mot de passe',
-      'Veuillez saisir votre adresse mail afin de vous envoyer un email contenant votre nouveau mot de passe',
-      opts
-    );
-
-    email = emailInput.email;
+    try {
+      const emailInput = await this.uiCtrl.presentPrompt(
+        'Réinitialisation du mot de passe',
+        'Veuillez saisir votre adresse mail afin de vous envoyer un email contenant votre nouveau mot de passe',
+        opts
+      );
+      email = emailInput.email;
+    } catch (error) {
+      return;
+    }
 
     try {
-      const res = this.fireAuthCtrl.auth.sendPasswordResetEmail(email);
-      console.log(res);
+      this.fireAuthCtrl.auth.sendPasswordResetEmail(email);
     } catch (error) {
-      console.log(error);
+      this.uiCtrl.alert('Echec', 'Une erreur est survenue');
     }
   }
 }

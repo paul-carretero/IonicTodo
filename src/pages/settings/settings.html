@@ -57,5 +57,9 @@
       <ion-label>Import automatique de liste:</ion-label>
       <ion-toggle [(ngModel)]="autoImport" [disabled]='!isConnected' (ionChange)="defSetting($event,setting.AUTO_IMPORT)"></ion-toggle>
     </ion-item>
+    <ion-item>
+      <ion-label>Activer les Publicités:</ion-label>
+      <ion-toggle [(ngModel)]="enableAds" (ionChange)="defSetting($event,setting.SHOW_ADS_BANNER)"></ion-toggle>
+    </ion-item>
   </ion-list>
 </ion-content>

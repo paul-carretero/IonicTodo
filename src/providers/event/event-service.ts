@@ -98,6 +98,15 @@ export class EventServiceProvider {
    */
   private currentContextTodo: string | null;
 
+  /**
+   * ui service provider a cause des dépendance cyclique...
+   *
+   * @private
+   * @type {UiServiceProvider}
+   * @memberof EventServiceProvider
+   */
+  private uiCtrl: UiServiceProvider;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -112,12 +121,10 @@ export class EventServiceProvider {
   constructor(
     private readonly shakeCtrl: Shake,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly netCtrl: Network,
-    private readonly uiCtrl: UiServiceProvider
+    private readonly netCtrl: Network
   ) {
     this.currentContextList = null;
     this.currentContextTodo = null;
-    this.authCtrl.registerEvtCtrl(this);
     this.headerData = Global.getDefaultPageData();
     this.menuRequestSubject = new Subject<IMenuRequest>();
     this.navRequestSubject = new Subject<INavRequest>();
@@ -126,6 +133,11 @@ export class EventServiceProvider {
     this.shakeDetect();
     this.listenForResetAuth();
     this.listenForNetworkChange();
+    this.authCtrl.registerEvtCtrl(this);
+  }
+
+  public registerUiCtrl(u: UiServiceProvider): void {
+    this.uiCtrl = u;
   }
 
   /**************************************************************************/

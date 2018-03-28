@@ -1,12 +1,18 @@
+import { MapServiceProvider } from './../map-service/map-service';
 import { Injectable } from '@angular/core';
 import {
+  Alert,
   AlertController,
-  LoadingController,
   Loading,
-  ToastController,
-  Alert
+  LoadingController,
+  ToastController
 } from 'ionic-angular';
 import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
+
+import { Settings } from './../../model/settings';
+import { DBServiceProvider } from './../db/db-service';
+import { SpeechSynthServiceProvider } from './../speech-synth-service/speech-synth-service';
+import { EventServiceProvider } from '../event/event-service';
 
 /**
  * Propose plusieurs méthode de type helper pour l'interface utilisateur (alert etc.)
@@ -25,6 +31,8 @@ export class UiServiceProvider {
    */
   private loading: Loading;
 
+  private autoRead: boolean;
+
   /**
    * Creates an instance of UiServiceProvider.
    * @param {AlertController} alertCtrl
@@ -35,8 +43,20 @@ export class UiServiceProvider {
   constructor(
     private readonly alertCtrl: AlertController,
     private readonly loadingCtrl: LoadingController,
-    private readonly toastCtrl: ToastController
-  ) {}
+    private readonly toastCtrl: ToastController,
+    private readonly synthCtrl: SpeechSynthServiceProvider,
+    private readonly dbCtrl: DBServiceProvider,
+    private readonly mapCtrl: MapServiceProvider,
+    private readonly evtCtrl: EventServiceProvider
+  ) {
+    this.refreshAutoRead();
+    this.mapCtrl.registerUiCtrl(this);
+    this.evtCtrl.registerUiCtrl(this);
+  }
+
+  public async refreshAutoRead(): Promise<void> {
+    this.autoRead = await this.dbCtrl.getSetting(Settings.AUTO_READ_ALERT);
+  }
 
   /**
    * retourne une promise permettant d'obtenir confirmation ou annulation d'un message
@@ -47,6 +67,12 @@ export class UiServiceProvider {
    * @memberof UiServiceProvider
    */
   public confirm(title: string, message: string): Promise<boolean> {
+    if (this.autoRead) {
+      this.synthCtrl.synthText(title);
+      this.synthCtrl.synthText(message);
+      this.synthCtrl.synthText('Voulez vous confirmer ou annuler ?');
+    }
+
     return new Promise<boolean>(resolve => {
       this.alertCtrl
         .create({
@@ -109,6 +135,11 @@ export class UiServiceProvider {
    * @memberof UiServiceProvider
    */
   public alert(title: string, text: string): void {
+    if (this.autoRead) {
+      this.synthCtrl.synthText(title);
+      this.synthCtrl.synthText(text);
+    }
+
     this.alertCtrl
       .create({
         title: title,
@@ -126,6 +157,10 @@ export class UiServiceProvider {
    * @memberof UiServiceProvider
    */
   public displayToast(message: string, duration?: number): void {
+    if (this.autoRead) {
+      this.synthCtrl.synthText(message);
+    }
+
     if (duration == null) {
       duration = 4000;
     }
@@ -149,6 +184,11 @@ export class UiServiceProvider {
     message: string,
     inputs: AlertInputOptions[]
   ): Promise<any> {
+    if (this.autoRead) {
+      this.synthCtrl.synthText(title);
+      this.synthCtrl.synthText(message);
+    }
+
     return new Promise<string>((resolve, reject) => {
       const alert = this.alertCtrl.create({
         title: title,
