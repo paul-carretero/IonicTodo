@@ -9,11 +9,16 @@ export class MapServiceProvider {
   private myPosition: null | ILatLng;
   private timeoutPos: any;
 
+  private uiCtrl: UiServiceProvider;
+
   constructor(
     private readonly nativeGeocoder: NativeGeocoder,
-    private readonly geolocCtrl: Geolocation,
-    private readonly uiCtrl: UiServiceProvider
+    private readonly geolocCtrl: Geolocation
   ) {}
+
+  public registerUiCtrl(u: UiServiceProvider): void {
+    this.uiCtrl = u;
+  }
 
   public coordToAddress(lat: number, long: number): Promise<string> {
     const promise: Promise<string> = new Promise<string>((resolve, reject) => {

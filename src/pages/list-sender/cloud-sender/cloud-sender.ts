@@ -19,7 +19,7 @@ import { ContactServiceProvider } from '../../../providers/contact-service/conta
   templateUrl: 'cloud-sender.html'
 })
 export class CloudSenderPage extends GenericSharer {
-  public password: string;
+  public password: string | null;
 
   private readonly shareData: ICloudSharedList;
 
@@ -42,6 +42,7 @@ export class CloudSenderPage extends GenericSharer {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
     this.shareData = Global.getDefaultCloudShareData();
     this.contactList = [];
+    this.password = null;
   }
 
   ionViewWillEnter(): void {
@@ -62,6 +63,10 @@ export class CloudSenderPage extends GenericSharer {
   private async share(email: string | null): Promise<void> {
     this.uiCtrl.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
+
+    if (this.password === '' || this.password === undefined) {
+      this.password = null;
+    }
 
     this.shareData.author = await this.authCtrl.getAuthor(true);
     this.shareData.email = email;

@@ -49,5 +49,10 @@ export enum Settings {
   /**
    * demande confiramtion avant de supprimer une liste ou un todo
    */
-  ENABLE_UNSURE_MODE
+  ENABLE_UNSURE_MODE,
+
+  /**
+   * Défini si l'on doit afficher des publicités ou non (bannière en haut)
+   */
+  SHOW_ADS_BANNER
 }

@@ -36,6 +36,7 @@ import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AngularFireStorageModule } from 'angularfire2/storage';
 import { AlertController, IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { NgxQRCodeModule } from 'ngx-qrcode2';
+import { AdMobFree } from '@ionic-native/admob-free';
 
 import { ComponentsModule } from '../components/components.module';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
@@ -54,6 +55,7 @@ import { EventServiceProvider } from './../providers/event/event-service';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
 import { appOpts } from './app-opts';
+import { AdsServiceProvider } from '../providers/ads-service/ads-service';
 
 @NgModule({
   declarations: [MyApp],
@@ -117,7 +119,9 @@ import { appOpts } from './app-opts';
     SMS,
     Calendar,
     CallNumber,
-    EmailComposer
+    EmailComposer,
+    AdMobFree,
+    AdsServiceProvider
   ]
 })
 export class AppModule {}

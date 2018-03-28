@@ -1,3 +1,4 @@
+import { AdsServiceProvider } from './../../providers/ads-service/ads-service';
 import { Component, ViewChild } from '@angular/core';
 import { Flashlight } from '@ionic-native/flashlight';
 import { IonicPage, Tabs } from 'ionic-angular';
@@ -29,7 +30,8 @@ export class TabsPage {
     private readonly evtCtrl: EventServiceProvider,
     private readonly flashlight: Flashlight,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly uiCtrl: UiServiceProvider
+    private readonly uiCtrl: UiServiceProvider,
+    private readonly adsCtrl: AdsServiceProvider
   ) {
     this.netStatus = this.evtCtrl.getNetStatus();
     this.evtCtrl.getNetStatusObs().subscribe(res => {
@@ -55,6 +57,10 @@ export class TabsPage {
 
   private setRoot(root: number) {
     this.tabRef.select(root);
+  }
+
+  public showAds(): void {
+    this.adsCtrl.showInterstitial();
   }
 
   /**

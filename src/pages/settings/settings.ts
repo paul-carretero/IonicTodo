@@ -1,3 +1,5 @@
+import { UiServiceProvider } from './../../providers/ui-service/ui-service';
+import { AdsServiceProvider } from './../../providers/ads-service/ads-service';
 import { NotifServiceProvider } from './../../providers/notif-service/notif-service';
 import { AuthServiceProvider } from './../../providers/auth-service/auth-service';
 import { Component } from '@angular/core';
@@ -87,6 +89,15 @@ export class SettingsPage {
   protected enableUnsure: boolean = false;
 
   /**
+   *
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof SettingsPage
+   */
+  protected enableAds: boolean = false;
+
+  /**
    * enum des paramètre pour template
    *
    * @readonly
@@ -109,7 +120,9 @@ export class SettingsPage {
   constructor(
     private readonly settingCtrl: DBServiceProvider,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly notifCtrl: NotifServiceProvider
+    private readonly notifCtrl: NotifServiceProvider,
+    private readonly adsCtrl: AdsServiceProvider,
+    private readonly uiCtrl: UiServiceProvider
   ) {}
 
   /**************************************************************************/
@@ -153,6 +166,10 @@ export class SettingsPage {
     this.settingCtrl.getSetting(Settings.ENABLE_UNSURE_MODE).then(res => {
       this.enableUnsure = res;
     });
+
+    this.settingCtrl.getSetting(Settings.SHOW_ADS_BANNER).then(res => {
+      this.enableAds = res;
+    });
   }
 
   /**************************************************************************/
@@ -188,6 +205,15 @@ export class SettingsPage {
     await this.settingCtrl.setSetting(setting, event.value);
     if (setting === Settings.DISABLE_NOTIF) {
       this.notifCtrl.redefNotifStatus();
+    } else if (setting === Settings.SHOW_ADS_BANNER) {
+      this.adsCtrl.refreshBanner();
+      if (event.value === 'true' || event.value === true) {
+        this.uiCtrl.alert(':)', 'Merci!');
+      } else {
+        this.uiCtrl.alert(':(', "Okay, pas de pubs :'(");
+      }
+    } else if (setting === Settings.AUTO_READ_ALERT) {
+      return this.uiCtrl.refreshAutoRead();
     }
   }
 
