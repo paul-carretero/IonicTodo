@@ -200,7 +200,7 @@ export class TodoListPage extends GenericPage {
     private readonly navParams: NavParams,
     private readonly settingCtrl: DBServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider,
-    private readonly changeCtrl: ChangeDetectorRef
+    private readonly changeCtrl: ChangeDetectorRef,
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -490,14 +490,30 @@ export class TodoListPage extends GenericPage {
    * @returns {Promise<void>}
    * @memberof TodoListPage
    */
-  protected async deleteTodo(todo: ITodoItem, ext: boolean): Promise<void> {
+  protected async deleteTodo(todo: ITodoItem, ext: boolean, tableau : ITodoItem[]): Promise<void> {
     if (todo == null || todo.ref == null || todo.uuid == null) {
       return;
     }
     if (ext) {
       this.todoService.removeTodoRef(this.listUUID, todo.ref);
     } else {
-      this.todoService.deleteTodo(todo.ref, todo.uuid);
+      const unsure_mode = await this.settingCtrl.getSetting(Settings.ENABLE_UNSURE_MODE);
+      if(unsure_mode){
+        const title = "Suppression de la tâche " + todo.name;
+        const message = "Voulez vous supprimer la tâche " + todo.name;
+        const confirm : boolean = await this.uiCtrl.confirm(title,message);
+        if(confirm){
+          if(todo != null && todo.ref != null && todo.uuid != null){
+            tableau.splice(tableau.indexOf(todo));
+            this.todoService.deleteTodo(todo.ref, todo.uuid);
+          }
+        }
+      }
+      else{
+        if(todo != null && todo.ref != null && todo.uuid != null){
+          this.todoService.deleteTodo(todo.ref, todo.uuid);
+        }
+      }
     }
   }
 

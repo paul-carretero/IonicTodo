@@ -11,6 +11,8 @@ import { GenericPage } from '../../shared/generic-page';
 import { EventServiceProvider } from './../../providers/event/event-service';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
+import { DBServiceProvider } from '../../providers/db/db-service';
+import { Settings } from '../../model/settings';
 
 /**
  * Page principale de l'application.
@@ -131,7 +133,8 @@ export class HomePage extends GenericPage {
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
-    private readonly todoService: TodoServiceProvider
+    private readonly todoService: TodoServiceProvider,
+    private readonly settingCtrl: DBServiceProvider,
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoList = [];
@@ -313,12 +316,28 @@ export class HomePage extends GenericPage {
    * @param {string} uuid
    * @memberof HomePage
    */
-  protected deleteTodoList(uuid: string, tab: ITodoList[]): void {
-    const i = tab.findIndex(list => list.uuid === uuid);
-    if (i !== -1) {
-      tab.splice(i, 1);
+  protected async deleteTodoList(liste: ITodoList, tab: ITodoList[]): Promise<void> {
+    console.log("dans delete todoList");
+    const unsure_mode : boolean = await this.settingCtrl.getSetting(Settings.ENABLE_UNSURE_MODE);
+    if(unsure_mode){
+      console.log("unsure mode activé");
+      const title = "Suppression de la liste " + liste.name;
+      const message = "Voulez vous supprimer la liste " + liste.name;
+      const confirm : boolean = await this.uiCtrl.confirm(title, message);
+      if(confirm){
+        console.log("confirmation de la suppression");
+        tab.splice(tab.indexOf(liste)); 
+        if(liste.uuid != null){
+          this.todoService.deleteList(liste.uuid);
+        } 
+      }
     }
-    this.todoService.deleteList(uuid);
+    else{
+      tab.splice(tab.indexOf(liste)); 
+      if(liste.uuid != null){
+        this.todoService.deleteList(liste.uuid);
+      }
+    }
   }
 
   /**
