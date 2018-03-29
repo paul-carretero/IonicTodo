@@ -26,6 +26,7 @@ import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-serv
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Global } from './../../shared/global';
 import { Observable } from 'rxjs/Observable';
+import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
 
 @IonicPage()
 @Component({
@@ -526,5 +527,50 @@ export class TodoEditPage extends GenericPage {
       },
       () => this.uiCtrl.alert('Erreur', "Impossible d'acceder à la camera")
     );
+  }
+
+  protected async openCreateContact(): Promise<void> {
+    const inputs: AlertInputOptions[] = [
+      {
+        name: 'name',
+        placeholder: 'Nom (requis)',
+        type: 'text'
+      },
+      {
+        name: 'email',
+        placeholder: 'E-Mail (optionnel)',
+        type: 'email'
+      },
+      {
+        name: 'mobile',
+        placeholder: 'Mobile (optionnel)',
+        type: 'phone'
+      }
+    ];
+
+    try {
+      const res = await this.uiCtrl.presentPrompt(
+        'Nouveau Contact',
+        'Associer un contact à la tâche ' + this.todo.name,
+        inputs
+      );
+
+      const newContact = Global.getBlankContact();
+      if (res != null && res.name != null && res.name !== '') {
+        newContact.displayName = res.name;
+        if (res.email !== '' && res.email !== undefined) {
+          newContact.email = res.email;
+        }
+        if (res.mobile !== '' && res.mobile !== undefined) {
+          newContact.mobile = res.mobile;
+        }
+
+        this.todo.contacts.push(newContact);
+      } else {
+        this.uiCtrl.alert('Echec', 'Vous devez renseigner le nom du contact');
+      }
+    } catch (error) {
+      // l'ajout à été annulé
+    }
   }
 }

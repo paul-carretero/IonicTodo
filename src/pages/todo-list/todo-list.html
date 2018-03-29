@@ -12,8 +12,8 @@
                 <ng-container *ngIf="search$ | async as search">
                     <ion-item-sliding *ngIf="areTodoMatching(todo,search)" #todoSlide>
                         <ion-item detail-push>
-                            <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
-                            <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
+                            <ion-icon (click)="completeCheck(todo)" name="square-outline" *ngIf="!todo.complete" item-start></ion-icon>
+                            <ion-icon (click)="completeCheck(todo)" name="checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                             <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
                             <ion-icon *ngIf="isLate(todo)" name="alert" item-end></ion-icon>
                         </ion-item>
@@ -35,8 +35,8 @@
                 <ng-container *ngIf="search$ | async as search">
                     <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
                         <ion-item detail-push>
-                            <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
-                            <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
+                            <ion-icon (click)="completeCheck(todo)" name="square-outline" *ngIf="!todo.complete" item-start></ion-icon>
+                            <ion-icon (click)="completeCheck(todo)" name="checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                             <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
                         </ion-item>
                         <ion-item-options side="right" *ngIf="editable">
@@ -58,8 +58,8 @@
                 <ng-container *ngIf="search$ | async as search">
                     <ion-item-sliding *ngIf="areTodoMatching(todo,search)" #exportedSlide>
                         <ion-item detail-push>
-                            <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
-                            <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
+                            <ion-icon (click)="completeCheck(todo)" name="square-outline" *ngIf="!todo.complete" item-start></ion-icon>
+                            <ion-icon (click)="completeCheck(todo)" name="checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                             <h2 (click)="selectTodo(todo.ref, true)">{{todo.name}}</h2>
                         </ion-item>
                         <ion-item-options side="right" *ngIf="editable">

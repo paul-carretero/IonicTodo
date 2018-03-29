@@ -69,6 +69,10 @@
                         <ion-icon name="add-circle" item-start></ion-icon>
                         Ajouter des contacts
                     </button>
+                    <button ion-item color="light" (click)="openCreateContact()" type="button">
+                        <ion-icon name="create" item-start></ion-icon>
+                        Créer un contact
+                    </button>
                     <ion-item color="light">
                         <ion-icon name="text" item-start></ion-icon>
                         <ion-label>SMS à la complétion ?</ion-label>
@@ -128,8 +132,10 @@
             </ion-card-content>
         </ion-card>
 
-        <ion-card padding>
-            <button ion-button full round type="submit" [disabled]="!todoForm.valid">Valider</button>
+        <ion-card class="button-wrapper">
+            <button ion-button block type="submit" [disabled]="!todoForm.valid">
+                <ion-icon name="checkmark" class="button-icon"></ion-icon>Valider
+            </button>
         </ion-card>
     </form>
 </ion-content>

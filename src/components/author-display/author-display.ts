@@ -1,10 +1,9 @@
 import { IAuthor } from './../../model/author';
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import moment from 'moment';
 
 /**
  * permet de réprésenter un autheur d'un objet
- * ATTENTION: détacher le decteur de changement angular dans les pages l'appelant pour ne pas avoir de busy-loop sur les valeur des dates...
  *
  * @export
  * @class AuthorDisplayComponent
@@ -13,7 +12,7 @@ import moment from 'moment';
   selector: 'author-display',
   templateUrl: 'author-display.html'
 })
-export class AuthorDisplayComponent {
+export class AuthorDisplayComponent implements OnInit {
   /***************************** PUBLIC FIELDS ******************************/
   /**
    * autheur à représenter
@@ -22,6 +21,24 @@ export class AuthorDisplayComponent {
    * @memberof AuthorDisplayComponent
    */
   @Input() author: IAuthor;
+
+  /**
+   * différence de la date author avec maintenant
+   *
+   * @protected
+   * @type {string}
+   * @memberof AuthorDisplayComponent
+   */
+  protected dateDiff: string;
+
+  /**
+   * date de l'authoring
+   *
+   * @protected
+   * @type {string}
+   * @memberof AuthorDisplayComponent
+   */
+  protected dateCalendar: string;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -34,38 +51,50 @@ export class AuthorDisplayComponent {
   constructor() {}
 
   /**************************************************************************/
-  /********************************* GETTER *********************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
   /**************************************************************************/
 
   /**
-   * retourne la différence de temps entre maintenant et la création de l'objet
+   * initialise les constantes de date de l'objet
    *
-   * @readonly
-   * @type {string}
    * @memberof AuthorDisplayComponent
    */
-  get dateDiff(): string {
-    if (this.author.timestamp == null) {
-      return '';
-    }
+  ngOnInit(): void {
+    this.defDateDiff();
+    this.defDateCalendar();
+  }
 
-    const now = new Date().getTime();
-    const duration = moment.duration(now - this.author.timestamp.getTime());
-    return duration.locale('fr').humanize();
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * définie la différence de temps entre maintenant et la création de l'objet
+   *
+   * @private
+   * @memberof AuthorDisplayComponent
+   */
+  private defDateDiff(): void {
+    if (this.author.timestamp == null) {
+      this.dateDiff = '';
+    } else {
+      this.dateDiff = moment(this.author.timestamp)
+        .locale('fr')
+        .fromNow();
+    }
   }
 
   /**
-   * retourne la date du calendrier à laquelle l'objet à été créé
+   * définie la date du calendrier à laquelle l'objet à été créé
    *
-   * @readonly
-   * @type {string}
+   * @private
    * @memberof AuthorDisplayComponent
    */
-  get dateCalendar(): string {
+  private defDateCalendar(): void {
     if (this.author.timestamp == null) {
-      return '';
+      this.dateCalendar = '';
+    } else {
+      this.dateCalendar = this.author.timestamp.toLocaleDateString();
     }
-
-    return this.author.timestamp.toLocaleDateString();
   }
 }

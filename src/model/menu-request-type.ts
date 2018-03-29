@@ -19,5 +19,6 @@ export enum MenuRequestType {
   PASTE,
   OCR,
   CREATE,
-  VIEW
+  VIEW,
+  COMPLETE
 }

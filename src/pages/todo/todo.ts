@@ -427,7 +427,7 @@ export class TodoPage extends GenericPage {
       return {
         camera: {
           target: todoAddress,
-          zoom: 10,
+          zoom: 40,
           tilt: 30
         }
       };
@@ -437,7 +437,7 @@ export class TodoPage extends GenericPage {
       return {
         camera: {
           target: myPos,
-          zoom: 10,
+          zoom: 40,
           tilt: 30
         }
       };
@@ -447,7 +447,7 @@ export class TodoPage extends GenericPage {
       return {
         camera: {
           target: Global.getILatLng(this.todo.author.coord),
-          zoom: 10,
+          zoom: 40,
           tilt: 30
         }
       };
@@ -457,7 +457,7 @@ export class TodoPage extends GenericPage {
       return {
         camera: {
           target: Global.getILatLng(this.todo.completeAuthor.coord),
-          zoom: 10,
+          zoom: 40,
           tilt: 30
         }
       };
@@ -519,11 +519,14 @@ export class TodoPage extends GenericPage {
    * @memberof TodoPage
    */
   private async addAddressMarker(): Promise<void> {
-    if (this.todo.address == null) {
+    if (this.todo.address == null || this.todo.address === '') {
       if (this.todoAddressMarker != null) {
         try {
+          this.todoAddressMarker.removeEventListener();
+          this.todoAddressMarker.remove();
           this.todoAddressMarker.destroy();
         } catch (error) {}
+        this.todoAddressMarker = null;
       }
       return;
     }
@@ -574,8 +577,11 @@ export class TodoPage extends GenericPage {
     if (this.todo.author == null || this.todo.author.coord == null) {
       if (this.todoAuthorMapMarker != null) {
         try {
+          this.todoAuthorMapMarker.removeEventListener();
+          this.todoAuthorMapMarker.remove();
           this.todoAuthorMapMarker.destroy();
         } catch (error) {}
+        this.todoAuthorMapMarker = null;
       }
       return;
     }
@@ -621,8 +627,11 @@ export class TodoPage extends GenericPage {
     if (this.todo.completeAuthor == null || this.todo.completeAuthor.coord == null) {
       if (this.todoCompleteAuthorMapMarker != null) {
         try {
+          this.todoCompleteAuthorMapMarker.removeEventListener();
+          this.todoCompleteAuthorMapMarker.remove();
           this.todoCompleteAuthorMapMarker.destroy();
         } catch (error) {}
+        this.todoCompleteAuthorMapMarker = null;
       }
       return;
     }
@@ -677,10 +686,10 @@ export class TodoPage extends GenericPage {
     }
 
     const mapOptions = await this.getStartOpts();
-
     if (mapOptions == null) {
       return;
     }
+    mapOptions.preferences = { building: true };
 
     this.map = GoogleMaps.create('mapwrapper', mapOptions);
 

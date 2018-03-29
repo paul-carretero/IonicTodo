@@ -1,3 +1,4 @@
+import { ISimpleContact } from './../model/simple-contact';
 import { ILatLng } from '@ionic-native/google-maps';
 import * as firebase from 'firebase';
 
@@ -245,6 +246,22 @@ export class Global {
       todoComplete: 0,
       todoTotal: 0,
       atLeastOneLate: false
+    };
+  }
+
+  /**
+   * retourne un contact par défault
+   *
+   * @static
+   * @returns {ISimpleContact}
+   * @memberof Global
+   */
+  public static getBlankContact(): ISimpleContact {
+    return {
+      id: 0,
+      displayName: null,
+      email: null,
+      mobile: null
     };
   }
 

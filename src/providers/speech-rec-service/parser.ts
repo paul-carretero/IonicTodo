@@ -65,6 +65,8 @@ export class SpeechParser {
    */
   private static readonly todoKeywords = ['tâche', 'tâches', 'note', 'notes'];
 
+  private static readonly stopKeywords = ['dans', 'la', 'le', 'avec'];
+
   /**************************** PRIVATE FIELDS ******************************/
 
   /**
@@ -101,7 +103,7 @@ export class SpeechParser {
    * @type {(ITodoList | null)}
    * @memberof SpeechParser
    */
-  private currentList: ITodoList | null = null;
+  private currentList: ITodoList | null;
 
   /**
    * todo (unique) présentement affiché
@@ -110,7 +112,7 @@ export class SpeechParser {
    * @type {(ITodoItem | null)}
    * @memberof SpeechParser
    */
-  private currentTodo: ITodoItem | null = null;
+  private currentTodo: ITodoItem | null;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -138,29 +140,6 @@ export class SpeechParser {
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
-
-  private async initCurrents(): Promise<void> {
-    const CPromise = this.contactCtrl.getContactList(false, false);
-    const listUuid = this.evtCtrl.getCurrentContext(true);
-    const todoUuid = this.evtCtrl.getCurrentContext(false);
-    this.currentLists = this.todoCtrl.getAllList();
-
-    if (listUuid != null) {
-      this.currentList = this.todoCtrl.getAListSnapshot(listUuid);
-      this.currentTodos = this.todoCtrl.getAllTodos(listUuid);
-    } else {
-      this.currentTodos = this.todoCtrl.getAllTodos();
-    }
-
-    if (todoUuid != null) {
-      const res = this.currentTodos.find(t => t.uuid === todoUuid);
-      if (res != null) {
-        this.currentTodo = res;
-      }
-    }
-
-    this.currentContacts = await CPromise;
-  }
 
   private getMenuRequest(req: IParsedRequest): MenuRequestType | null {
     for (const word of req.sentence) {
@@ -264,7 +243,7 @@ export class SpeechParser {
       return;
     }
 
-    req.newTodoName = this.buildName(remainingWords, 'liste ');
+    req.newListName = this.buildName(remainingWords, 'liste ');
   }
 
   private defNewTodoName(req: IParsedRequest): void {
@@ -314,6 +293,40 @@ export class SpeechParser {
     return res;
   }
 
+  /**
+   * un ensemble de règles non générique à appliquer à la requête
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {void}
+   * @memberof SpeechParser
+   */
+  private specialRules(req: IParsedRequest): void {
+    if (req.request == null) {
+      return;
+    } else if (
+      req.todoFound == null &&
+      this.currentTodo != null &&
+      (req.request.request === MenuRequestType.COPY ||
+        req.request.request === MenuRequestType.COMPLETE ||
+        req.request.request === MenuRequestType.DELETE ||
+        req.request.request === MenuRequestType.EDIT)
+    ) {
+      req.todoFound = this.currentTodo;
+    } else if (
+      req.listFound == null &&
+      this.currentList != null &&
+      (req.request.request === MenuRequestType.DELETE ||
+        req.request.request === MenuRequestType.EDIT ||
+        req.request.request === MenuRequestType.IMPORT ||
+        req.request.request === MenuRequestType.OCR ||
+        req.request.request === MenuRequestType.SEND ||
+        req.request.request === MenuRequestType.SHARE)
+    ) {
+      req.listFound = this.currentList;
+    }
+  }
+
   /**************************************************************************/
   /****************************** STATIC HELPER *****************************/
   /**************************************************************************/
@@ -332,7 +345,8 @@ export class SpeechParser {
 
     return (
       SpeechParser.strArrayInclude(str, SpeechParser.listKeywords) ||
-      SpeechParser.strArrayInclude(str, SpeechParser.todoKeywords)
+      SpeechParser.strArrayInclude(str, SpeechParser.todoKeywords) ||
+      SpeechParser.strArrayInclude(str, SpeechParser.stopKeywords)
     );
   }
 
@@ -378,7 +392,7 @@ export class SpeechParser {
     str1 = SpeechParser.normalize(str1);
     str2 = SpeechParser.normalize(str2);
 
-    return str1.includes(str2) || str2.includes(str2);
+    return str1.includes(str2) || str2.includes(str1);
   }
 
   /**
@@ -438,20 +452,55 @@ export class SpeechParser {
    * @memberof SpeechParser
    */
   public async parse(speech: string): Promise<IParsedRequest> {
-    await this.initCurrents();
     const parsedRes = SpeechParser.getBlankParsedRequest();
     parsedRes.sentence = speech.split(' ');
     parsedRes.origSentence = speech;
     this.defMenuRequest(parsedRes);
     this.defContact(parsedRes);
-    this.defTodoFind(parsedRes);
+
     this.defListFind(parsedRes);
     if (parsedRes.listFound == null) {
       this.defNewListName(parsedRes);
+    } else {
+      this.currentTodos = this.todoCtrl.getAllTodos(parsedRes.listFound.uuid);
     }
+
+    this.defTodoFind(parsedRes);
     if (parsedRes.todoFound == null) {
       this.defNewTodoName(parsedRes);
     }
+
+    this.specialRules(parsedRes);
     return parsedRes;
+  }
+
+  /**
+   * met à jour les constantes de ce parser de recherche.
+   * doit être appelé et attendu avant de pouvoir utiliser parse
+   *
+   * @returns {Promise<void>}
+   * @memberof SpeechParser
+   */
+  public async init(): Promise<void> {
+    const CPromise = this.contactCtrl.getContactList(false);
+    const listUuid = this.evtCtrl.getCurrentContext(true);
+    const todoUuid = this.evtCtrl.getCurrentContext(false);
+    this.currentLists = this.todoCtrl.getAllList();
+
+    if (listUuid != null) {
+      this.currentList = this.todoCtrl.getAListSnapshot(listUuid);
+      this.currentTodos = this.todoCtrl.getAllTodos(listUuid);
+    } else {
+      this.currentTodos = this.todoCtrl.getAllTodos();
+    }
+
+    if (todoUuid != null) {
+      const res = this.currentTodos.find(t => t.uuid === todoUuid);
+      if (res != null) {
+        this.currentTodo = res;
+      }
+    }
+
+    this.currentContacts = await CPromise;
   }
 }

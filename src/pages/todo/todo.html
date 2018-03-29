@@ -128,7 +128,7 @@
 
         <ion-card *ngIf="todo.author != null">
             <ion-card-header icon-start>
-                <ion-icon name="information-circle"></ion-icon>
+                <ion-icon name="pin" color="secondary"></ion-icon>
                 La tâche à été créée:
             </ion-card-header>
             <author-display [author]="todo.author"></author-display>
@@ -136,7 +136,7 @@
 
         <ion-card *ngIf="todo.completeAuthor != null">
             <ion-card-header icon-start>
-                <ion-icon name="information-circle"></ion-icon>
+                <ion-icon name="pin" color="danger"></ion-icon>
                 La tâche à été réalisée:
             </ion-card-header>
             <author-display [author]="todo.completeAuthor"></author-display>

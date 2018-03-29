@@ -1,3 +1,4 @@
+import { ContactServiceProvider } from './../contact-service/contact-service';
 import { ISpeechReqResult } from '../../model/speech-req-res';
 import { UiServiceProvider } from './../ui-service/ui-service';
 import { EventServiceProvider } from './../event/event-service';
@@ -10,6 +11,7 @@ import { Global } from '../../shared/global';
 import { ITodoItem } from '../../model/todo-item';
 import { AuthServiceProvider } from '../auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../speech-synth-service/speech-synth-service';
+import { SpeechParser } from './parser';
 
 @Injectable()
 export class SpeechRecServiceProvider {
@@ -42,6 +44,8 @@ export class SpeechRecServiceProvider {
     insulte: ['chier', 'putain', 'merde']
   };
 
+  private readonly parser: SpeechParser;
+
   /**
    * Creates an instance of SpeechRecServiceProvider.
    * @param {SpeechRecognition} speechRecognition
@@ -58,8 +62,11 @@ export class SpeechRecServiceProvider {
     private readonly todoService: TodoServiceProvider,
     private readonly uiCtrl: UiServiceProvider,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly speechSynthService: SpeechSynthServiceProvider
-  ) {}
+    private readonly speechSynthService: SpeechSynthServiceProvider,
+    contactCtrl: ContactServiceProvider
+  ) {
+    this.parser = new SpeechParser(todoService, contactCtrl, evtCtrl);
+  }
 
   /**
    * démarre le service reconnaissance vocale lorsque l'utilisateur utilise la fonction du menu.
@@ -141,15 +148,26 @@ export class SpeechRecServiceProvider {
         res_rec = { reconnu: false, action_success: false, message_error: '' };
 
         // pour chaque "phrase" possible reconnue par le micro
+        this.parser
+          .init()
+          .then(() => this.parser.parse(matches[0]).then(res => console.log(res)));
+
         for (const item of matches) {
           // on sépare cette phrase en mots
-          const mots: string[] = item.split(' ');
+
+          //const mots: string[] = item.split(' ');
+
           // on veux reconnaitre l'action associée
-          res_rec = this.reconnaissanceAction(mots);
+
+          //res_rec = this.reconnaissanceAction(mots);
+
           // si une action a réussi, alors on quitte la reconnaissance
-          if (res_rec.action_success) {
+
+          /*if (res_rec.action_success) {
             break;
-          }
+          }*/
+          item;
+          this.reconnaissanceAction;
         }
         // si aucune action n'a été reconnue
         if (res_rec.reconnu == null || !res_rec.reconnu) {
@@ -185,8 +203,6 @@ export class SpeechRecServiceProvider {
     const contain_delete = this.contain_motclef(mots, this.motClefs.delete);
     const contain_view = this.contain_motclef(mots, this.motClefs.view);
 
-
-
     let phrase_reconnue = false;
     let resultat_action: { action_success: boolean; message_error: string };
     resultat_action = {
@@ -205,7 +221,7 @@ export class SpeechRecServiceProvider {
       resultat_action = this.creerTache(mots);
     }
     // AJOUTER UNE TACHE CONTEXTUELLEMENT ?
-    if( contain_create && !contain_list && contain_todo){
+    if (contain_create && !contain_list && contain_todo) {
       phrase_reconnue = true;
       resultat_action = this.creerTacheContext(mots);
     }
@@ -294,10 +310,10 @@ Méthodes liées à la reconnaissance de mots
    * Méthode permettant de récupérer le nom de la tâche, dans un ensemble de mots
    */
   private getNameTodo(mots: string[]): string {
-    let name = "";
-    for(const todo of this.motClefs.todo ){
-      if(mots.includes(todo)){
-        name = mots[mots.indexOf(todo) + 1] 
+    let name = '';
+    for (const todo of this.motClefs.todo) {
+      if (mots.includes(todo)) {
+        name = mots[mots.indexOf(todo) + 1];
       }
     }
     return name;
@@ -612,32 +628,32 @@ Méthodes contextuelles
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private creerTacheContext(mots : string[]) : ISpeechReqResult {
-    const res : ISpeechReqResult = {action_success : false, message_error : "L'action n'a pas pu être réalisée"};
+  private creerTacheContext(mots: string[]): ISpeechReqResult {
+    const res: ISpeechReqResult = {
+      action_success: false,
+      message_error: "L'action n'a pas pu être réalisée"
+    };
 
     const nameTodo = this.getNameTodo(mots);
     const uuidList = this.evtCtrl.getCurrentContext(true);
 
-    if(uuidList != null){
-
+    if (uuidList != null) {
       const todo_found = this.does_todo_existed(nameTodo, uuidList);
-      if(!todo_found.success){
+      if (!todo_found.success) {
         const new_todo = Global.getBlankTodo();
         new_todo.name = nameTodo;
         this.todoService.addTodo(uuidList, new_todo);
-        this.speechSynthService.synthText("Ajout de la tâche " + nameTodo);
+        this.speechSynthService.synthText('Ajout de la tâche ' + nameTodo);
         res.action_success = true;
+      } else {
+        res.message_error = 'La tâche ' + nameTodo + ' existe déjà dans la liste';
       }
-      else {
-        res.message_error = "La tâche " + nameTodo + " existe déjà dans la liste";
-      }
-    }
-    else {
-      res.message_error = "Veuillez indiquer dans quelle liste créer la tâche " + nameTodo + " .";
+    } else {
+      res.message_error =
+        'Veuillez indiquer dans quelle liste créer la tâche ' + nameTodo + ' .';
     }
     return res;
   }
-
 
   /**
    * Méthode permettant de modifier une tâche dans la liste courante, à partir des mots entendus
@@ -647,33 +663,34 @@ Méthodes contextuelles
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private updateTacheContext(mots : string[]) : ISpeechReqResult {
-    const res : ISpeechReqResult = {action_success : false, message_error : "L'action n'a pas pu être réalisée"};
+  private updateTacheContext(mots: string[]): ISpeechReqResult {
+    const res: ISpeechReqResult = {
+      action_success: false,
+      message_error: "L'action n'a pas pu être réalisée"
+    };
 
     const nameTodo = this.getNameTodo(mots);
     const uuidList = this.evtCtrl.getCurrentContext(true);
 
-    if(uuidList != null){
-
+    if (uuidList != null) {
       const todo_found = this.does_todo_existed(nameTodo, uuidList);
-      if(todo_found.success){
-        this.evtCtrl.getNavRequestSubject()
+      if (todo_found.success) {
+        this.evtCtrl
+          .getNavRequestSubject()
           .next({ page: 'TodoEditPage', data: { todoRef: todo_found.todo.ref } });
         this.speechSynthService.synthText(
-          'Vous pouvez maintenant modifier la tâche ' + nameTodo 
+          'Vous pouvez maintenant modifier la tâche ' + nameTodo
         );
         res.action_success = true;
+      } else {
+        res.message_error = 'La tâche ' + nameTodo + " n'existe pas dans la liste";
       }
-      else {
-        res.message_error = "La tâche " +  nameTodo + " n'existe pas dans la liste";
-      }
-    }
-    else {
-      res.message_error = "Veuillez indiquer dans quelle liste modifier la tâche " + nameTodo + " .";
+    } else {
+      res.message_error =
+        'Veuillez indiquer dans quelle liste modifier la tâche ' + nameTodo + ' .';
     }
     return res;
   }
-
 
   /**
    * Méthode permettant de supprimer une tâche dans la liste courante, à partir des mots entendus
@@ -683,32 +700,30 @@ Méthodes contextuelles
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private deleteTacheContext(mots : string[]) : ISpeechReqResult {
-    const res : ISpeechReqResult = {action_success : false, message_error : "L'action n'a pas pu être réalisée"};
+  private deleteTacheContext(mots: string[]): ISpeechReqResult {
+    const res: ISpeechReqResult = {
+      action_success: false,
+      message_error: "L'action n'a pas pu être réalisée"
+    };
 
     const nameTodo = this.getNameTodo(mots);
     const uuidList = this.evtCtrl.getCurrentContext(true);
 
-    if(uuidList != null){
-
+    if (uuidList != null) {
       const todo_found = this.does_todo_existed(nameTodo, uuidList);
-      if(todo_found.success && todo_found.todo.ref != null && todo_found.todo.uuid != null){
+      if (todo_found.success && todo_found.todo.ref != null && todo_found.todo.uuid != null) {
         this.todoService.deleteTodo(todo_found.todo.ref, todo_found.todo.uuid);
-        this.speechSynthService.synthText(
-          "La tâche " + nameTodo + " a été supprimée. "
-        );
+        this.speechSynthService.synthText('La tâche ' + nameTodo + ' a été supprimée. ');
         res.action_success = true;
+      } else {
+        res.message_error = 'La tâche ' + nameTodo + " n'existe pas dans la liste";
       }
-      else {
-        res.message_error = "La tâche " +  nameTodo + " n'existe pas dans la liste";
-      }
-    }
-    else {
-      res.message_error = "Veuillez indiquer dans quelle liste supprimer la tâche " + nameTodo + " .";
+    } else {
+      res.message_error =
+        'Veuillez indiquer dans quelle liste supprimer la tâche ' + nameTodo + ' .';
     }
     return res;
   }
-
 
   /**
    * Méthode permettant d'afficher la page d'une tâche, de la liste courante
@@ -724,26 +739,25 @@ Méthodes contextuelles
 
     const nomTodo: string = this.getNameTodo(mots);
     const list_uuid = this.evtCtrl.getCurrentContext(true);
-    if(list_uuid != null){
+    if (list_uuid != null) {
       const todo_search = this.does_todo_existed(nomTodo, list_uuid);
       if (todo_search.success) {
         action_success = true;
         this.speechSynthService.synthText('Affichage de la tâche ' + nomTodo);
-        this.evtCtrl
-          .getNavRequestSubject()
-          .next({ page: 'TodoPage', data: { 
+        this.evtCtrl.getNavRequestSubject().next({
+          page: 'TodoPage',
+          data: {
             todoRef: todo_search.todo.ref,
             listUuid: list_uuid,
-            isExternal: false } });
+            isExternal: false
+          }
+        });
       } else {
         message_error = 'La tâche ' + nomTodo + " n'a pas été trouvée. ";
       }
-    }
-    else{
-      message_error = "Veuillez préciser la liste où se trouve la tâche " + nomTodo ;
+    } else {
+      message_error = 'Veuillez préciser la liste où se trouve la tâche ' + nomTodo;
     }
     return { action_success: action_success, message_error: message_error };
   }
-
-
 }

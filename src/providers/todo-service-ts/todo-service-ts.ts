@@ -1719,7 +1719,7 @@ export class TodoServiceProvider {
    * @returns {ITodoItem[]}
    * @memberof TodoServiceProvider
    */
-  public getAllTodos(listUuid?: string): ITodoItem[] {
+  public getAllTodos(listUuid?: string | null): ITodoItem[] {
     if (listUuid == null) {
       return this.lastAllTodosSnapshot;
     }

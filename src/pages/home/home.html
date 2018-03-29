@@ -32,6 +32,7 @@
             <ion-item-divider color="light" icon-start>
                 <ion-icon name="done-all" small></ion-icon> Vos Listes Terminées
             </ion-item-divider>
+
             <ion-item-group reorder="true" (ionItemReorder)="reorder($event,completeTodoList)">
                 <ng-container *ngFor="let list of completeTodoList">
                     <ng-container *ngIf="search$ | async as search">

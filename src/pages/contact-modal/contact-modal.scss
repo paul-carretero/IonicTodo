@@ -1,5 +1,15 @@
 page-contact-modal {
     ion-content {
-        background-color: lightgrey!important;
+        background-color: lightgrey !important;
+    }
+    .button-wrapper {
+        padding: 0;
+        background: none;
+        border: none;
+        box-shadow: none;
+    }
+    .button-icon {
+        position: absolute !important;
+        left: 10px !important;
     }
 }

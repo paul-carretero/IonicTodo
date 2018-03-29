@@ -4,22 +4,23 @@
 
 <ion-content padding>
   <ion-card>
-    <ion-card-header>
-      Vos Contacts Disponibles
-    </ion-card-header>
-
     <ion-list>
+      <ion-list-header color="dark">Vos contacts disponibles</ion-list-header>
       <ng-container *ngFor="let contact of fullContactList">
-        <button ion-item (click)="select(contact)">
+        <button ion-item (click)="select(contact)" *ngIf="!contact.isHeader">
           {{contact.displayName}}
           <ion-icon *ngIf="contact.mobile" name="phone-portrait" small></ion-icon>
           <ion-icon *ngIf="contact.email" name="mail" small></ion-icon>
           <ion-icon *ngIf="isSelected(contact)" name="checkmark" item-end></ion-icon>
         </button>
+        <ion-list-header *ngIf="contact.isHeader" color="light">{{contact.displayName}}</ion-list-header>
       </ng-container>
     </ion-list>
   </ion-card>
-  <ion-card padding>
-    <button ion-button full round (click)="dismiss()">Valider</button>
+  <ion-card class="button-wrapper">
+    <button ion-button block (click)="dismiss()">
+      <ion-icon name="checkmark" class="button-icon"></ion-icon>
+      Valider
+    </button>
   </ion-card>
 </ion-content>

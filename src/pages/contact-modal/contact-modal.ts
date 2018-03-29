@@ -26,14 +26,6 @@ import { Global } from './../../shared/global';
 })
 export class ContactModalPage extends GenericPage {
   /**************************** PRIVATE FIELDS ******************************/
-  /**
-   * vrai si un mobile est obligatoire
-   *
-   * @private
-   * @type {boolean}
-   * @memberof ContactModalPage
-   */
-  private readonly mobileRequired: boolean;
 
   /**
    * vrai si un email est obligatoire
@@ -96,11 +88,6 @@ export class ContactModalPage extends GenericPage {
     this.emailRequired = false;
     if (this.navParams.get('onlyEmail') != null) {
       this.emailRequired = this.navParams.get('onlyEmail');
-    }
-
-    this.mobileRequired = false;
-    if (this.navParams.get('onlyMobile') != null) {
-      this.mobileRequired = this.navParams.get('onlyMobile');
     }
 
     this.fullContactList = [];
@@ -167,7 +154,6 @@ export class ContactModalPage extends GenericPage {
    */
   private async initSelected(): Promise<void> {
     const contactList: ISelectableSimpleContact[] = await this.contactsCtrl.getContactList(
-      this.mobileRequired,
       this.emailRequired
     );
 
@@ -180,6 +166,35 @@ export class ContactModalPage extends GenericPage {
     }
 
     this.fullContactList = contactList;
+    this.headerize();
+  }
+
+  /**
+   * tri par ordre alphabétique et ajoute des header à la liste des contacts
+   *
+   * @private
+   * @memberof ContactModalPage
+   */
+  private headerize(): void {
+    if (this.fullContactList.length === 0) {
+      return;
+    }
+    this.fullContactList.sort(compare);
+
+    const listWithHeaders: ISimpleContact[] = [];
+    let lastFirstChar: string = '';
+    for (const contact of this.fullContactList) {
+      if (normalize(contact.displayName).charAt(0) !== lastFirstChar) {
+        lastFirstChar = normalize(contact.displayName).charAt(0);
+        const header: ISelectableSimpleContact = Global.getBlankContact();
+        header.displayName = lastFirstChar;
+        header.isSelected = false;
+        header.isHeader = true;
+        listWithHeaders.push(header);
+      }
+      listWithHeaders.push(contact);
+    }
+    this.fullContactList = listWithHeaders;
   }
 
   /**
@@ -236,4 +251,41 @@ export class ContactModalPage extends GenericPage {
  */
 export interface ISelectableSimpleContact extends ISimpleContact {
   isSelected?: boolean;
+  isHeader?: boolean;
+}
+
+/**
+ * permet de comparer deux ISimpleContact en fonction de leut nom affiché
+ *
+ * @param {ISimpleContact} a
+ * @param {ISimpleContact} b
+ * @returns {number} -1 si a est plus petit, 1 si b est plus petit, 0 si il sont égaux
+ */
+function compare(a: ISimpleContact, b: ISimpleContact): number {
+  const aname = normalize(a.displayName);
+  const bname = normalize(b.displayName);
+
+  if (aname < bname) {
+    return -1;
+  }
+  if (aname > bname) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
+ * fonction de normalisation, utilisé notament pour comparer deux chaines
+ *
+ * @param {(string | null)} str
+ * @returns {string}
+ */
+function normalize(str: string | null): string {
+  if (str == null) {
+    return '';
+  }
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
 }

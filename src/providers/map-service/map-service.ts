@@ -45,6 +45,7 @@ export class MapServiceProvider {
 
   /**
    * Creates an instance of MapServiceProvider.
+   * Active la haute précision
    * @param {NativeGeocoder} nativeGeocoder
    * @param {Geolocation} geolocCtrl
    * @memberof MapServiceProvider
@@ -52,7 +53,9 @@ export class MapServiceProvider {
   constructor(
     private readonly nativeGeocoder: NativeGeocoder,
     private readonly geolocCtrl: Geolocation
-  ) {}
+  ) {
+    this.getMyPosition();
+  }
 
   /**************************************************************************/
   /********************** METHODES PUBLIQUES/INTERFACE **********************/
@@ -136,7 +139,7 @@ export class MapServiceProvider {
     }
     try {
       const geoPos = await this.geolocCtrl.getCurrentPosition({
-        timeout: 6000,
+        timeout: 10000,
         enableHighAccuracy: true
       });
       this.myPosition = { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };

@@ -9,7 +9,7 @@ import { ISimpleContact } from './../../model/simple-contact';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { DBServiceProvider } from './../db/db-service';
 import { ITodoItem } from '../../model/todo-item';
-import { Contacts, Contact, IContactField } from '@ionic-native/contacts';
+import { Contacts, Contact } from '@ionic-native/contacts';
 import { CallNumber } from '@ionic-native/call-number';
 
 /**
@@ -196,15 +196,11 @@ export class ContactServiceProvider {
   /**
    * permet de récupérer tout les contact de l'appareil sous certaines options
    *
-   * @param {boolean} mobileRequired
    * @param {boolean} emailRequired
    * @returns {Promise<ISimpleContact[]>}
    * @memberof ContactServiceProvider
    */
-  public async getContactList(
-    mobileRequired: boolean,
-    emailRequired: boolean
-  ): Promise<ISimpleContact[]> {
+  public async getContactList(emailRequired: boolean): Promise<ISimpleContact[]> {
     const nativesContact = await this.contactsCtrl.find(
       ['displayName', 'emails', 'phoneNumbers'],
       {
@@ -215,7 +211,7 @@ export class ContactServiceProvider {
     const res: ISimpleContact[] = [];
 
     for (const contact of nativesContact) {
-      if (this.canAdd(contact, mobileRequired, emailRequired)) {
+      if (this.canAdd(contact, emailRequired)) {
         const id = await this.getHashID(contact.id);
 
         let email: string | null | undefined = null;
@@ -276,11 +272,15 @@ export class ContactServiceProvider {
    * @returns {void}
    * @memberof ContactServiceProvider
    */
-  public call(contact: ISimpleContact): void {
+  public async call(contact: ISimpleContact): Promise<void> {
     if (contact.mobile == null) {
       return;
     }
-    this.callCtrl.callNumber(contact.mobile, true);
+    if (await this.callCtrl.isCallSupported()) {
+      this.callCtrl.callNumber(contact.mobile, true);
+    } else {
+      this.uiCtrl.alert('Echec', 'Votre appareil ne supporte pas la gestion des appels');
+    }
   }
 
   /**
@@ -334,16 +334,8 @@ export class ContactServiceProvider {
    * @returns {boolean}
    * @memberof ContactServiceProvider
    */
-  private canAdd(contact: Contact, mobileRequired: boolean, emailRequired: boolean): boolean {
+  private canAdd(contact: Contact, emailRequired: boolean): boolean {
     if (emailRequired && (contact.emails == null || contact.emails.length === 0)) {
-      return false;
-    }
-
-    if (mobileRequired && contact.phoneNumbers == null) {
-      return false;
-    }
-
-    if (mobileRequired && !this.haveMobile(contact.phoneNumbers)) {
       return false;
     }
 
@@ -370,28 +362,6 @@ export class ContactServiceProvider {
       }
     }
     return null;
-  }
-
-  /**
-   * return true si le contact dispose d'au moins un mobile
-   *
-   * @private
-   * @param {IContactField[]} phones
-   * @returns {boolean}
-   * @memberof ContactModalPage
-   */
-  private haveMobile(phones: IContactField[]): boolean {
-    for (const phone of phones) {
-      if (
-        phone.type != null &&
-        phone.type === 'mobile' &&
-        phone.value != null &&
-        (phone.value.charAt(1) === '6' || phone.value.charAt(1) === '7')
-      ) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
