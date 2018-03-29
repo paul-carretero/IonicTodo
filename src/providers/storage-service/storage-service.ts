@@ -2,10 +2,27 @@ import { ITodoItem } from './../../model/todo-item';
 import { AngularFireStorage, AngularFireUploadTask } from 'angularfire2/storage';
 import { Injectable } from '@angular/core';
 
+/**
+ * fourni des services pour gérer les images d'un todo
+ *
+ * @export
+ * @class StorageServiceProvider
+ */
 @Injectable()
 export class StorageServiceProvider {
+  /**
+   * Creates an instance of StorageServiceProvider.
+   * @param {AngularFireStorage} storageCtrl
+   * @memberof StorageServiceProvider
+   */
   constructor(private readonly storageCtrl: AngularFireStorage) {}
 
+  /**
+   * supprime toutes les images d'un todo (si elle existent)
+   *
+   * @param {string} todoUuid
+   * @memberof StorageServiceProvider
+   */
   public deleteMedias(todoUuid: string) {
     try {
       const ref = this.storageCtrl.ref(todoUuid);
@@ -15,6 +32,13 @@ export class StorageServiceProvider {
     }
   }
 
+  /**
+   * supprime une image d'un todo
+   *
+   * @param {string} todoUuid
+   * @param {string} mediaUuid
+   * @memberof StorageServiceProvider
+   */
   public deleteMedia(todoUuid: string, mediaUuid: string): void {
     try {
       const path = '/' + todoUuid + '/' + mediaUuid;
@@ -25,6 +49,16 @@ export class StorageServiceProvider {
     }
   }
 
+  /**
+   * permet d'envoyer une image pour un todo
+   *
+   * @param {string} todoUuid
+   * @param {string} uuidMedia
+   * @param {string} base64data
+   * @param {('image/jpg' | 'image/png')} content
+   * @returns {AngularFireUploadTask}
+   * @memberof StorageServiceProvider
+   */
   public uploadMedia(
     todoUuid: string,
     uuidMedia: string,
@@ -36,6 +70,13 @@ export class StorageServiceProvider {
     return ref.putString(base64data, 'base64', { contentType: content });
   }
 
+  /**
+   * actualise les lien de téléchargement des images d'un todo
+   *
+   * @param {ITodoItem} todo
+   * @returns {void}
+   * @memberof StorageServiceProvider
+   */
   public refreshDownloadLink(todo: ITodoItem): void {
     if (todo == null || todo.uuid == null || todo.pictures.length === 0) {
       return;
@@ -50,35 +91,4 @@ export class StorageServiceProvider {
       });
     }
   }
-
-  /*
-    public async copyMedia(
-      todoUuidSrc: string,
-      todoUuidDest: string,
-      mediaUuid: string
-    ): Promise<void> {
-      const pathSrc = '/' + todoUuidSrc + '/' + mediaUuid;
-      const uuidDest = uuid();
-      const pathDest = '/' + todoUuidDest + '/' + uuidDest;
-      const refSrc = this.storageCtrl.ref(pathSrc);
-      const refDest = this.storageCtrl.ref(pathDest);
-      const obsUrl = refSrc.getDownloadURL();
-      const base64 = await this.getBase64FromURL(obsUrl);
-      return refDest.putString(base64, 'base64').then();
-    }
-
-    private getBase64FromURL(obsUrl: Observable<any>): Promise<string> {
-      return new Promise(resolve => {
-        const sub = obsUrl.subscribe((res: { downloadURL: string }) => {
-          const getSub = this.httpCtrl.get(res.downloadURL).subscribe((data: any) => {
-            console.log(data);
-            console.log(JSON.stringify(data));
-            getSub.unsubscribe();
-            resolve(data);
-          });
-          sub.unsubscribe();
-        });
-      });
-    }
-  */
 }

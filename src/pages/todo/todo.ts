@@ -1,8 +1,8 @@
-import { DBServiceProvider } from './../../providers/db/db-service';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { DocumentReference } from '@firebase/firestore-types';
 import { Calendar } from '@ionic-native/calendar';
 import {
+  Environment,
   GoogleMap,
   GoogleMapOptions,
   GoogleMaps,
@@ -20,6 +20,7 @@ import { IAuthor } from '../../model/author';
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
 import { IPageData } from '../../model/page-data';
+import { Settings } from '../../model/settings';
 import { ISimpleContact } from '../../model/simple-contact';
 import { ITodoItem } from '../../model/todo-item';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
@@ -28,12 +29,11 @@ import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ContactServiceProvider } from './../../providers/contact-service/contact-service';
+import { DBServiceProvider } from './../../providers/db/db-service';
 import { MapServiceProvider } from './../../providers/map-service/map-service';
 import { StorageServiceProvider } from './../../providers/storage-service/storage-service';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { Global } from './../../shared/global';
-import { Environment } from '@ionic-native/google-maps';
-import { Settings } from '../../model/settings';
 
 @IonicPage()
 @Component({
@@ -197,24 +197,6 @@ export class TodoPage extends GenericPage {
    */
   private mapLoaded: boolean;
 
-  /**
-   * interval JS pour la detection des changement de la page
-   *
-   * @private
-   * @type {*}
-   * @memberof TodoPage
-   */
-  private changeInterval: any;
-
-  /**
-   * timeoutJS a supprimer si la page est détruite trop vite
-   *
-   * @private
-   * @type {*}
-   * @memberof TodoPage
-   */
-  private changeTimeout: any;
-
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -246,7 +228,6 @@ export class TodoPage extends GenericPage {
     private readonly navParams: NavParams,
     private readonly todoCtrl: TodoServiceProvider,
     private readonly photoCtrl: PhotoViewer,
-    private readonly changeCtrl: ChangeDetectorRef,
     private readonly calendarCtrl: Calendar,
     private readonly contactCtrl: ContactServiceProvider,
     private readonly storageCtrl: StorageServiceProvider,
@@ -307,15 +288,7 @@ export class TodoPage extends GenericPage {
    * @memberof TodoPage
    */
   ionViewDidEnter(): void {
-    this.changeTimeout = setTimeout(() => {
-      this.changeCtrl.detach();
-      this.changeCtrl.detectChanges();
-      this.changeInterval = setInterval(() => {
-        this.changeCtrl.detectChanges();
-      }, 2000);
-    }, 500);
     this.askForCalendarPerms();
-
     Environment.setBackgroundColor('lightgrey');
   }
 
@@ -327,15 +300,6 @@ export class TodoPage extends GenericPage {
   ionViewWillLeave(): void {
     this.tryUnSub(this.todoSub);
     this.evtCtrl.setCurrentContext(null, null);
-
-    if (this.changeTimeout != null) {
-      clearTimeout(this.changeTimeout);
-    }
-
-    if (this.changeInterval != null) {
-      clearInterval(this.changeInterval);
-    }
-    this.changeCtrl.reattach();
   }
 
   /**

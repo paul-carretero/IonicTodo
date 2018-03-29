@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, reorderArray } from 'ionic-angular';
+import { IonicPage, NavController, reorderArray, ItemSliding } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 
@@ -313,13 +313,17 @@ export class HomePage extends GenericPage {
    * Permet de supprimer une liste avec son identifiant.
    * Supprime instantanément la liste du tableau afin de fluidifier l'affichage
    *
-   * @param {string} uuid
+   * @protected
+   * @param {ITodoList} liste une liste à supprimer
+   * @param {ITodoList[]} tab tableau dans lequel est la liste
+   * @param {ItemSliding} closable l'item sliding de la liste
+   * @returns {Promise<void>}
    * @memberof HomePage
    */
   protected async deleteTodoList(
     liste: ITodoList,
     tab: ITodoList[],
-    closable: { close(): void }
+    closable: ItemSliding
   ): Promise<void> {
     if (liste == null || tab == null || closable == null) {
       return;

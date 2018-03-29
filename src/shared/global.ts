@@ -151,6 +151,13 @@ export class Global {
   /******************************* CLOUD SHARE ******************************/
   /**************************************************************************/
 
+  /**
+   * retourne un chemin de liste vide
+   *
+   * @static
+   * @returns {ITodoListPath}
+   * @memberof Global
+   */
   public static getBlankListPath(): ITodoListPath {
     return {
       userUUID: null,
@@ -159,6 +166,13 @@ export class Global {
     };
   }
 
+  /**
+   * retourne un objet de partage cloud vide
+   *
+   * @static
+   * @returns {ICloudSharedList}
+   * @memberof Global
+   */
   public static getDefaultCloudShareData(): ICloudSharedList {
     return {
       list: Global.getBlankListPath(),
@@ -174,6 +188,13 @@ export class Global {
   /******************************** FALLBACK ********************************/
   /**************************************************************************/
 
+  /**
+   * retourne un objet de liste vide
+   *
+   * @static
+   * @returns {ITodoList}
+   * @memberof Global
+   */
   public static getBlankList(): ITodoList {
     return {
       uuid: null,
@@ -186,6 +207,13 @@ export class Global {
     };
   }
 
+  /**
+   * retourne un objet todo vide
+   *
+   * @static
+   * @returns {ITodoItem}
+   * @memberof Global
+   */
   public static getBlankTodo(): ITodoItem {
     return {
       uuid: null,
@@ -205,6 +233,13 @@ export class Global {
     };
   }
 
+  /**
+   * retourne des métadata vide pour une liste
+   *
+   * @static
+   * @returns {IListMetadata}
+   * @memberof Global
+   */
   public static getBlankMetaData(): IListMetadata {
     return {
       todoComplete: 0,
@@ -217,11 +252,28 @@ export class Global {
   /********************************* HELPER *********************************/
   /**************************************************************************/
 
+  /**
+   * permet d'arrondire un float avec une précision donnée
+   *
+   * @static
+   * @param {number} number
+   * @param {number} precision
+   * @returns {number}
+   * @memberof Global
+   */
   public static precisionRound(number: number, precision: number): number {
     const factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
   }
 
+  /**
+   * arrondi les coordonné d'un ILatLng
+   *
+   * @static
+   * @param {ILatLng} pos
+   * @returns {ILatLng}
+   * @memberof Global
+   */
   public static roundILatLng(pos: ILatLng): ILatLng {
     return {
       lat: Global.precisionRound(pos.lat, 3),
@@ -229,10 +281,26 @@ export class Global {
     };
   }
 
+  /**
+   * converti un ILatLng en geopoint
+   *
+   * @static
+   * @param {ILatLng} p
+   * @returns {firebase.firestore.GeoPoint}
+   * @memberof Global
+   */
   public static getGeoPoint(p: ILatLng): firebase.firestore.GeoPoint {
     return new firebase.firestore.GeoPoint(p.lat, p.lng);
   }
 
+  /**
+   * converti un geopoint en ILatLng
+   *
+   * @static
+   * @param {firebase.firestore.GeoPoint} p
+   * @returns {ILatLng}
+   * @memberof Global
+   */
   public static getILatLng(p: firebase.firestore.GeoPoint): ILatLng {
     return { lat: p.latitude, lng: p.longitude };
   }

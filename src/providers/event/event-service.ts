@@ -144,6 +144,12 @@ export class EventServiceProvider {
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
 
+  /**
+   * permet de mettre à jour le sujet de connexion en cas de changement de status de la connexion réseau
+   *
+   * @private
+   * @memberof EventServiceProvider
+   */
   private listenForNetworkChange(): void {
     this.netCtrl.onConnect().subscribe(() => {
       if (!this.netSubject.getValue()) {

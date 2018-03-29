@@ -394,7 +394,7 @@ export class ListEditPage extends GenericPage {
     } else {
       this.uiCtrl.alert(
         'Opération Impossible',
-        "Veuillez vérifier d'avoir renseignée toutes les données"
+        "Veuillez vérifier d'avoir renseigné toutes les données"
       );
     }
   }

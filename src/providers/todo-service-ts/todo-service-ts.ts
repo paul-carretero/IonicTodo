@@ -1549,8 +1549,7 @@ export class TodoServiceProvider {
     for (const item of items) {
       if (item.complete) {
         completed++;
-      }
-      if (item.deadline != null && item.deadline.getTime() < now) {
+      } else if (item.deadline != null && item.deadline.getTime() < now) {
         oneLate = true;
       }
     }
@@ -1619,6 +1618,13 @@ export class TodoServiceProvider {
   /************************* TODO SNAPSHOT SERVICE **************************/
   /**************************************************************************/
 
+  /**
+   * supprime les todo n'ayant plus de liste associées
+   *
+   * @private
+   * @param {string} todoUuid
+   * @memberof TodoServiceProvider
+   */
   private cleanUpTodoSnap(todoUuid: string): void {
     const i = this.lastAllTodosSnapshot.findIndex(
       s => s.uuid === todoUuid && (s.listUuids == null || s.listUuids.length === 0)
@@ -1628,6 +1634,15 @@ export class TodoServiceProvider {
     }
   }
 
+  /**
+   * supprime des snapshot des todo un todo, si un uuid de liste est fourni, supprime seulement l'entrée de cette liste dans la snapshot de ce todo
+   *
+   * @private
+   * @param {string} todoUuid
+   * @param {string} [listUuid]
+   * @returns {void}
+   * @memberof TodoServiceProvider
+   */
   private deleteTodoSnap(todoUuid: string, listUuid?: string): void {
     if (listUuid == null) {
       const snapIndex = this.lastAllTodosSnapshot.findIndex(s => s.uuid === todoUuid);
@@ -1648,6 +1663,14 @@ export class TodoServiceProvider {
     }
   }
 
+  /**
+   * ajoute dans la liste des snapshot de todo un todo si il n'existe pas déjà est une liste le contenant
+   *
+   * @private
+   * @param {ITodoItem} todo
+   * @param {string} [listUuid]
+   * @memberof TodoServiceProvider
+   */
   private addTodoSnap(todo: ITodoItem, listUuid?: string): void {
     const existSnapIndex = this.lastAllTodosSnapshot.findIndex(s => s.uuid === todo.uuid);
     let listUuids: string[] = [];

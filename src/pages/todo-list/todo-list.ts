@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { DocumentReference } from '@firebase/firestore-types';
 import { IonicPage, NavController, NavParams, reorderArray } from 'ionic-angular';
 import { Subscription } from 'rxjs';
@@ -20,6 +20,7 @@ import { ITodoItem } from './../../model/todo-item';
 import { ITodoList, ListType } from './../../model/todo-list';
 import { CloudServiceProvider } from './../../providers/cloud-service/cloud-service';
 import { Global } from './../../shared/global';
+import { ItemSliding } from 'ionic-angular/components/item/item-sliding';
 
 @IonicPage()
 @Component({
@@ -93,24 +94,6 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   private exportedSub: Subscription;
-
-  /**
-   * interval JS pour la detection des changement de la page
-   *
-   * @private
-   * @type {*}
-   * @memberof TodoListPage
-   */
-  private changeInterval: any;
-
-  /**
-   * timeoutJS a supprimer si la page est détruite trop vite
-   *
-   * @private
-   * @type {*}
-   * @memberof TodoListPage
-   */
-  private changeTimeout: any;
 
   /***************************** PUBLIC FIELDS ******************************/
 
@@ -196,8 +179,7 @@ export class TodoListPage extends GenericPage {
     private readonly todoService: TodoServiceProvider,
     private readonly navParams: NavParams,
     private readonly settingCtrl: DBServiceProvider,
-    private readonly cloudCtrl: CloudServiceProvider,
-    private readonly changeCtrl: ChangeDetectorRef
+    private readonly cloudCtrl: CloudServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -245,14 +227,6 @@ export class TodoListPage extends GenericPage {
    */
   ionViewDidEnter(): void {
     this.evtCtrl.setCurrentContext(null, this.listUUID);
-
-    this.changeTimeout = setTimeout(() => {
-      this.changeCtrl.detach();
-      this.changeCtrl.detectChanges();
-      this.changeInterval = setInterval(() => {
-        this.changeCtrl.detectChanges();
-      }, 250);
-    }, 250);
   }
 
   /**
@@ -270,15 +244,6 @@ export class TodoListPage extends GenericPage {
     this.tryUnSub(this.todoSub);
     this.tryUnSub(this.completedSub);
     this.evtCtrl.setCurrentContext(null, null);
-
-    if (this.changeTimeout != null) {
-      clearTimeout(this.changeTimeout);
-    }
-
-    if (this.changeInterval != null) {
-      clearInterval(this.changeInterval);
-    }
-    this.changeCtrl.reattach();
   }
 
   /**************************************************************************/
@@ -535,8 +500,10 @@ export class TodoListPage extends GenericPage {
    * Permet de supprimer ou de "délié" un todo de la liste
    *
    * @protected
-   * @param {DocumentReference} todoRef
+   * @param {ITodoItem} todo
    * @param {boolean} ext
+   * @param {ITodoItem[]} tableau
+   * @param {ItemSliding} closable
    * @returns {Promise<void>}
    * @memberof TodoListPage
    */
@@ -544,7 +511,7 @@ export class TodoListPage extends GenericPage {
     todo: ITodoItem,
     ext: boolean,
     tableau: ITodoItem[],
-    closable: { close(): void }
+    closable: ItemSliding
   ): Promise<void> {
     if (todo == null || todo.ref == null || todo.uuid == null) {
       return;
@@ -568,7 +535,6 @@ export class TodoListPage extends GenericPage {
         this.todoService.deleteTodo(todo.ref, todo.uuid);
       }
     }
-
     closable.close();
   }
 

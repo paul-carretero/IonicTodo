@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DocumentReference } from '@firebase/firestore-types';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
@@ -35,45 +35,101 @@ import { Observable } from 'rxjs/Observable';
 export class TodoEditPage extends GenericPage {
   /***************************** PUBLIC FIELDS ******************************/
 
+  /**
+   * le todo à éditer
+   *
+   * @protected
+   * @type {ITodoItem}
+   * @memberof TodoEditPage
+   */
   protected todo: ITodoItem;
 
+  /**
+   * le forumlaire de contrôle
+   *
+   * @protected
+   * @type {FormGroup}
+   * @memberof TodoEditPage
+   */
   protected todoForm: FormGroup;
 
+  /**
+   * true si la page est dans le moddal de contact pour les evt
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof TodoEditPage
+   */
   protected isInModdal: boolean = false;
 
+  /**
+   * true si l'on est en train d'envoyer un fichier
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof TodoEditPage
+   */
   protected uploading: boolean = false;
 
+  /**
+   * observable du status de la connexion réseau
+   *
+   * @protected
+   * @type {Observable<boolean>}
+   * @memberof TodoEditPage
+   */
   protected netStatus$: Observable<boolean>;
 
   /**************************** PRIVATE FIELDS ******************************/
 
+  /**
+   * référence non null vers un todo à éditer, ou null si il s'agit d'une création
+   *
+   * @private
+   * @type {(DocumentReference | null)}
+   * @memberof TodoEditPage
+   */
   private readonly todoRef: DocumentReference | null;
 
+  /**
+   * uuid de la liste d'où provient le todo
+   *
+   * @private
+   * @type {(string | null)}
+   * @memberof TodoEditPage
+   */
   private readonly listUuid: string | null;
 
+  /**
+   * options pour la caméra pour ajouter des photos
+   *
+   * @private
+   * @type {CameraOptions}
+   * @memberof TodoEditPage
+   */
   private readonly cameraOpts: CameraOptions;
 
+  /**
+   * false si certaines photo n'ont pas été synchronisé avec la liste des photo présente sur le cloud
+   *
+   * @private
+   * @type {boolean}
+   * @memberof TodoEditPage
+   */
   private imgCacheClean: boolean = true;
 
+  /**
+   * author en train d'éditer ce todo
+   *
+   * @private
+   * @type {IAuthor}
+   * @memberof TodoEditPage
+   */
   private curAuthor: IAuthor;
 
-  /**
-   * interval JS pour la detection des changement de la page
-   *
-   * @private
-   * @type {*}
-   * @memberof TodoEditPage
-   */
-  private changeInterval: any;
-
-  /**
-   * timeoutJS a supprimer si la page est détruite trop vite
-   *
-   * @private
-   * @type {*}
-   * @memberof TodoEditPage
-   */
-  private changeTimeout: any;
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
 
   /**
    * Creates an instance of TodoEditPage.
@@ -92,7 +148,6 @@ export class TodoEditPage extends GenericPage {
    * @param {AndroidPermissions} permsCtrl
    * @param {StorageServiceProvider} storageCtrl
    * @param {Camera} cameraCtrl
-   * @param {ChangeDetectorRef} changeCtrl
    * @memberof TodoEditPage
    */
   constructor(
@@ -110,8 +165,7 @@ export class TodoEditPage extends GenericPage {
     private readonly fileCtrl: File,
     private readonly permsCtrl: AndroidPermissions,
     private readonly storageCtrl: StorageServiceProvider,
-    private readonly cameraCtrl: Camera,
-    private readonly changeCtrl: ChangeDetectorRef
+    private readonly cameraCtrl: Camera
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
 
@@ -169,37 +223,11 @@ export class TodoEditPage extends GenericPage {
     });
   }
 
-  /**
-   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
-   * pour n'effectuer une detection des changemenents que toutes les 2s.
-   * Attends quand même 0.5 seconde avant de le faire pour laisser l'initialisation normal se faire...
-   *
-   * @memberof TodoPage
-   */
-  ionViewDidEnter(): void {
-    this.changeTimeout = setTimeout(() => {
-      this.changeCtrl.detach();
-      this.changeCtrl.detectChanges();
-      this.changeInterval = setInterval(() => {
-        this.changeCtrl.detectChanges();
-      }, 250);
-    }, 250);
-  }
-
   ionViewWillLeave(): void {
     this.todoService.unsubDeleteSubject();
     if (!this.imgCacheClean) {
       this.todoService.updateTodoPictures(this.todo);
     }
-
-    if (this.changeTimeout != null) {
-      clearTimeout(this.changeTimeout);
-    }
-
-    if (this.changeInterval != null) {
-      clearInterval(this.changeInterval);
-    }
-    this.changeCtrl.reattach();
   }
 
   protected menuEventHandler(req: IMenuRequest): void {

@@ -5,8 +5,26 @@ import { ITodoListPath } from './../../model/todo-list-path';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../ui-service/ui-service';
 
+/**
+ * observe si un partage de liste par nfc est disponible et fourni des méthodes pour partager des objet (liste) par nfc
+ *
+ * @export
+ * @class NfcProvider
+ */
 @Injectable()
 export class NfcProvider {
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of NfcProvider.
+   * @param {NFC} nfc
+   * @param {Ndef} ndef
+   * @param {TodoServiceProvider} todoCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @memberof NfcProvider
+   */
   constructor(
     private readonly nfc: NFC,
     private readonly ndef: Ndef,
@@ -14,11 +32,17 @@ export class NfcProvider {
     private readonly uiCtrl: UiServiceProvider
   ) {}
 
-  public listenForEvents(): void {
-    this.listenToTag();
-  }
+  /**************************************************************************/
+  /********************** METHODES PUBLIQUES/INTERFACE **********************/
+  /**************************************************************************/
 
-  private listenToTag(): void {
+  /**
+   * écoute les tag nfc NDEF et si un tag est disponible avec une liste
+   *
+   * @public
+   * @memberof NfcProvider
+   */
+  public listenForEvents(): void {
     this.nfc
       .addNdefListener(
         () => {
@@ -36,14 +60,56 @@ export class NfcProvider {
         const tagContent = this.nfc.bytesToString(payload).substring(3);
         console.log('tag data', tagContent);
         try {
-          const json = JSON.parse(tagContent);
-          this.publishJson(json);
+          const json: ITodoListPath = JSON.parse(tagContent);
+          if (json.listUUID != null && json.userUUID != null) {
+            this.publishJson(json);
+          } else {
+            this.uiCtrl.displayToast('Tag détecté mais contenu illisible');
+          }
         } catch (error) {
           console.log('Tag détecté mais contenu illisible ( ' + tagContent + ' )');
         }
       });
   }
 
+  /**
+   * permet de partager en p2p nfc une liste
+   *
+   * @public
+   * @param {string} json
+   * @returns {Promise<void>}
+   * @memberof NfcProvider
+   */
+  public async share(json: string): Promise<void> {
+    const message = this.ndef.textRecord(json, 'en', '42');
+    await this.nfc.share([message]);
+  }
+
+  /**
+   * permet d'écrire un chemin de partage de liste sur un tag nfc
+   *
+   * @public
+   * @param {string} json
+   * @returns {Promise<void>}
+   * @memberof NfcProvider
+   */
+  public async write(json: string): Promise<void> {
+    const message = this.ndef.textRecord(json, 'en', '42');
+    await this.nfc.write([message]);
+  }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * permet de publier au todoservice un chemin vers une liste partagé
+   *
+   * @private
+   * @param {ITodoListPath} json
+   * @returns {Promise<void>}
+   * @memberof NfcProvider
+   */
   private async publishJson(json: ITodoListPath): Promise<void> {
     if (json == null) {
       return;
@@ -65,20 +131,4 @@ export class NfcProvider {
       this.uiCtrl.displayToast('La liste a été importer avec succès');
     }
   }
-
-  public async share(json: string): Promise<void> {
-    const message = this.ndef.textRecord(json, 'en', '42');
-    await this.nfc.share([message]);
-  }
-
-  public async write(json: string): Promise<void> {
-    const message = this.ndef.textRecord(json, 'en', '42');
-    await this.nfc.write([message]);
-  }
 }
-
-/*this.nfc
-  .share([message])
-  .then((res: any) => console.log('share success => ' + JSON.stringify(res)))
-  .catch((res: any) => console.log('share fail => ' + JSON.stringify(res)));
-  */

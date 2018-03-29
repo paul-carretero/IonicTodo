@@ -31,13 +31,28 @@ export class UiServiceProvider {
    */
   private loading: Loading;
 
+  /**
+   * true si l'on doit lire automatiquement les alert, false sinon
+   *
+   * @private
+   * @type {boolean}
+   * @memberof UiServiceProvider
+   */
   private autoRead: boolean;
+
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
 
   /**
    * Creates an instance of UiServiceProvider.
    * @param {AlertController} alertCtrl
    * @param {LoadingController} loadingCtrl
    * @param {ToastController} toastCtrl
+   * @param {SpeechSynthServiceProvider} synthCtrl
+   * @param {DBServiceProvider} dbCtrl
+   * @param {MapServiceProvider} mapCtrl
+   * @param {EventServiceProvider} evtCtrl
    * @memberof UiServiceProvider
    */
   constructor(
@@ -53,6 +68,10 @@ export class UiServiceProvider {
     this.mapCtrl.registerUiCtrl(this);
     this.evtCtrl.registerUiCtrl(this);
   }
+
+  /**************************************************************************/
+  /********************** METHODES PUBLIQUES/INTERFACE **********************/
+  /**************************************************************************/
 
   public async refreshAutoRead(): Promise<void> {
     this.autoRead = await this.dbCtrl.getSetting(Settings.AUTO_READ_ALERT);

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { IonicPage, NavController } from 'ionic-angular';
 import { Observable } from 'rxjs';
 
@@ -34,26 +34,6 @@ export class CloudSpacePage extends GenericPage {
    */
   protected readonly search$: Observable<string>;
 
-  /**************************** PRIVATE FIELDS ******************************/
-
-  /**
-   * interval JS pour la detection des changement de la page
-   *
-   * @private
-   * @type {*}
-   * @memberof CloudSpacePage
-   */
-  private changeInterval: any;
-
-  /**
-   * timeoutJS a supprimer si la page est détruite trop vite
-   *
-   * @private
-   * @type {*}
-   * @memberof CloudSpacePage
-   */
-  private changeTimeout: any;
-
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -75,8 +55,7 @@ export class CloudSpacePage extends GenericPage {
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
-    private readonly cloudCtrl: CloudServiceProvider,
-    private readonly changeCtrl: ChangeDetectorRef
+    private readonly cloudCtrl: CloudServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.cloudList$ = this.cloudCtrl.getCloudLists();
@@ -100,38 +79,6 @@ export class CloudSpacePage extends GenericPage {
     pageData.searchable = true;
     pageData.searchPlaceholders = 'chercher par liste ou auteur';
     this.evtCtrl.setHeader(pageData);
-  }
-
-  /**
-   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
-   * pour n'effectuer une detection des changemenents que toutes les 3s.
-   *
-   * @memberof CloudSpacePage
-   */
-  ionViewDidEnter(): void {
-    this.changeTimeout = setTimeout(() => {
-      this.changeCtrl.detach();
-      this.changeCtrl.detectChanges();
-      this.changeInterval = setInterval(() => {
-        this.changeCtrl.detectChanges();
-      }, 2000);
-    }, 500);
-  }
-
-  /**
-   * réinitialise le détecteur de changement en mode normal et termine le contexte du todo
-   *
-   * @memberof CloudSpacePage
-   */
-  ionViewWillLeave(): void {
-    if (this.changeTimeout != null) {
-      clearTimeout(this.changeTimeout);
-    }
-
-    if (this.changeInterval != null) {
-      clearInterval(this.changeInterval);
-    }
-    this.changeCtrl.reattach();
   }
 
   /**************************************************************************/
