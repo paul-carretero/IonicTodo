@@ -81,7 +81,8 @@
     "cordova-plugin-geolocation": "^4.0.1",
     "cordova-plugin-googlemaps": "^2.2.9",
     "cordova-plugin-googleplus": "^5.2.2",
-    "cordova-plugin-image-picker": "git+https://github.com/shaik305/cordova-plugin-image-picker.git",
+    "cordova-plugin-image-picker":
+      "git+https://github.com/shaik305/cordova-plugin-image-picker.git",
     "cordova-plugin-ionic-keyboard": "^2.0.5",
     "cordova-plugin-ionic-webview": "^1.1.16",
     "cordova-plugin-local-notification": "^0.9.0-beta.3",
@@ -100,7 +101,7 @@
     "cordova-sms-plugin": "^0.1.11",
     "cordova-sqlite-storage": "^2.3.0",
     "es6-promise-plugin": "^4.2.2",
-    "firebase": "^4.12.0",
+    "firebase": "4.12.0",
     "ionic-angular": "3.9.2",
     "ionic-plugin-keyboard": "^2.2.1",
     "ionicons": "3.0.0",
@@ -123,7 +124,8 @@
   "cordova": {
     "plugins": {
       "cordova-plugin-googleplus": {
-        "REVERSED_CLIENT_ID": "60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com"
+        "REVERSED_CLIENT_ID":
+          "60257779658-ogibe62co4t6onghttkq6onhe8fb8d7c.apps.googleusercontent.com"
       },
       "cordova-plugin-whitelist": {},
       "cordova-plugin-device": {},
@@ -167,13 +169,10 @@
       "cordova-plugin-googlemaps": {
         "API_KEY_FOR_ANDROID": "AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE",
         "API_KEY_FOR_IOS": "AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE",
-        "PLAY_SERVICES_VERSION": "11.8.0",
+        "PLAY_SERVICES_VERSION": "12.0.1",
         "ANDROID_SUPPORT_V4_VERSION": "24.1.0"
       }
     },
-    "platforms": [
-      "browser",
-      "android"
-    ]
+    "platforms": ["browser", "android"]
   }
 }

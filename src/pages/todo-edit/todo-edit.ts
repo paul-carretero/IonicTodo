@@ -134,6 +134,7 @@ export class TodoEditPage extends GenericPage {
 
   /**
    * Creates an instance of TodoEditPage.
+   * Défini également les options
    * @param {NavController} navCtrl
    * @param {EventServiceProvider} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
@@ -201,6 +202,13 @@ export class TodoEditPage extends GenericPage {
   /**************************** LIFECYCLE EVENTS ****************************/
   /**************************************************************************/
 
+  /**
+   * Initialise la page d'édition, prépare le header,
+   * récupère un nouveau todo et lui attribu un uuid si on est dans une création,
+   * Défini également un autheur (en cache pour accélérer la création des images & validation)
+   *
+   * @memberof TodoEditPage
+   */
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     const header = Global.getValidablePageData();
@@ -224,13 +232,32 @@ export class TodoEditPage extends GenericPage {
     });
   }
 
+  /**
+   * termine les subscriptions
+   * et supprime les images non validé d'un todo en création ou les ajoute à un todo en édition
+   *
+   * @memberof TodoEditPage
+   */
   ionViewWillLeave(): void {
     this.todoService.unsubDeleteSubject();
-    if (!this.imgCacheClean) {
+    if (!this.imgCacheClean && !this.isInCreation) {
       this.todoService.updateTodoPictures(this.todo);
+    } else if (!this.imgCacheClean && this.isInCreation && this.todo.uuid != null) {
+      this.storageCtrl.deleteMedias(this.todo.uuid);
     }
   }
 
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
+
+  /**
+   * @override
+   * @protected
+   * @param {IMenuRequest} req
+   * @returns {void}
+   * @memberof TodoEditPage
+   */
   protected menuEventHandler(req: IMenuRequest): void {
     if (this.isInModdal) {
       return;
@@ -242,17 +269,19 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
-  get isInCreation(): boolean {
-    return this.todoRef == null;
-  }
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
 
-  get submitText(): string {
-    if (this.isInCreation) {
-      return 'Créer une nouvelle tâche';
-    }
-    return 'Mettre à jour cette tâche';
-  }
-
+  /**
+   * initialise le header de la page
+   * si il s'agit d'une édition, met les valeurs correspondante au todo existant dans le formulaire
+   *
+   * @private
+   * @param {IPageData} header
+   * @returns {Promise<void>}
+   * @memberof TodoEditPage
+   */
   private async initPageForEdit(header: IPageData): Promise<void> {
     if (this.todoRef == null) {
       return;
@@ -279,6 +308,14 @@ export class TodoEditPage extends GenericPage {
     });
   }
 
+  /**
+   * méthode permettant de créer un nouveau todo et affiche un loader le temps qu'il soit créé
+   * informe le todoservice que l'uuid a déjà été généré
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoEditPage
+   */
   private async defNewTodo(): Promise<void> {
     if (this.listUuid == null) {
       return;
@@ -295,6 +332,13 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
+  /**
+   * méthode permettant de mettre à jour le todo et affiche un loader le temps qu'il soit mis à jour
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoEditPage
+   */
   private async editTodo(): Promise<void> {
     if (this.todoRef == null) {
       return;
@@ -305,12 +349,134 @@ export class TodoEditPage extends GenericPage {
     this.navCtrl.pop();
   }
 
+  /**
+   * permet d'envoyer une image en base 64 vers firebase storage
+   * met également à jour la progression lors de l'envoie dans l'objet pic associé à cette image
+   *
+   * @private
+   * @param {string} base64Pic
+   * @param {string} uuidPic
+   * @param {('image/jpg' | 'image/png')} content
+   * @returns {void}
+   * @memberof TodoEditPage
+   */
+  private uploadImage(
+    base64Pic: string,
+    uuidPic: string,
+    content: 'image/jpg' | 'image/png'
+  ): void {
+    if (this.todo.uuid == null) {
+      return;
+    }
+    const upload = this.storageCtrl.uploadMedia(this.todo.uuid, uuidPic, base64Pic, content);
+
+    upload.percentageChanges().subscribe((n: number) => {
+      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
+      if (entry == null) {
+        this.todo.pictures.push({ uuid: uuidPic, dl: n, url: null, name: null, author: null });
+      } else {
+        entry.dl = n;
+      }
+    });
+
+    upload.then().then((res: { downloadURL: string }) => {
+      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
+      if (entry == null) {
+        this.todo.pictures.push({
+          uuid: uuidPic,
+          url: res.downloadURL,
+          dl: 100,
+          name: null,
+          author: null
+        });
+      } else {
+        entry.url = res.downloadURL;
+      }
+    });
+  }
+
+  /**
+   * parcour un tableau d'uri d'image (sur le stockage interne)
+   * converti ces images en base64 puis les supprime du stockage interne
+   * envoie ensuite ces images vers l'uploader d'image
+   *
+   * @private
+   * @param {string[]} URIs
+   * @param {(IAuthor | null)} author
+   * @returns {Promise<void>}
+   * @memberof TodoEditPage
+   */
+  private async imgResultHandler(URIs: string[], author: IAuthor | null): Promise<void> {
+    this.imgCacheClean = false;
+    const prepareUploadedPics: { uuid: string; url: string | null; dl: number }[] = [];
+    this.uploading = true;
+
+    for (const uri of URIs) {
+      const uriTab = uri.split('/');
+      const name = uriTab[uriTab.length - 1].substring(4, 20);
+      const entry: IPicture = { uuid: uuid(), dl: 0, url: null, author: author, name: name };
+      prepareUploadedPics.push(entry);
+      this.todo.pictures.push(entry);
+    }
+
+    for (const uri of URIs) {
+      const entry = prepareUploadedPics.pop();
+      if (entry == null) {
+        return;
+      }
+      let content: 'image/png' | 'image/jpg' = 'image/jpg';
+      if (uri.toUpperCase().includes('.PNG')) {
+        content = 'image/png';
+      }
+
+      const base64_full = await this.base64Ctrl.encodeFile(uri);
+      const base64_split = base64_full.split(',');
+      const base64 = base64_split[base64_split.length - 1];
+      this.uploadImage(base64, entry.uuid, content);
+      this.fileCtrl
+        .resolveLocalFilesystemUrl(uri)
+        .then(f => f.remove(() => {}, () => console.log('suppression PAS OK :/')));
+    }
+
+    this.uploading = false;
+  }
+
+  /**
+   * vérifie et si besoin demande les autorisation pour lire et écrire
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoEditPage
+   */
+  private async requestPerms(): Promise<void> {
+    try {
+      await this.permsCtrl.checkPermission(this.permsCtrl.PERMISSION.READ_EXTERNAL_STORAGE);
+      await this.permsCtrl.checkPermission(this.permsCtrl.PERMISSION.WRITE_EXTERNAL_STORAGE);
+    } catch (error) {
+      this.permsCtrl.requestPermissions([
+        this.permsCtrl.PERMISSION.READ_EXTERNAL_STORAGE,
+        this.permsCtrl.PERMISSION.WRITE_EXTERNAL_STORAGE
+      ]);
+    }
+  }
+
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * méthode permettant de valider le formulaire et de créer ou mettre à jour en fonction du contexte le todo
+   *
+   * @protected
+   * @returns {void}
+   * @memberof TodoEditPage
+   */
   protected validate(): void {
     if (!this.todoForm.valid || this.uploading) {
       this.uiCtrl.displayToast('Opération impossible, veuillez vérifier le formulaire');
       return;
     }
-
+    this.imgCacheClean = true;
     const name = this.todoForm.get('name');
     const desc = this.todoForm.get('desc');
     const address = this.todoForm.get('address');
@@ -331,6 +497,16 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
+  /**
+   * ouvre le popup natif de selection de datetime
+   * En fonction du flag défini la datetime pour la deadline ou pour la datetime de notification
+   * si l'utilisateur clique sur annuler alors la promise est rejeté et la date en question est supprimé (def à null)
+   *
+   * @protected
+   * @param {boolean} deadline
+   * @returns {Promise<void>}
+   * @memberof TodoEditPage
+   */
   protected async selectDate(deadline: boolean): Promise<void> {
     let title: string;
     let date: Date = new Date();
@@ -369,29 +545,16 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
-  get deadlineStr(): string {
-    if (this.todo.deadline == null) {
-      return 'Non définie';
-    }
-    return moment(this.todo.deadline)
-      .locale('fr')
-      .format('ddd D MMM YYYY, HH:mm');
-  }
-
-  get notifStr(): string {
-    if (this.todo.notif == null) {
-      return 'Non définie';
-    }
-    return moment(this.todo.notif)
-      .locale('fr')
-      .format('ddd D MMM YYYY, HH:mm');
-  }
-
+  /**
+   * ouvre la page modal de selection de contact, avec la liste des contacts du todo en arguments
+   *
+   * @protected
+   * @memberof TodoEditPage
+   */
   protected openContactPopup(): void {
     this.isInModdal = true;
     const contactModal = this.modalCtrl.create('ContactModalPage', {
-      contacts: this.todo.contacts,
-      onlyMobile: true
+      contacts: this.todo.contacts
     });
     contactModal.present();
     contactModal.onDidDismiss(() => {
@@ -399,6 +562,13 @@ export class TodoEditPage extends GenericPage {
     });
   }
 
+  /**
+   * supprime un contact de la liste des contacts du todo
+   *
+   * @protected
+   * @param {ISimpleContact} contact
+   * @memberof TodoEditPage
+   */
   protected deleteContact(contact: ISimpleContact): void {
     const index = this.todo.contacts.findIndex(c => c.id === contact.id);
     if (index !== -1) {
@@ -406,120 +576,26 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
-  private async imgResultHandler(URIs: string[], author: IAuthor | null): Promise<void> {
-    this.imgCacheClean = false;
-    const prepareUploadedPics: { uuid: string; url: string | null; dl: number }[] = [];
-    this.uploading = true;
-
-    for (const uri of URIs) {
-      const uriTab = uri.split('/');
-      const name = uriTab[uriTab.length - 1].substring(4, 20);
-      const entry: IPicture = { uuid: uuid(), dl: 0, url: null, author: author, name: name };
-      prepareUploadedPics.push(entry);
-      this.todo.pictures.push(entry);
-    }
-
-    for (const uri of URIs) {
-      const entry = prepareUploadedPics.pop();
-      if (entry == null) {
-        return;
-      }
-      let content: 'image/png' | 'image/jpg' = 'image/jpg';
-      if (uri.toUpperCase().includes('.PNG')) {
-        content = 'image/png';
-      }
-
-      const base64_full = await this.base64Ctrl.encodeFile(uri);
-      const base64_split = base64_full.split(',');
-      const base64 = base64_split[base64_split.length - 1];
-      this.uploadImage(base64, entry.uuid, content);
-      this.fileCtrl
-        .resolveLocalFilesystemUrl(uri)
-        .then(f => f.remove(() => {}, () => console.log('suppression PAS OK :/')));
-    }
-
-    this.uploading = false;
-  }
-
-  private async requestPerms(): Promise<void> {
-    try {
-      await this.permsCtrl.checkPermission(this.permsCtrl.PERMISSION.READ_EXTERNAL_STORAGE);
-      await this.permsCtrl.checkPermission(this.permsCtrl.PERMISSION.WRITE_EXTERNAL_STORAGE);
-    } catch (error) {
-      this.permsCtrl.requestPermissions([
-        this.permsCtrl.PERMISSION.READ_EXTERNAL_STORAGE,
-        this.permsCtrl.PERMISSION.WRITE_EXTERNAL_STORAGE
-      ]);
-    }
-  }
-
-  protected openGalleryWrapper(): void {
-    this.requestPerms();
-    (<any>window).imagePicker.getPictures(
-      (res: string[]) => {
-        this.imgResultHandler(res, null);
-      },
-      (error: any) => {
-        console.log('Erreur dans ImagePicker: ' + error);
-      },
-      {
-        maximumImagesCount: 10,
-        width: 800
-      }
-    );
-  }
-
-  protected deleteUploadedPic(uuidPic: string): void {
-    if (this.todo.uuid === null) {
-      return;
-    }
-    this.imgCacheClean = false;
-    this.storageCtrl.deleteMedia(this.todo.uuid, uuidPic);
-    const i = this.todo.pictures.findIndex(u => u.uuid === uuidPic);
-    if (i !== -1) {
-      this.todo.pictures.splice(i, 1);
-    }
-  }
-
-  private uploadImage(
-    base64Pic: string,
-    uuidPic: string,
-    content: 'image/jpg' | 'image/png'
-  ): void {
-    if (this.todo.uuid == null) {
-      return;
-    }
-    const upload = this.storageCtrl.uploadMedia(this.todo.uuid, uuidPic, base64Pic, content);
-
-    upload.percentageChanges().subscribe((n: number) => {
-      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
-      if (entry == null) {
-        this.todo.pictures.push({ uuid: uuidPic, dl: n, url: null, name: null, author: null });
-      } else {
-        entry.dl = n;
-      }
-    });
-
-    upload.then().then((res: { downloadURL: string }) => {
-      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
-      if (entry == null) {
-        this.todo.pictures.push({
-          uuid: uuidPic,
-          url: res.downloadURL,
-          dl: 100,
-          name: null,
-          author: null
-        });
-      } else {
-        entry.url = res.downloadURL;
-      }
-    });
-  }
-
+  /**
+   * met à jour le nom d'une photo
+   *
+   * @protected
+   * @param {IPicture} pic
+   * @param {string} name
+   * @memberof TodoEditPage
+   */
   protected updateName(pic: IPicture, name: string): void {
     pic.name = name;
   }
 
+  /**
+   * ouvre l'appareil photo et prend une photo.
+   * Par la suite tente d'importer cette photo dans la liste des photo du todo
+   * Attention, cette opération est auto-validé
+   *
+   * @protected
+   * @memberof TodoEditPage
+   */
   protected takePicture(): void {
     this.cameraCtrl.getPicture(this.cameraOpts).then(
       imageData => {
@@ -529,6 +605,13 @@ export class TodoEditPage extends GenericPage {
     );
   }
 
+  /**
+   * ouvre un popup pour créer un contact et si possible, l'ajoute à la liste des contacts de ce todo
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof TodoEditPage
+   */
   protected async openCreateContact(): Promise<void> {
     const inputs: AlertInputOptions[] = [
       {
@@ -572,5 +655,112 @@ export class TodoEditPage extends GenericPage {
     } catch (error) {
       // l'ajout à été annulé
     }
+  }
+
+  /**
+   * ouvre la gallerie pour choisir une image à ajouter à la liste des images du todo parmis celle que possède l'utilisateur
+   *
+   * @protected
+   * @memberof TodoEditPage
+   */
+  protected openGalleryWrapper(): void {
+    this.requestPerms();
+    (<any>window).imagePicker.getPictures(
+      (res: string[]) => {
+        this.imgResultHandler(res, null);
+      },
+      (error: any) => {
+        console.log('Erreur dans ImagePicker: ' + error);
+      },
+      {
+        maximumImagesCount: 10,
+        width: 800
+      }
+    );
+  }
+
+  /**
+   * permet de supprimer une image d'un todo
+   *
+   * @protected
+   * @param {string} uuidPic
+   * @returns {void}
+   * @memberof TodoEditPage
+   */
+  protected deleteUploadedPic(uuidPic: string): void {
+    if (this.todo.uuid === null) {
+      return;
+    }
+    this.imgCacheClean = false;
+    this.storageCtrl.deleteMedia(this.todo.uuid, uuidPic);
+    const i = this.todo.pictures.findIndex(u => u.uuid === uuidPic);
+    if (i !== -1) {
+      this.todo.pictures.splice(i, 1);
+    }
+  }
+
+  /**************************************************************************/
+  /********************************* GETTER *********************************/
+  /**************************************************************************/
+
+  /**
+   * retourne true si il s'agit d'une création de todo, false si on en édite un
+   *
+   * @readonly
+   * @protected
+   * @type {boolean}
+   * @memberof TodoEditPage
+   */
+  protected get isInCreation(): boolean {
+    return this.todoRef == null;
+  }
+
+  /**
+   *  retourne le texte à afficher sur le bouton pour valider
+   *
+   * @protected
+   * @readonly
+   * @type {string}
+   * @memberof TodoEditPage
+   */
+  protected get submitText(): string {
+    if (this.isInCreation) {
+      return 'Créer une nouvelle tâche';
+    }
+    return 'Mettre à jour cette tâche';
+  }
+
+  /**
+   * retourne la date de deadline humainement lisible
+   *
+   * @readonly
+   * @protected
+   * @type {string}
+   * @memberof TodoEditPage
+   */
+  protected get deadlineStr(): string {
+    if (this.todo.deadline == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.deadline)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
+  }
+
+  /**
+   * retourne la date de notification humainement lisible
+   *
+   * @protected
+   * @readonly
+   * @type {string}
+   * @memberof TodoEditPage
+   */
+  protected get notifStr(): string {
+    if (this.todo.notif == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.notif)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
   }
 }

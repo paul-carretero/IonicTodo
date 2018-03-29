@@ -105,7 +105,8 @@ export class ContactModalPage extends GenericPage {
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     const header = Global.getValidablePageData();
-    header.title = 'Vos contacts';
+    header.title = 'Contacts';
+    header.subtitle = 'Selectionner vos contacts';
     this.evtCtrl.setHeader(header);
     this.initSelected();
   }
@@ -242,6 +243,10 @@ export class ContactModalPage extends GenericPage {
   }
 }
 
+/**************************************************************************/
+/*********************** ISelectableSimpleContact *************************/
+/**************************************************************************/
+
 /**
  * permet d'ajouter un champs de selection sur les contact afin d'éviter un refresh en boucle sur le template
  *
@@ -250,9 +255,25 @@ export class ContactModalPage extends GenericPage {
  * @extends {ISimpleContact}
  */
 export interface ISelectableSimpleContact extends ISimpleContact {
+  /**
+   * true si le contact est selectionné, false ou undefined sinon
+   *
+   * @type {boolean}
+   * @memberof ISelectableSimpleContact
+   */
   isSelected?: boolean;
+  /**
+   * true si il s'agit d'un header, false ou undefined sinon
+   *
+   * @type {boolean}
+   * @memberof ISelectableSimpleContact
+   */
   isHeader?: boolean;
 }
+
+/**************************************************************************/
+/******************************* FUNCTIONS ********************************/
+/**************************************************************************/
 
 /**
  * permet de comparer deux ISimpleContact en fonction de leut nom affiché
