@@ -33,7 +33,7 @@ export class AdsServiceProvider {
 
   private static readonly interstitialConfig: AdMobFreeInterstitialConfig = {
     isTesting: false,
-    //autoShow: false
+    autoShow: true,
     id: 'ca-app-pub-6084326990034246/4133759041'
   };
 
@@ -67,14 +67,7 @@ export class AdsServiceProvider {
   public async showInterstitial(): Promise<void> {
     this.adsCtrl.interstitial.config(AdsServiceProvider.interstitialConfig);
     try {
-      const lol = await this.adsCtrl.interstitial.prepare();
-      console.log(lol);
-      const res = await this.adsCtrl.interstitial.isReady();
-      console.log(res);
-      console.log('----------------');
-      if (res) {
-        this.adsCtrl.interstitial.show();
-      }
+      await this.adsCtrl.interstitial.prepare();
     } catch (error) {}
   }
 
@@ -100,7 +93,7 @@ export class AdsServiceProvider {
    * @returns {Promise<void>}
    * @memberof AdsServiceProvider
    */
-  private async hideBanner(): Promise<void> {
-    this.adsCtrl.banner.hide();
+  private hideBanner(): void {
+    this.adsCtrl.banner.remove().catch();
   }
 }

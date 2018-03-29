@@ -15,7 +15,6 @@ import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service
 import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
-import { IAuthor } from './../../model/author';
 import { IPageData } from './../../model/page-data';
 import { ITodoItem } from './../../model/todo-item';
 import { ITodoList, ListType } from './../../model/todo-list';
@@ -38,8 +37,6 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   private readonly listUUID: string;
-
-  private listName : string; 
 
   /**
    * Type (courrant) de la liste affiché
@@ -145,13 +142,13 @@ export class TodoListPage extends GenericPage {
   protected exportedTodoItems: ITodoItem[];
 
   /**
-   * Signature de la liste affichée
+   * Détail de la liste
    *
    * @protected
    * @type {(IAuthor | null)}
    * @memberof TodoListPage
    */
-  protected listAuthor: IAuthor | null;
+  protected todoList: ITodoList;
 
   /**
    * true si la liste n'est pas partagée en readonly
@@ -200,7 +197,7 @@ export class TodoListPage extends GenericPage {
     private readonly navParams: NavParams,
     private readonly settingCtrl: DBServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider,
-    private readonly changeCtrl: ChangeDetectorRef,
+    private readonly changeCtrl: ChangeDetectorRef
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.listUUID = this.navParams.get('uuid');
@@ -350,11 +347,10 @@ export class TodoListPage extends GenericPage {
     }
 
     this.listeSub = todoList.subscribe((res: ITodoList) => {
-      if (res != null && res.name != null) {
-        this.listName = res.name;
+      if (res != null) {
+        this.todoList = res;
         pageData.title = 'Liste "' + res.name + '"';
         this.evtCtrl.setHeader(pageData);
-        this.listAuthor = res.author;
       }
     });
   }
@@ -380,6 +376,61 @@ export class TodoListPage extends GenericPage {
     this.navCtrl.popToRoot();
   }
 
+  /**
+   * génère une description des tâches pour un tableaud de tâches
+   *
+   * @private
+   * @param {ITodoItem[]} todoItems
+   * @param {string} type
+   * @returns {string}
+   * @memberof TodoListPage
+   */
+  private getDescription(todoItems: ITodoItem[], type: string): string {
+    let description = '';
+    let todos_desc = '';
+    let have_todo = false;
+    for (const todo of todoItems) {
+      have_todo = true;
+      todos_desc += ' ' + todo.name + ' , ';
+    }
+    if (have_todo && todoItems.length > 1) {
+      description += 'Les tâches ' + type + ' sont ' + todos_desc + ' . ';
+    }
+    if (have_todo && todoItems.length === 1) {
+      description += 'La tâche ' + type + ' est ' + todos_desc + ' . ';
+    }
+    return description;
+  }
+
+  /**
+   * permet de supprimer la liste courrante
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoListPage
+   */
+  private async deleteList(): Promise<void> {
+    if (this.todoList == null || this.todoList.uuid == null) {
+      return;
+    }
+
+    const unsure_mode: boolean = await this.settingCtrl.getSetting(
+      Settings.ENABLE_UNSURE_MODE
+    );
+    let confirm: boolean = true;
+
+    if (unsure_mode) {
+      const title = 'Suppression de la liste ' + this.todoList.name;
+      const message = 'Voulez vous supprimer la liste ' + this.todoList.name;
+      confirm = await this.uiCtrl.confirm(title, message);
+    }
+
+    if (confirm) {
+      this.todoService.deleteList(this.listUUID);
+      this.navCtrl.popToRoot();
+    }
+  }
+
   /**************************************************************************/
   /******************************* OVERRIDES ********************************/
   /**************************************************************************/
@@ -394,8 +445,7 @@ export class TodoListPage extends GenericPage {
   protected menuEventHandler(req: IMenuRequest): void {
     switch (req.request) {
       case MenuRequestType.DELETE: {
-        this.todoService.deleteList(this.listUUID);
-        this.navCtrl.popToRoot();
+        this.deleteList();
         break;
       }
       case MenuRequestType.EDIT: {
@@ -490,31 +540,36 @@ export class TodoListPage extends GenericPage {
    * @returns {Promise<void>}
    * @memberof TodoListPage
    */
-  protected async deleteTodo(todo: ITodoItem, ext: boolean, tableau : ITodoItem[]): Promise<void> {
+  protected async deleteTodo(
+    todo: ITodoItem,
+    ext: boolean,
+    tableau: ITodoItem[],
+    closable: { close(): void }
+  ): Promise<void> {
     if (todo == null || todo.ref == null || todo.uuid == null) {
       return;
     }
-    if (ext) {
-      this.todoService.removeTodoRef(this.listUUID, todo.ref);
-    } else {
-      const unsure_mode = await this.settingCtrl.getSetting(Settings.ENABLE_UNSURE_MODE);
-      if(unsure_mode){
-        const title = "Suppression de la tâche " + todo.name;
-        const message = "Voulez vous supprimer la tâche " + todo.name;
-        const confirm : boolean = await this.uiCtrl.confirm(title,message);
-        if(confirm){
-          if(todo != null && todo.ref != null && todo.uuid != null){
-            tableau.splice(tableau.indexOf(todo));
-            this.todoService.deleteTodo(todo.ref, todo.uuid);
-          }
-        }
-      }
-      else{
-        if(todo != null && todo.ref != null && todo.uuid != null){
-          this.todoService.deleteTodo(todo.ref, todo.uuid);
-        }
+    const unsure_mode: boolean = await this.settingCtrl.getSetting(
+      Settings.ENABLE_UNSURE_MODE
+    );
+    let confirm: boolean = true;
+
+    if (unsure_mode) {
+      const title = 'Suppression de la tâche ' + todo.name;
+      const message = 'Voulez vous supprimer la tâche ' + todo.name;
+      confirm = await this.uiCtrl.confirm(title, message);
+    }
+
+    if (confirm) {
+      tableau.splice(tableau.indexOf(todo), 1);
+      if (ext) {
+        this.todoService.removeTodoRef(this.listUUID, todo.ref);
+      } else {
+        this.todoService.deleteTodo(todo.ref, todo.uuid);
       }
     }
+
+    closable.close();
   }
 
   /**
@@ -625,7 +680,6 @@ export class TodoListPage extends GenericPage {
     return todo.deadline < new Date();
   }
 
-
   /**
    * Permet de générer une description de la page, notament pour la synthèse vocale
    *
@@ -634,36 +688,20 @@ export class TodoListPage extends GenericPage {
    * @memberof GenericPage
    */
   protected generateDescription(): string {
-    let description : string = "";
+    let description: string = '';
     //const list = this.todoService.getAListSnapshot(this.listUUID);
-    
-    if( this.todoItems.length + this.completedTodoItem.length + this.exportedTodoItems.length === 0 ){
-      description = "La liste " + this.listName + " est vide. " ;
-    }
-    else {
-      description = " Pour la liste " + this.listName + " ";
-      description += this.getDescription(this.todoItems, " en cours ");
-      description += this.getDescription(this.completedTodoItem, " terminées ");
-      description += this.getDescription(this.exportedTodoItems, " importées ");
+
+    if (
+      this.todoItems.length + this.completedTodoItem.length + this.exportedTodoItems.length ===
+      0
+    ) {
+      description = 'La liste ' + this.todoList.name + ' est vide. ';
+    } else {
+      description = ' Pour la liste ' + this.todoList.name + ' ';
+      description += this.getDescription(this.todoItems, ' en cours ');
+      description += this.getDescription(this.completedTodoItem, ' terminées ');
+      description += this.getDescription(this.exportedTodoItems, ' importées ');
     }
     return description;
   }
-
-  private getDescription(todoItems : ITodoItem[], type : string) : string {
-    let description = "";
-    let todos_desc = "";
-    let have_todo = false;
-    for(const todo of todoItems ){
-        have_todo = true ;
-        todos_desc += " " + todo.name + " , ";
-    }
-    if(have_todo && todoItems.length > 1){
-      description += "Les tâches " + type + " sont " + todos_desc + " . ";
-    }
-    if(have_todo && todoItems.length === 1){
-      description += "La tâche " + type + " est " + todos_desc + " . ";
-    }
-    return description;
-  }
-
 }

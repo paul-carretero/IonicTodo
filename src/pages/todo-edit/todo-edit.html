@@ -58,7 +58,7 @@
                             {{contact.displayName}} ({{contact.mobile}})
                         </ion-item>
                         <ion-item-options side="right">
-                            <button ion-button color="danger" (click)="deleteContact(contact)">
+                            <button ion-button color="danger" (click)="deleteContact(contact)" type="button">
                                 <ion-icon name="trash">
                                     supprimer
                                 </ion-icon>
@@ -95,7 +95,7 @@
                         </ion-item>
 
                         <ion-item-options side="right" *ngIf="!(pic.url == null)">
-                            <button ion-button color="danger" (click)="deleteUploadedPic(pic.uuid)">
+                            <button ion-button color="danger" (click)="deleteUploadedPic(pic.uuid)" type="button">
                                 <ion-icon name="trash">
                                     supprimer
                                 </ion-icon>

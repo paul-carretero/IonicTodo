@@ -18,7 +18,7 @@
             </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card *ngIf="todo.deadline != null || todo.notif != null">
             <ion-card-header icon-start>
                 <ion-icon name="time"></ion-icon>
                 Date et Notification
@@ -50,7 +50,7 @@
             </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card *ngIf="todo.contacts.length > 0">
             <ion-card-header>
                 <ion-icon name="contacts" start></ion-icon>
                 Contacts
@@ -83,7 +83,7 @@
             </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card *ngIf="todo.pictures.length > 0">
             <ion-card-header icon-start>
                 <ion-icon name="image"></ion-icon>
                 Photo
@@ -116,7 +116,7 @@
             </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card *ngIf="todo.address">
             <ion-card-header icon-start>
                 <ion-icon name="pin" color="primary"></ion-icon>
                 Localisation

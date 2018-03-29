@@ -10,7 +10,7 @@
         <ion-item-group reorder="true" (ionItemReorder)="reorder($event,todoItems)">
             <ng-container *ngFor="let todo of todoItems">
                 <ng-container *ngIf="search$ | async as search">
-                    <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
+                    <ion-item-sliding *ngIf="areTodoMatching(todo,search)" #todoSlide>
                         <ion-item detail-push>
                             <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
                             <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
@@ -18,7 +18,7 @@
                             <ion-icon *ngIf="isLate(todo)" name="alert" item-end></ion-icon>
                         </ion-item>
                         <ion-item-options side="right" *ngIf="editable">
-                            <button (click)="deleteTodo(todo, false, todoItems)" ion-button color="danger">
+                            <button (click)="deleteTodo(todo, false, todoItems,todoSlide)" ion-button color="danger">
                                 <ion-icon name="trash">supprimer</ion-icon>
                             </button>
                         </ion-item-options>
@@ -30,7 +30,7 @@
         <ion-item-divider color="light" icon-start>
             <ion-icon name="done-all" small></ion-icon> Tâches Terminées
         </ion-item-divider>
-        <ion-item-group reorder="true" (ionItemReorder)="reorder($event,completedTodoItem)">
+        <ion-item-group reorder="true" (ionItemReorder)="reorder($event,completedTodoItem)" #completeSlide>
             <ng-container *ngFor="let todo of completedTodoItem">
                 <ng-container *ngIf="search$ | async as search">
                     <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
@@ -40,7 +40,7 @@
                             <h2 (click)="selectTodo(todo.ref, false)">{{todo.name}}</h2>
                         </ion-item>
                         <ion-item-options side="right" *ngIf="editable">
-                            <button (click)="deleteTodo(todo, false, completedTodoItem)" ion-button color="danger">
+                            <button (click)="deleteTodo(todo, false, completedTodoItem, completeSlide)" ion-button color="danger">
                                 <ion-icon name="trash">supprimer</ion-icon>
                             </button>
                         </ion-item-options>
@@ -56,14 +56,14 @@
         <ng-container *ngFor="let todo of exportedTodoItems">
             <ng-container *ngIf="todo != null">
                 <ng-container *ngIf="search$ | async as search">
-                    <ion-item-sliding *ngIf="areTodoMatching(todo,search)">
+                    <ion-item-sliding *ngIf="areTodoMatching(todo,search)" #exportedSlide>
                         <ion-item detail-push>
                             <ion-icon (click)="completeCheck(todo)" name="ios-square-outline" *ngIf="!todo.complete" item-start></ion-icon>
                             <ion-icon (click)="completeCheck(todo)" name="ios-checkbox-outline" *ngIf="todo.complete" item-start></ion-icon>
                             <h2 (click)="selectTodo(todo.ref, true)">{{todo.name}}</h2>
                         </ion-item>
                         <ion-item-options side="right" *ngIf="editable">
-                            <button (click)="deleteTodo(todo, true, exportedTodoItems)" ion-button color="danger">
+                            <button (click)="deleteTodo(todo, true, exportedTodoItems, exportedSlide)" ion-button color="danger">
                                 <ion-icon name="trash">supprimer</ion-icon>
                             </button>
                         </ion-item-options>
@@ -74,12 +74,12 @@
 
     </ion-list>
 
-    <ion-card *ngIf="listAuthor != null">
+    <ion-card *ngIf="todoList != null && todoList.author != null">
         <ion-card-header icon-start>
             <ion-icon name="information-circle"></ion-icon>
             La liste à été créée:
         </ion-card-header>
-        <author-display [author]="listAuthor"></author-display>
+        <author-display [author]="todoList.author"></author-display>
     </ion-card>
 
     <button *ngIf="editable" class="bottom-right-button" ion-fab (click)="createTodo()">

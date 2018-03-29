@@ -321,6 +321,10 @@ export class HomePage extends GenericPage {
     tab: ITodoList[],
     closable: { close(): void }
   ): Promise<void> {
+    if (liste == null || tab == null || closable == null) {
+      return;
+    }
+
     const unsure_mode: boolean = await this.settingCtrl.getSetting(
       Settings.ENABLE_UNSURE_MODE
     );
@@ -333,7 +337,7 @@ export class HomePage extends GenericPage {
     }
 
     if (confirm) {
-      tab.splice(tab.indexOf(liste));
+      tab.splice(tab.indexOf(liste), 1);
       if (liste.uuid != null) {
         this.todoService.deleteList(liste.uuid);
       }

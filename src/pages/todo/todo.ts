@@ -1,3 +1,4 @@
+import { DBServiceProvider } from './../../providers/db/db-service';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { DocumentReference } from '@firebase/firestore-types';
 import { Calendar } from '@ionic-native/calendar';
@@ -13,7 +14,6 @@ import {
 import { PhotoViewer } from '@ionic-native/photo-viewer';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import moment from 'moment';
-import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 import { IAuthor } from '../../model/author';
@@ -33,6 +33,7 @@ import { StorageServiceProvider } from './../../providers/storage-service/storag
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { Global } from './../../shared/global';
 import { Environment } from '@ionic-native/google-maps';
+import { Settings } from '../../model/settings';
 
 @IonicPage()
 @Component({
@@ -41,66 +42,161 @@ import { Environment } from '@ionic-native/google-maps';
 })
 export class TodoPage extends GenericPage {
   /***************************** PUBLIC FIELDS ******************************/
+  /**
+   * permet d'activer ou de désactiver la possibilité de compléter ou non la tâche le temps que la signature soit générée
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof TodoPage
+   */
   protected completeLoading: boolean;
 
+  /**
+   * objet todo de la page, sera mis à jour par subscription
+   *
+   * @protected
+   * @type {ITodoItem}
+   * @memberof TodoPage
+   */
   protected todo: ITodoItem;
 
+  /**
+   * true si une entrée correspondant à cette tâche à été trouvé dans le calendrier natif
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof TodoPage
+   */
   protected isInCalendar: boolean;
-
-  protected readonly mapHeiht: number = window.screen.height;
 
   /**************************** PRIVATE FIELDS ******************************/
 
   /**
-   * si pas de position alors on place la carte centrée sur grenoble environ
+   * référence firestore vers ce document
    *
    * @private
-   * @static
-   * @type {GoogleMapOptions}
+   * @type {DocumentReference}
    * @memberof TodoPage
    */
-  private static readonly defaultPos: GoogleMapOptions = {
-    camera: {
-      target: {
-        lat: 45.16,
-        lng: 5.7
-      },
-      zoom: 10,
-      tilt: 30
-    }
-  };
-
   private readonly todoRef: DocumentReference;
 
+  /**
+   * référence vers la liste ayant mené ce todo
+   *
+   * @private
+   * @type {(string | null)}
+   * @memberof TodoPage
+   */
   private readonly fromListUuid: string | null;
 
+  /**
+   * true si le todo était un externe de la liste de référence
+   *
+   * @private
+   * @type {boolean}
+   * @memberof TodoPage
+   */
   private readonly isExternal: boolean;
 
+  /**
+   * true si le todo est editable, false sinon
+   *
+   * @private
+   * @type {boolean}
+   * @memberof TodoPage
+   */
   private readonly editable: boolean;
 
+  /**
+   * Subscription aux mise à jour de ce todo
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof TodoPage
+   */
   private todoSub: Subscription;
 
-  private todoObs: Observable<ITodoItem>;
-
+  /**
+   * true si l'utilisateur courrant à créer le todo
+   *
+   * @private
+   * @type {boolean}
+   * @memberof TodoPage
+   */
   private isMine: boolean;
 
+  /**
+   * carte google map
+   *
+   * @private
+   * @type {GoogleMap}
+   * @memberof TodoPage
+   */
   private map: GoogleMap;
 
+  /**
+   * marker google map de l'addresse de ce tdo
+   *
+   * @private
+   * @type {(Marker | null)}
+   * @memberof TodoPage
+   */
   private todoAddressMarker: Marker | null;
 
+  /**
+   *
+   *
+   * @private
+   * @type {(Marker | null)}
+   * @memberof TodoPage
+   */
   private todoAuthorMapMarker: Marker | null;
 
+  /**
+   * marker googleMap de la position de création
+   *
+   * @private
+   * @type {(Marker | null)}
+   * @memberof TodoPage
+   */
   private todoCompleteAuthorMapMarker: Marker | null;
 
+  /**
+   * subscription au mapMarker de l'addresse du todo
+   *
+   * @private
+   * @type {(Subscription | null)}
+   * @memberof TodoPage
+   */
   private todoAddressMarkerSub: Subscription | null;
 
+  /**
+   * subscription au mapMarker de la position de création
+   *
+   * @private
+   * @type {(Subscription | null)}
+   * @memberof TodoPage
+   */
   private todoAuthorMapMarkerSub: Subscription | null;
 
+  /**
+   * subscription au mapMarker de la position de complétion
+   *
+   * @private
+   * @type {(Subscription | null)}
+   * @memberof TodoPage
+   */
   private todoCompleteAuthorMapMarkerSub: Subscription | null;
 
+  /**
+   * true si la map googleMap et chargé et ready, false sinon
+   *
+   * @private
+   * @type {boolean}
+   * @memberof TodoPage
+   */
   private mapLoaded: boolean;
 
-  private bounds: ILatLng[];
   /**
    * interval JS pour la detection des changement de la page
    *
@@ -119,6 +215,28 @@ export class TodoPage extends GenericPage {
    */
   private changeTimeout: any;
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of TodoPage.
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {NavParams} navParams
+   * @param {TodoServiceProvider} todoCtrl
+   * @param {PhotoViewer} photoCtrl
+   * @param {ChangeDetectorRef} changeCtrl
+   * @param {Calendar} calendarCtrl
+   * @param {ContactServiceProvider} contactCtrl
+   * @param {StorageServiceProvider} storageCtrl
+   * @param {MapServiceProvider} mapCtrl
+   * @param {DBServiceProvider} dbCtrl
+   * @memberof TodoPage
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
@@ -132,7 +250,8 @@ export class TodoPage extends GenericPage {
     private readonly calendarCtrl: Calendar,
     private readonly contactCtrl: ContactServiceProvider,
     private readonly storageCtrl: StorageServiceProvider,
-    private readonly mapCtrl: MapServiceProvider
+    private readonly mapCtrl: MapServiceProvider,
+    private readonly dbCtrl: DBServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
@@ -146,7 +265,6 @@ export class TodoPage extends GenericPage {
     this.todoAddressMarker = null;
     this.todoAuthorMapMarker = null;
     this.todoCompleteAuthorMapMarker = null;
-    this.bounds = [];
 
     if (this.navParams.get('isExternal') == null) {
       this.isExternal = false;
@@ -157,6 +275,10 @@ export class TodoPage extends GenericPage {
       this.isExternal = this.navParams.get('isExternal');
     }
   }
+
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
 
   /**
    * Effectue des vérifications sur les entrée.
@@ -171,7 +293,6 @@ export class TodoPage extends GenericPage {
       this.uiCtrl.displayToast('Une erreur est survenue pendant le chargement de la tâche');
     }
 
-    this.todoObs = this.todoCtrl.getTodo(this.todoRef);
     const pageData = Global.getEditCopyPageData();
     pageData.editable = this.editable;
     pageData.subtitle = 'Détail de la tâche';
@@ -205,9 +326,6 @@ export class TodoPage extends GenericPage {
    */
   ionViewWillLeave(): void {
     this.tryUnSub(this.todoSub);
-    this.tryUnSub(this.todoAddressMarkerSub);
-    this.tryUnSub(this.todoAuthorMapMarkerSub);
-    this.tryUnSub(this.todoCompleteAuthorMapMarkerSub);
     this.evtCtrl.setCurrentContext(null, null);
 
     if (this.changeTimeout != null) {
@@ -220,24 +338,33 @@ export class TodoPage extends GenericPage {
     this.changeCtrl.reattach();
   }
 
+  /**
+   * termine la map google map lors de la destruction de l'objet
+   *
+   * @memberof TodoPage
+   */
   ionViewWillUnload(): void {
     super.ionViewWillUnload();
+    this.tryUnSub(this.todoAddressMarkerSub);
+    this.tryUnSub(this.todoAuthorMapMarkerSub);
+    this.tryUnSub(this.todoCompleteAuthorMapMarkerSub);
     if (this.map != null) {
       this.map.removeEventListener();
-      this.map.remove();
+      this.map.empty();
     }
   }
 
-  private async askForCalendarPerms(): Promise<void> {
-    if (!await this.calendarCtrl.hasReadWritePermission()) {
-      try {
-        this.calendarCtrl.requestReadWritePermission();
-      } catch (error) {
-        this.uiCtrl.displayToast('Les fonctionalités lié au calendrier sont désactivée');
-      }
-    }
-  }
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
 
+  /**
+   * défini si la tâche à été créer par l'utilisateur courrant ou non
+   *
+   * @private
+   * @param {ITodoItem} todo
+   * @memberof TodoPage
+   */
   private defIsMine(todo: ITodoItem): void {
     const id = this.authCtrl.getUserId();
     if (id == null || todo == null || todo.author == null || todo.author.uuid == null) {
@@ -247,8 +374,16 @@ export class TodoPage extends GenericPage {
     }
   }
 
+  /**
+   * initialise la page avec le flux d'information de la tâche
+   *
+   * @private
+   * @param {IPageData} pageData
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
   private async initPage(pageData: IPageData): Promise<void> {
-    this.todoSub = this.todoObs.subscribe((todo: ITodoItem) => {
+    this.todoSub = this.todoCtrl.getTodo(this.todoRef).subscribe((todo: ITodoItem) => {
       this.todo = todo;
       this.defIsMine(todo);
       if (todo != null) {
@@ -272,222 +407,47 @@ export class TodoPage extends GenericPage {
     });
   }
 
-  protected async updateComplete(): Promise<void> {
-    this.completeLoading = true;
-    await this.todoCtrl.complete(this.todo);
-    this.completeLoading = false;
-  }
-
   /**
-   * @override
-   * @protected
-   * @param {IMenuRequest} req
+   * méthode permettant de supprimer le todo et éventuellement de demander confirmation à l'utilisateur
+   *
+   * @private
+   * @returns {Promise<void>}
    * @memberof TodoPage
    */
-  protected menuEventHandler(req: IMenuRequest): void {
-    switch (req.request) {
-      case MenuRequestType.DELETE: {
-        if (this.fromListUuid != null && this.isExternal && !this.isMine) {
-          this.todoCtrl.removeTodoRef(this.fromListUuid, this.todoRef);
-        } else {
-          if (this.todo.uuid != null) {
-            this.todoCtrl.deleteTodo(this.todoRef, this.todo.uuid);
-          }
+  private async deleteTodo(): Promise<void> {
+    const unsure_mode: boolean = await this.dbCtrl.getSetting(Settings.ENABLE_UNSURE_MODE);
+    let confirm: boolean = true;
+
+    if (unsure_mode) {
+      const title = 'Suppression de la tâche ' + this.todo.name;
+      const message = 'Voulez vous supprimer la tâche ' + this.todo.name;
+      confirm = await this.uiCtrl.confirm(title, message);
+    }
+
+    if (confirm) {
+      if (this.fromListUuid != null && this.isExternal && !this.isMine) {
+        this.todoCtrl.removeTodoRef(this.fromListUuid, this.todoRef);
+      } else {
+        if (this.todo.uuid != null) {
+          this.todoCtrl.deleteTodo(this.todoRef, this.todo.uuid);
         }
-        this.navCtrl.pop();
-        break;
       }
-      case MenuRequestType.EDIT: {
-        this.navCtrl.push('TodoEditPage', { todoRef: this.todoRef });
-        break;
-      }
-      case MenuRequestType.COPY: {
-        this.evtCtrl.setCopiedTodoRef(this.todoRef);
-        this.uiCtrl.displayToast('Cette à tâche à bien été copiée');
-        break;
-      }
+      this.navCtrl.pop();
     }
   }
 
-  protected showPhoto(uri: string): void {
-    if (uri == null) {
-      return;
-    }
-    this.photoCtrl.show(uri);
-  }
+  /********************************** MAP ***********************************/
 
-  protected async exportToCalendar(): Promise<void> {
-    if (!await this.calendarCtrl.hasReadWritePermission()) {
-      return;
-    }
-    if (this.todo.name == null) {
-      return;
-    }
-
-    let address = '';
-    let desc = '';
-    let start = new Date();
-    let end = new Date(start.getTime() + 3600000);
-    if (this.todo.address != null) {
-      address = this.todo.address;
-    }
-    if (this.todo.desc != null) {
-      desc = this.todo.desc;
-    }
-    if (this.todo.deadline != null) {
-      start = new Date(this.todo.deadline);
-      end = new Date(start.getTime() + 3600000);
-    }
-
-    try {
-      await this.calendarCtrl.createEventInteractively(
-        this.todo.name,
-        address,
-        desc,
-        start,
-        end
-      );
-      this.todoExistInCalendar();
-    } catch (error) {
-      this.uiCtrl.displayToast(
-        "Une erreur est survenue lors de la tentative d'ajout au calendrier"
-      );
-    }
-  }
-
-  protected openCalendar(): void {
-    if (this.todo.deadline == null) {
-      this.calendarCtrl.openCalendar(new Date());
-    } else {
-      this.calendarCtrl.openCalendar(this.todo.deadline);
-    }
-  }
-
-  protected async deleteFromCaldendar(): Promise<void> {
-    if (!await this.calendarCtrl.hasReadWritePermission()) {
-      return;
-    }
-    if (this.todo.name == null) {
-      return;
-    }
-
-    let address = '';
-    let desc = '';
-    let start = new Date();
-    let end = new Date(start.getTime() + 3600000);
-    if (this.todo.address != null) {
-      address = this.todo.address;
-    }
-    if (this.todo.desc != null) {
-      desc = this.todo.desc;
-    }
-    if (this.todo.deadline != null) {
-      start = new Date(this.todo.deadline);
-      end = new Date(start.getTime() + 3600000);
-    }
-    try {
-      this.calendarCtrl.deleteEvent(this.todo.name, address, desc, start, end);
-      this.uiCtrl.displayToast('Tâche supprimée de votre calendrier');
-    } catch (error) {
-      this.uiCtrl.displayToast('Une erreur est survenue pendant la suppression de la tâche');
-    }
-    this.isInCalendar = false;
-  }
-
-  private async todoExistInCalendar(): Promise<void> {
-    if (!await this.calendarCtrl.hasReadWritePermission()) {
-      return;
-    }
-    if (this.todo.name == null) {
-      return;
-    }
-
-    let address = '';
-    let desc = '';
-    let start = new Date();
-    let end = new Date(start.getTime() + 3600000);
-    if (this.todo.address != null) {
-      address = this.todo.address;
-    }
-    if (this.todo.desc != null) {
-      desc = this.todo.desc;
-    }
-    if (this.todo.deadline != null) {
-      start = new Date(this.todo.deadline);
-      end = new Date(start.getTime() + 3600000);
-    }
-    try {
-      const res: any[] = await this.calendarCtrl.findEvent(
-        this.todo.name,
-        address,
-        desc,
-        start,
-        end
-      );
-      this.isInCalendar = res.length > 0;
-    } catch (error) {
-      this.isInCalendar = false;
-    }
-  }
-
-  get deadlineStr(): string {
-    if (this.todo.deadline == null) {
-      return 'Non définie';
-    }
-    return moment(this.todo.deadline)
-      .locale('fr')
-      .format('ddd D MMM YYYY, HH:mm');
-  }
-
-  get notifStr(): string {
-    if (this.todo.notif == null) {
-      return 'Non définie';
-    }
-    return moment(this.todo.notif)
-      .locale('fr')
-      .format('ddd D MMM YYYY, HH:mm');
-  }
-
-  get remainingDeadlineStr(): string {
-    if (this.todo.deadline == null) {
-      return 'Non définie';
-    }
-    return moment(this.todo.deadline)
-      .locale('fr')
-      .fromNow();
-  }
-
-  protected getHuman(d: Date): string {
-    if (d == null) {
-      return 'Non définie';
-    }
-    return moment(d)
-      .locale('fr')
-      .format('ddd D MMM YYYY');
-  }
-
-  protected openSMS(contact: ISimpleContact): void {
-    if (contact == null) {
-      return;
-    }
-    this.contactCtrl.openNativeSMS(contact);
-  }
-
-  protected call(contact: ISimpleContact): void {
-    if (contact == null) {
-      return;
-    }
-    this.contactCtrl.call(contact);
-  }
-
-  protected openEmail(contact: ISimpleContact): void {
-    if (contact == null) {
-      return;
-    }
-    this.contactCtrl.prepareEmail(contact);
-  }
-
-  private async getStartOpts(): Promise<GoogleMapOptions> {
+  /**
+   * retourne, si possible une position de départ pour la carte
+   * dans l'ordre de priorité : l'addresse du todo, le position de la personne, la position de création puis de complétion du todo
+   * Si aucune position n'est disponible, alors retourne null
+   *
+   * @private
+   * @returns {(Promise<GoogleMapOptions | null>)}
+   * @memberof TodoPage
+   */
+  private async getStartOpts(): Promise<GoogleMapOptions | null> {
     const myPosP: Promise<ILatLng | null> = this.mapCtrl.getMyPosition();
     let todoAddress: null | ILatLng = null;
     if (this.todo.address != null) {
@@ -498,11 +458,6 @@ export class TodoPage extends GenericPage {
       }
     }
     const myPos = await myPosP;
-
-    this.bounds = [];
-    if (todoAddress != null) {
-      this.bounds.push(todoAddress);
-    }
 
     if (todoAddress != null) {
       return {
@@ -544,10 +499,17 @@ export class TodoPage extends GenericPage {
       };
     }
 
-    return TodoPage.defaultPos;
+    return null;
   }
 
-  public async animateCamera(): Promise<void> {
+  /**
+   * lors de chaque mise à jour, recentre la camera pour voir l'ensemble des maps marker représentés
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
+  private async animateCamera(): Promise<void> {
     const myPosP: Promise<ILatLng | null> = this.mapCtrl.getMyPosition();
     let todoAddress: null | ILatLng = null;
     if (this.todo.address != null) {
@@ -594,8 +556,14 @@ export class TodoPage extends GenericPage {
    */
   private async addAddressMarker(): Promise<void> {
     if (this.todo.address == null) {
+      if (this.todoAddressMarker != null) {
+        try {
+          this.todoAddressMarker.destroy();
+        } catch (error) {}
+      }
       return;
     }
+
     let latlnt: ILatLng;
     try {
       latlnt = await this.mapCtrl.AddressToCoord(this.todo.address);
@@ -603,28 +571,31 @@ export class TodoPage extends GenericPage {
       return;
     }
 
-    this.todoAddressMarker = await this.map.addMarker({
-      title: this.todo.address,
-      icon: 'blue',
-      animation: 'DROP',
-      position: latlnt
-    });
-
-    if (this.todoAddressMarker == null) {
-      return;
-    }
-    this.tryUnSub(this.todoAddressMarkerSub);
-
-    this.todoAddressMarkerSub = this.todoAddressMarker
-      .on(GoogleMapsEvent.MARKER_CLICK)
-      .subscribe(() => {
-        let adr = this.todo.address;
-        if (adr == null) {
-          adr = '';
-        }
-
-        this.uiCtrl.alert('Addresse de la tâche', adr);
+    if (this.todoAddressMarker != null) {
+      this.todoAddressMarker.setPosition(latlnt);
+      this.todoAddressMarker.setTitle(this.todo.address);
+    } else {
+      this.todoAddressMarker = await this.map.addMarker({
+        title: this.todo.address,
+        icon: 'blue',
+        animation: 'DROP',
+        position: latlnt
       });
+
+      if (this.todoAddressMarker == null) {
+        return;
+      }
+
+      this.todoAddressMarkerSub = this.todoAddressMarker
+        .on(GoogleMapsEvent.MARKER_CLICK)
+        .subscribe(() => {
+          let adr = this.todo.address;
+          if (adr == null) {
+            adr = '';
+          }
+          this.uiCtrl.alert('Addresse de la tâche', adr);
+        });
+    }
   }
 
   /**
@@ -637,33 +608,41 @@ export class TodoPage extends GenericPage {
    */
   private async addCreateMarker(): Promise<void> {
     if (this.todo.author == null || this.todo.author.coord == null) {
+      if (this.todoAuthorMapMarker != null) {
+        try {
+          this.todoAuthorMapMarker.destroy();
+        } catch (error) {}
+      }
       return;
     }
     const latlnt = Global.getILatLng(this.todo.author.coord);
-    this.todoAuthorMapMarker = await this.map.addMarker({
-      title: 'Création de la tâche',
-      icon: 'green',
-      animation: 'DROP',
-      position: latlnt
-    });
 
-    if (this.todoAuthorMapMarker == null) {
-      return;
-    }
-    this.tryUnSub(this.todoAuthorMapMarkerSub);
-
-    this.todoAuthorMapMarkerSub = this.todoAuthorMapMarker
-      .on(GoogleMapsEvent.MARKER_CLICK)
-      .subscribe(() => {
-        let name = 'un anonyme';
-        if (this.todo.author != null && this.todo.author.displayName != null) {
-          name = this.todo.author.displayName;
-        }
-        this.uiCtrl.alert(
-          'Création de la tâche',
-          'La tâche a été créé le ' + this.getDate(this.todo.author) + ' par ' + name
-        );
+    if (this.todoAuthorMapMarker != null) {
+      this.todoAuthorMapMarker.setPosition(latlnt);
+    } else {
+      this.todoAuthorMapMarker = await this.map.addMarker({
+        title: 'Création de la tâche',
+        icon: 'green',
+        animation: 'DROP',
+        position: latlnt
       });
+
+      if (this.todoAuthorMapMarker == null) {
+        return;
+      }
+      this.todoAuthorMapMarkerSub = this.todoAuthorMapMarker
+        .on(GoogleMapsEvent.MARKER_CLICK)
+        .subscribe(() => {
+          let name = 'un anonyme';
+          if (this.todo.author != null && this.todo.author.displayName != null) {
+            name = this.todo.author.displayName;
+          }
+          this.uiCtrl.alert(
+            'Création de la tâche',
+            'La tâche a été créé le ' + this.getDate(this.todo.author) + ' par ' + name
+          );
+        });
+    }
   }
 
   /**
@@ -676,68 +655,69 @@ export class TodoPage extends GenericPage {
    */
   private async addCompleteMarker(): Promise<void> {
     if (this.todo.completeAuthor == null || this.todo.completeAuthor.coord == null) {
+      if (this.todoCompleteAuthorMapMarker != null) {
+        try {
+          this.todoCompleteAuthorMapMarker.destroy();
+        } catch (error) {}
+      }
       return;
     }
     const latlnt = Global.getILatLng(this.todo.completeAuthor.coord);
-    this.todoCompleteAuthorMapMarker = await this.map.addMarker({
-      title: 'Complétion de la tâche',
-      icon: 'red',
-      animation: 'DROP',
-      position: latlnt
-    });
 
-    if (this.todoCompleteAuthorMapMarker == null) {
-      return;
-    }
-    this.tryUnSub(this.todoCompleteAuthorMapMarkerSub);
-
-    this.todoCompleteAuthorMapMarkerSub = this.todoCompleteAuthorMapMarker
-      .on(GoogleMapsEvent.MARKER_CLICK)
-      .subscribe(() => {
-        let name = 'un anonyme';
-        if (this.todo.completeAuthor != null && this.todo.completeAuthor.displayName != null) {
-          name = this.todo.completeAuthor.displayName;
-        }
-        this.uiCtrl.alert(
-          'Complétion de la tâche',
-          'La tâche a été complétée le ' +
-            this.getDate(this.todo.completeAuthor) +
-            ' par ' +
-            name
-        );
+    if (this.todoCompleteAuthorMapMarker != null) {
+      this.todoCompleteAuthorMapMarker.setPosition(latlnt);
+    } else {
+      this.todoCompleteAuthorMapMarker = await this.map.addMarker({
+        title: 'Complétion de la tâche',
+        icon: 'red',
+        animation: 'DROP',
+        position: latlnt
       });
+
+      if (this.todoCompleteAuthorMapMarker == null) {
+        return;
+      }
+
+      this.todoCompleteAuthorMapMarkerSub = this.todoCompleteAuthorMapMarker
+        .on(GoogleMapsEvent.MARKER_CLICK)
+        .subscribe(() => {
+          let name = 'un anonyme';
+          if (
+            this.todo.completeAuthor != null &&
+            this.todo.completeAuthor.displayName != null
+          ) {
+            name = this.todo.completeAuthor.displayName;
+          }
+          this.uiCtrl.alert(
+            'Complétion de la tâche',
+            'La tâche a été complétée le ' +
+              this.getDate(this.todo.completeAuthor) +
+              ' par ' +
+              name
+          );
+        });
+    }
   }
 
-  private getDate(anAuthor: IAuthor | null): string {
-    if (anAuthor == null || anAuthor.timestamp == null) {
-      return 'Non définie';
-    }
-    return moment(anAuthor.timestamp)
-      .locale('fr')
-      .format('ddd D MMM YYYY, HH:mm');
-  }
-
-  private async resetMarker(): Promise<void> {
-    if (!this.mapLoaded) {
-      return;
-    }
-    try {
-      await this.map.clear();
-      this.animateCamera();
-      this.addAddressMarker();
-      this.addCreateMarker();
-      this.addCompleteMarker();
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
+  /**
+   * tente de charger une map GoogleMap si celle si n'est pas déjà chargée
+   * Si aucune donnée n'est disponible pour afficher la carte, alors n'affiche pas de carte
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
   private async loadMap(): Promise<void> {
     if (this.mapLoaded) {
       return;
     }
 
     const mapOptions = await this.getStartOpts();
+
+    if (mapOptions == null) {
+      return;
+    }
+
     this.map = GoogleMaps.create('mapwrapper', mapOptions);
 
     try {
@@ -751,37 +731,413 @@ export class TodoPage extends GenericPage {
   }
 
   /**
-   * Permet de générer une description de la page, notament pour la synthèse vocale
+   * supprime et recréer tout les map marker
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
+  private async resetMarker(): Promise<void> {
+    if (!this.mapLoaded) {
+      return;
+    }
+    try {
+      this.animateCamera();
+      this.addAddressMarker();
+      this.addCreateMarker();
+      this.addCompleteMarker();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  /******************************* CALENDRIER ********************************/
+
+  /**
+   * retourne une date lislble à partir d'un objet d'authoring
+   *
+   * @private
+   * @param {(IAuthor | null)} anAuthor
+   * @returns {string}
+   * @memberof TodoPage
+   */
+  private getDate(anAuthor: IAuthor | null): string {
+    if (anAuthor == null || anAuthor.timestamp == null) {
+      return 'Non définie';
+    }
+    return moment(anAuthor.timestamp)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
+  }
+
+  /**
+   * vérifie et si besoin demande à l'utilisateur de pouvoir accéder à son calendrier natif
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
+  private async askForCalendarPerms(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      try {
+        this.calendarCtrl.requestReadWritePermission();
+      } catch (error) {
+        this.uiCtrl.displayToast('Les fonctionalités lié au calendrier sont désactivée');
+      }
+    }
+  }
+
+  /**
+   * méthode permettant de définir si un todo existe dans le calendrier natif du téléphone.
+   * L'entrée ou le todo ne doivent pas avoir été modifié depuis leur création...
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
+  private async todoExistInCalendar(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      return;
+    }
+    if (this.todo.name == null) {
+      return;
+    }
+
+    let address = '';
+    let desc = '';
+    let start = new Date();
+    let end = new Date(start.getTime() + 3600000);
+    if (this.todo.address != null) {
+      address = this.todo.address;
+    }
+    if (this.todo.desc != null) {
+      desc = this.todo.desc;
+    }
+    if (this.todo.deadline != null) {
+      start = new Date(this.todo.deadline);
+      end = new Date(start.getTime() + 3600000);
+    }
+    try {
+      const res: any[] = await this.calendarCtrl.findEvent(
+        this.todo.name,
+        address,
+        desc,
+        start,
+        end
+      );
+      this.isInCalendar = res.length > 0;
+    } catch (error) {
+      this.isInCalendar = false;
+    }
+  }
+
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * met à jour le status de la tâche
    *
    * @protected
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
+  protected async updateComplete(): Promise<void> {
+    this.completeLoading = true;
+    await this.todoCtrl.complete(this.todo);
+    this.completeLoading = false;
+  }
+
+  /**
+   * retourne une date lisible par un humain
+   *
+   * @protected
+   * @param {Date} d
+   * @returns {string}
+   * @memberof TodoPage
+   */
+  protected getHuman(d: Date): string {
+    if (d == null) {
+      return 'Non définie';
+    }
+    return moment(d)
+      .locale('fr')
+      .format('ddd D MMM YYYY');
+  }
+
+  /**
+   * demande d'ouvrir la messagerie SMS pour préparer un sms à un contact
+   *
+   * @protected
+   * @param {ISimpleContact} contact
+   * @returns {void}
+   * @memberof TodoPage
+   */
+  protected openSMS(contact: ISimpleContact): void {
+    if (contact == null) {
+      return;
+    }
+    this.contactCtrl.openNativeSMS(contact);
+  }
+
+  /**
+   * demande d'ouvrir le téléphone natif pour appeler un contact
+   *
+   * @protected
+   * @param {ISimpleContact} contact
+   * @returns {void}
+   * @memberof TodoPage
+   */
+  protected call(contact: ISimpleContact): void {
+    if (contact == null) {
+      return;
+    }
+    this.contactCtrl.call(contact);
+  }
+
+  /**
+   * demande d'ouvrir la messagerie native pour envoyer un mail à un contact
+   *
+   * @protected
+   * @param {ISimpleContact} contact
+   * @returns {void}
+   * @memberof TodoPage
+   */
+  protected openEmail(contact: ISimpleContact): void {
+    if (contact == null) {
+      return;
+    }
+    this.contactCtrl.prepareEmail(contact);
+  }
+
+  /**
+   * méthode permettant d'afficher une photo à partir de son uri
+   *
+   * @protected
+   * @param {string} uri
+   * @returns {void}
+   * @memberof TodoPage
+   */
+  protected showPhoto(uri: string): void {
+    if (uri == null) {
+      return;
+    }
+    this.photoCtrl.show(uri);
+  }
+
+  /**
+   * méthode permettant d'ouvrire le calendrier natif pour y ajouter la tâche
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
+  protected async exportToCalendar(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      return;
+    }
+    if (this.todo.name == null) {
+      return;
+    }
+
+    let address = '';
+    let desc = '';
+    let start = new Date();
+    let end = new Date(start.getTime() + 3600000);
+    if (this.todo.address != null) {
+      address = this.todo.address;
+    }
+    if (this.todo.desc != null) {
+      desc = this.todo.desc;
+    }
+    if (this.todo.deadline != null) {
+      start = new Date(this.todo.deadline);
+      end = new Date(start.getTime() + 3600000);
+    }
+
+    try {
+      await this.calendarCtrl.createEventInteractively(
+        this.todo.name,
+        address,
+        desc,
+        start,
+        end
+      );
+      this.todoExistInCalendar();
+    } catch (error) {
+      this.uiCtrl.displayToast(
+        "Une erreur est survenue lors de la tentative d'ajout au calendrier"
+      );
+    }
+  }
+
+  /**
+   * ouvre le calendrier natif à la page de la deadline du todo ou d'aujourd'hui
+   *
+   * @protected
+   * @memberof TodoPage
+   */
+  protected openCalendar(): void {
+    if (this.todo.deadline == null) {
+      this.calendarCtrl.openCalendar(new Date());
+    } else {
+      this.calendarCtrl.openCalendar(this.todo.deadline);
+    }
+  }
+
+  /**
+   * méthode permettant de supprimer l'entrée associé à cette tâche du calendrier natif de l'utilisateur
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof TodoPage
+   */
+  protected async deleteFromCaldendar(): Promise<void> {
+    if (!await this.calendarCtrl.hasReadWritePermission()) {
+      return;
+    }
+    if (this.todo.name == null) {
+      return;
+    }
+
+    let address = '';
+    let desc = '';
+    let start = new Date();
+    let end = new Date(start.getTime() + 3600000);
+    if (this.todo.address != null) {
+      address = this.todo.address;
+    }
+    if (this.todo.desc != null) {
+      desc = this.todo.desc;
+    }
+    if (this.todo.deadline != null) {
+      start = new Date(this.todo.deadline);
+      end = new Date(start.getTime() + 3600000);
+    }
+    try {
+      this.calendarCtrl.deleteEvent(this.todo.name, address, desc, start, end);
+      this.uiCtrl.displayToast('Tâche supprimée de votre calendrier');
+    } catch (error) {
+      this.uiCtrl.displayToast('Une erreur est survenue pendant la suppression de la tâche');
+    }
+    this.isInCalendar = false;
+  }
+
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
+
+  /**
+   * @override
+   * @protected
+   * @param {IMenuRequest} req
+   * @memberof TodoPage
+   */
+  protected menuEventHandler(req: IMenuRequest): void {
+    switch (req.request) {
+      case MenuRequestType.DELETE: {
+        this.deleteTodo();
+        break;
+      }
+      case MenuRequestType.EDIT: {
+        this.navCtrl.push('TodoEditPage', { todoRef: this.todoRef });
+        break;
+      }
+      case MenuRequestType.COPY: {
+        this.evtCtrl.setCopiedTodoRef(this.todoRef);
+        this.uiCtrl.displayToast('Cette à tâche à bien été copiée');
+        break;
+      }
+    }
+  }
+
+  /**
+   * Permet de générer une description de la page, notament pour la synthèse vocale
+   *
+   * @override
+   * @protected
    * @returns {string} une description textuelle de la page
-   * @memberof GenericPage
+   * @memberof TodoPage
    */
   protected generateDescription(): string {
-    let description : string = "";
-    description = " Détails de la tâche " + this.todo.name + " . ";
-    
-    if(this.todo.desc != null) {
-      description += " Description de la tâche : " + this.todo.desc + " . ";
+    let description: string = '';
+    description = ' Détails de la tâche ' + this.todo.name + ' . ';
+
+    if (this.todo.desc != null) {
+      description += ' Description de la tâche : ' + this.todo.desc + ' . ';
     }
 
-    if(this.deadlineStr !== "Non définie"){
-      description += " La tâche doit être réalisée avant le " + this.deadlineStr + " . " ;
+    if (this.deadlineStr !== 'Non définie') {
+      description += ' La tâche doit être réalisée avant le ' + this.deadlineStr + ' . ';
     }
 
-    if(this.remainingDeadlineStr !== "Non définie"){
-      description += "La tâche doit être terminée " + this.remainingDeadlineStr + " . ";
+    if (this.remainingDeadlineStr !== 'Non définie') {
+      description += 'La tâche doit être terminée ' + this.remainingDeadlineStr + ' . ';
     }
 
-    if(this.notifStr !== "Non définie"){
-      description += "La notification est prévue pour le " + this.notifStr + " . ";
+    if (this.notifStr !== 'Non définie') {
+      description += 'La notification est prévue pour le ' + this.notifStr + ' . ';
     }
 
-    if(this.todo.address != null){
-      description += "La tâche à lieu à " + this.todo.address + " . ";
+    if (this.todo.address != null) {
+      description += 'La tâche à lieu à ' + this.todo.address + ' . ';
     }
 
     return description;
   }
 
+  /**************************************************************************/
+  /********************************* GETTER *********************************/
+  /**************************************************************************/
+
+  /**
+   * retourne la datetime lislble de deadline de la tâche
+   *
+   * @protected
+   * @readonly
+   * @type {string}
+   * @memberof TodoPage
+   */
+  protected get deadlineStr(): string {
+    if (this.todo.deadline == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.deadline)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
+  }
+
+  /**
+   * retourne la datetime de notification lisible de la tâche
+   *
+   * @protected
+   * @readonly
+   * @type {string}
+   * @memberof TodoPage
+   */
+  protected get notifStr(): string {
+    if (this.todo.notif == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.notif)
+      .locale('fr')
+      .format('ddd D MMM YYYY, HH:mm');
+  }
+
+  /**
+   * retourne le temps restant d'une date, dans un format lisible par un humain
+   *
+   * @protected
+   * @readonly
+   * @type {string}
+   * @memberof TodoPage
+   */
+  protected get remainingDeadlineStr(): string {
+    if (this.todo.deadline == null) {
+      return 'Non définie';
+    }
+    return moment(this.todo.deadline)
+      .locale('fr')
+      .fromNow();
+  }
 }

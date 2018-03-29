@@ -11,14 +11,14 @@
             <ion-item-group reorder="true" (ionItemReorder)="reorder($event,todoList)">
                 <ng-container *ngFor="let list of todoList">
                     <ng-container *ngIf="search$ | async as search">
-                        <ion-item-sliding *ngIf="areMatching(list,search)">
+                        <ion-item-sliding *ngIf="areMatching(list,search)" #todoSlide>
                             <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                                 <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                 {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                                 <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
                             </ion-item>
                             <ion-item-options side="right">
-                                <button ion-button color="danger" (click)="deleteTodoList(list, todoList)">
+                                <button ion-button color="danger" (click)="deleteTodoList(list, todoList, todoSlide)">
                                     <ion-icon name="trash">
                                         supprimer
                                     </ion-icon>
@@ -35,13 +35,13 @@
             <ion-item-group reorder="true" (ionItemReorder)="reorder($event,completeTodoList)">
                 <ng-container *ngFor="let list of completeTodoList">
                     <ng-container *ngIf="search$ | async as search">
-                        <ion-item-sliding *ngIf="areMatching(list,search)">
+                        <ion-item-sliding *ngIf="areMatching(list,search)" #completeSlide>
                             <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                                 <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                 {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                             </ion-item>
                             <ion-item-options side="right">
-                                <button ion-button color="danger" (click)="deleteTodoList(list, completeTodoList)">
+                                <button ion-button color="danger" (click)="deleteTodoList(list, completeTodoList, completeSlide)">
                                     <ion-icon name="trash">
                                         supprimer
                                     </ion-icon>
@@ -59,14 +59,14 @@
             <ion-item-group>
                 <ng-container *ngFor="let list of sharedTodoList">
                     <ng-container *ngIf="search$ | async as search">
-                        <ion-item-sliding *ngIf="areMatching(list,search)">
+                        <ion-item-sliding *ngIf="areMatching(list,search)" #sharedSlide>
                             <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                                 <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                 {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                                 <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
                             </ion-item>
                             <ion-item-options side="right">
-                                <button ion-button color="danger" (click)="deleteTodoList(list, sharedTodoList)">
+                                <button ion-button color="danger" (click)="deleteTodoList(list, sharedTodoList, sharedSlide)">
                                     <ion-icon name="trash">
                                         supprimer
                                     </ion-icon>
@@ -86,14 +86,14 @@
         <ion-item-group reorder="true" (ionItemReorder)="reorder($event,localTodoList)">
             <ng-container *ngFor="let list of localTodoList">
                 <ng-container *ngIf="search$ | async as search">
-                    <ion-item-sliding *ngIf="areMatching(list,search)">
+                    <ion-item-sliding *ngIf="areMatching(list,search)" #completeSlide>
                         <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                             <ion-icon name="{{list.icon}}" item-start></ion-icon>
                             {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                             <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
                         </ion-item>
                         <ion-item-options side="right">
-                            <button ion-button color="danger" (click)="deleteTodoList(list, localTodoList)">
+                            <button ion-button color="danger" (click)="deleteTodoList(list, localTodoList, completeSlide)">
                                 <ion-icon name="trash">
                                     supprimer
                                 </ion-icon>
