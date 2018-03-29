@@ -1,9 +1,11 @@
+import { ISimpleContact } from './../../model/simple-contact';
 import { ITodoItem } from './../../model/todo-item';
-import { Media } from './../../model/media';
 import { IMenuRequest } from './../../model/menu-request';
 import { ITodoList } from '../../model/todo-list';
 export interface IParsedRequest {
   sentence: string[];
+
+  origSentence: string;
 
   newTodoName: string | null;
 
@@ -13,9 +15,7 @@ export interface IParsedRequest {
 
   listFound: ITodoList | null;
 
-  target: string | null;
+  contact: ISimpleContact | null;
 
   request: IMenuRequest | null;
-
-  media: Media | null;
 }

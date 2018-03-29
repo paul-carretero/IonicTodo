@@ -23,7 +23,7 @@ export interface IMenuRequest {
    * @type {Media}
    * @memberof IMenuRequest
    */
-  media?: Media;
+  media?: Media | null;
 
   /**
    * identifiant d'une ressource
@@ -31,5 +31,5 @@ export interface IMenuRequest {
    * @type {string}
    * @memberof IMenuRequest
    */
-  uuid?: string;
+  uuid?: string | null;
 }

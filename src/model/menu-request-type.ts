@@ -8,6 +8,7 @@ export enum MenuRequestType {
   DELETE,
   EDIT,
   SHARE,
+  SEND,
   HELP,
   IMPORT,
   SPEECH_REC,
@@ -16,5 +17,7 @@ export enum MenuRequestType {
   SHAKE,
   COPY,
   PASTE,
-  OCR
+  OCR,
+  CREATE,
+  VIEW
 }

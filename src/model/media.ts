@@ -7,5 +7,6 @@
 export enum Media {
   CLOUD,
   NFC,
-  QR_CODE
+  QR_CODE,
+  OCR
 }
