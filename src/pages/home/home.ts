@@ -134,7 +134,7 @@ export class HomePage extends GenericPage {
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly todoService: TodoServiceProvider,
-    private readonly settingCtrl: DBServiceProvider,
+    private readonly settingCtrl: DBServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoList = [];
@@ -316,28 +316,30 @@ export class HomePage extends GenericPage {
    * @param {string} uuid
    * @memberof HomePage
    */
-  protected async deleteTodoList(liste: ITodoList, tab: ITodoList[]): Promise<void> {
-    console.log("dans delete todoList");
-    const unsure_mode : boolean = await this.settingCtrl.getSetting(Settings.ENABLE_UNSURE_MODE);
-    if(unsure_mode){
-      console.log("unsure mode activé");
-      const title = "Suppression de la liste " + liste.name;
-      const message = "Voulez vous supprimer la liste " + liste.name;
-      const confirm : boolean = await this.uiCtrl.confirm(title, message);
-      if(confirm){
-        console.log("confirmation de la suppression");
-        tab.splice(tab.indexOf(liste)); 
-        if(liste.uuid != null){
-          this.todoService.deleteList(liste.uuid);
-        } 
-      }
+  protected async deleteTodoList(
+    liste: ITodoList,
+    tab: ITodoList[],
+    closable: { close(): void }
+  ): Promise<void> {
+    const unsure_mode: boolean = await this.settingCtrl.getSetting(
+      Settings.ENABLE_UNSURE_MODE
+    );
+    let confirm: boolean = true;
+
+    if (unsure_mode) {
+      const title = 'Suppression de la liste ' + liste.name;
+      const message = 'Voulez vous supprimer la liste ' + liste.name;
+      confirm = await this.uiCtrl.confirm(title, message);
     }
-    else{
-      tab.splice(tab.indexOf(liste)); 
-      if(liste.uuid != null){
+
+    if (confirm) {
+      tab.splice(tab.indexOf(liste));
+      if (liste.uuid != null) {
         this.todoService.deleteList(liste.uuid);
       }
     }
+
+    closable.close();
   }
 
   /**
@@ -375,39 +377,41 @@ export class HomePage extends GenericPage {
    * @memberof GenericPage
    */
   protected generateDescription(): string {
-    let description = "";
-    description += this.getDescription(this.todoList, " de tâches en cours ");
-    description += this.getDescription(this.completeTodoList, " terminées ");
-    description += this.getDescription(this.sharedTodoList, " partagées " );
-    description += this.getDescription(this.localTodoList, " locales " );
+    let description = '';
+    description += this.getDescription(this.todoList, ' de tâches en cours ');
+    description += this.getDescription(this.completeTodoList, ' terminées ');
+    description += this.getDescription(this.sharedTodoList, ' partagées ');
+    description += this.getDescription(this.localTodoList, ' locales ');
 
     return description;
   }
 
+  private getDescription(todoList: ITodoList[], type: string): string {
+    let description = '';
 
-  private getDescription(todoList : ITodoList[], type : string) : string {
-    let description = "";
-
-    let list_desc = "";
-    let have_list = false; 
-    for(const list of todoList){
+    let list_desc = '';
+    let have_list = false;
+    for (const list of todoList) {
       have_list = true;
-      if(list.metadata.atLeastOneLate){
-        list_desc += " " + list.name + " . Attention la liste " + list.name + " a au moins une tâche en retard ! " ;
-      }
-      else{
-        list_desc += " " + list.name + " ,";
+      if (list.metadata.atLeastOneLate) {
+        list_desc +=
+          ' ' +
+          list.name +
+          ' . Attention la liste ' +
+          list.name +
+          ' a au moins une tâche en retard ! ';
+      } else {
+        list_desc += ' ' + list.name + ' ,';
       }
     }
-    if(have_list && todoList.length > 1){
-      description += " Vos listes " + type +" sont : " + list_desc + " . ";
+    if (have_list && todoList.length > 1) {
+      description += ' Vos listes ' + type + ' sont : ' + list_desc + ' . ';
     }
 
-    if(have_list && todoList.length === 1){
-      description += " Votre liste " + type +" est : " + list_desc + " . ";
+    if (have_list && todoList.length === 1) {
+      description += ' Votre liste ' + type + ' est : ' + list_desc + ' . ';
     }
 
     return description;
   }
-
 }
