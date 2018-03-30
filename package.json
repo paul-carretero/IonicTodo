@@ -166,6 +166,9 @@
       "cordova-plugin-admob-free": {
         "PLAY_SERVICES_VERSION": "12.0.1"
       },
+      "cordova-admob-sdk": {
+        "PLAY_SERVICES_VERSION": "12.0.1"
+      },
       "cordova-plugin-googlemaps": {
         "API_KEY_FOR_ANDROID": "AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE",
         "API_KEY_FOR_IOS": "AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE",
