@@ -12,6 +12,8 @@ import { ITodoItem } from '../../model/todo-item';
 import { AuthServiceProvider } from '../auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../speech-synth-service/speech-synth-service';
 import { SpeechParser } from './parser';
+import { IParsedRequest } from './parsed-req';
+
 
 @Injectable()
 export class SpeechRecServiceProvider {
@@ -150,8 +152,21 @@ export class SpeechRecServiceProvider {
         // pour chaque "phrase" possible reconnue par le micro
         this.parser
           .init()
-          .then(() => this.parser.parse(matches[0]).then(res => console.log(res)));
-
+          .then(() => this.parser.parse(matches[0]).then( res => {
+              console.log(res);
+              res_rec = this.reconnaissanceAction(res);
+              // si aucune action n'a été reconnue
+              if (res_rec.reconnu == null || !res_rec.reconnu) {
+                this.speechSynthService.synthText("Je n'ai pas compris");
+              }
+              // si l'action a été reconnue mais n'a pas pu être réalisée
+              // on affiche son message d'erreur
+              if (res_rec.reconnu != null && res_rec.reconnu && !res_rec.action_success) {
+                this.speechSynthService.synthText(res_rec.message_error);
+              }
+            }));
+          
+/*
         for (const item of matches) {
           // on sépare cette phrase en mots
 
@@ -163,21 +178,13 @@ export class SpeechRecServiceProvider {
 
           // si une action a réussi, alors on quitte la reconnaissance
 
-          /*if (res_rec.action_success) {
+          if (res_rec.action_success) {
             break;
-          }*/
+          }
           item;
           this.reconnaissanceAction;
-        }
-        // si aucune action n'a été reconnue
-        if (res_rec.reconnu == null || !res_rec.reconnu) {
-          this.speechSynthService.synthText("Je n'ai pas compris");
-        }
-        // si l'action a été reconnue mais n'a pas pu être réalisée
-        // on affiche son message d'erreur
-        if (res_rec.reconnu != null && res_rec.reconnu && !res_rec.action_success) {
-          this.speechSynthService.synthText(res_rec.message_error);
-        }
+        }*/
+        
       },
       () => {
         this.uiCtrl.alert('Erreur', 'une erreur inattendue est survenue');
@@ -194,7 +201,9 @@ export class SpeechRecServiceProvider {
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private reconnaissanceAction(mots: string[]): ISpeechReqResult {
+  private reconnaissanceAction(sentence : IParsedRequest): ISpeechReqResult {
+    this.speechSynthService.synthText("J'analyse votre demande");
+    const mots : string[] = [""];    
     // reconnaissance des mots clefs dans les mots entendus
     const contain_list = this.contain_motclef(mots, this.motClefs.list);
     const contain_todo = this.contain_motclef(mots, this.motClefs.todo);
@@ -210,11 +219,21 @@ export class SpeechRecServiceProvider {
       message_error: "L'action n'a pas pu être réalisée"
     };
 
+    if(sentence.request != null){
+      if(sentence.request.request === MenuRequestType.CREATE){
+        phrase_reconnue = true;
+        resultat_action = this.creerListe(sentence);
+      }
+
+    }
+
+/*
     // CRÉER UNE NOUVELLE LISTE ?
     if (contain_create && contain_list && !contain_todo) {
       phrase_reconnue = true;
       resultat_action = this.creerListe(mots);
     }
+  */
     // AJOUTER UNE TACHE DANS UNE LISTE ?
     if (contain_create && contain_list && contain_todo) {
       phrase_reconnue = true;
@@ -272,6 +291,9 @@ export class SpeechRecServiceProvider {
       resultat_action.action_success = true;
       this.speechSynthService.synthText('Veuillez rester polis');
     }
+    console.log("reconnu ? " + phrase_reconnue);
+    console.log("success ? " + resultat_action.action_success);
+
     return {
       reconnu: phrase_reconnue,
       action_success: resultat_action.action_success,
@@ -375,18 +397,23 @@ Méthodes pour les actions liées aux listes
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private creerListe(mots: string[]): ISpeechReqResult {
+  private creerListe(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
-    const nameList = this.getNameList(mots);
-    const liste = this.does_list_exist(nameList);
+    const nameList = sentence.newListName;
+    //const liste = this.does_list_exist(nameList);
 
-    if (liste.exist) {
-      message_error = 'La liste ' + nameList + ' existe déjà';
+    if (nameList == null) {
+      message_error = "Je n'ai pas compris le nom de la liste à créer. Veuillez essayer de nouveau.";
     } else {
-      this.addNewList(nameList);
-      this.speechSynthService.synthText('Liste ' + nameList + ' créée.');
-      action_success = true;
+      if(sentence.listFound){
+        message_error = 'La liste ' + nameList + ' existe déjà';
+      }
+      else {
+        this.addNewList(nameList);
+        this.speechSynthService.synthText('Liste ' + nameList + ' créée.');
+        action_success = true;
+      }
     }
 
     return { action_success: action_success, message_error: message_error };
