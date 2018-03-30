@@ -29,7 +29,8 @@ export class SpeechParser {
     [MenuRequestType.VIEW, ['afficher', 'visionner', 'voir', 'affiche']],
     [MenuRequestType.SEND, ['envoie', 'envoyer', 'envoi', 'clone']],
     [MenuRequestType.SHARE, ['partage', 'partager', 'lier', 'lie']],
-    [MenuRequestType.COPY, ['copier', 'copie']]
+    [MenuRequestType.COPY, ['copier', 'copie']],
+    [MenuRequestType.HELP, ['aide', 'aider', 'help', 'aidez', 'aidé']]
   ]);
 
   /**
