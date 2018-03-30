@@ -153,10 +153,10 @@ export class SpeechRecServiceProvider {
   }
 
   /**
-   * Méthode permettant de reconnaitre l'action à réaliser à partir de mots reconnus par le micro
+   * Méthode permettant de reconnaitre l'action à réaliser 
    *
    * @private
-   * @param {string[]} mots ensemble des mots à traiter
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -252,10 +252,10 @@ Méthodes pour les actions liées aux listes
 *******************************************/
 
   /**
-   * Méthode permettant de créer une liste à partir des mots entendus
+   * Méthode permettant de créer une liste
    *
    * @private
-   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -300,10 +300,10 @@ Méthodes pour les actions liées aux listes
   }
 
   /**
-   * Méthode permettant d'afficher la page d'une liste, à partir des mots entendus
+   * Méthode permettant d'afficher la page d'une liste
    *
    * @private
-   * @param {string[]} mots ensemble de mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -327,7 +327,7 @@ Méthodes pour les actions liées aux listes
    * Méthode permettant d'afficher la page d'édition d'une liste
    *
    * @private
-   * @param {string[]} mots ensemble de mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -348,10 +348,10 @@ Méthodes pour les actions liées aux listes
   }
 
   /**
-   * Méthode permettant de supprimer une liste à partir des mots entendus
+   * Méthode permettant de supprimer une liste
    *
    * @private
-   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -382,7 +382,7 @@ Méthodes pour les actions liées aux tâches
    * Méthode permettant de créer une tâche associée à une liste
    *
    * @private
-   * @param {string[]} mots ensemble de mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -420,7 +420,7 @@ Méthodes pour les actions liées aux tâches
    * Méthode permettant d'afficher la page d'édition d'une tâche d'une liste
    *
    * @private
-   * @param {string[]} mots ensemble de mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -452,10 +452,10 @@ Méthodes pour les actions liées aux tâches
   }
 
   /**
-   * Méthode permettant de supprimer une tâche d'une liste, à partir des mots entendus
+   * Méthode permettant de supprimer une tâche d'une liste
    *
    * @private
-   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -496,10 +496,10 @@ Méthodes contextuelles
 
 *******************************************/
   /**
-   * Méthode permettant de créer une tâche dans la liste courante, à partir des mots entendus
-   *
+   * Méthode permettant de créer une tâche dans la liste courante
+   * 
    * @private
-   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -529,10 +529,10 @@ Méthodes contextuelles
   }
 
   /**
-   * Méthode permettant de modifier une tâche dans la liste courante, à partir des mots entendus
+   * Méthode permettant de modifier une tâche dans la liste courante
    *
    * @private
-   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -563,10 +563,10 @@ Méthodes contextuelles
   }
 
   /**
-   * Méthode permettant de supprimer une tâche dans la liste courante, à partir des mots entendus
+   * Méthode permettant de supprimer une tâche dans la liste courante
    *
    * @private
-   * @param {string[]} mots ensemble des mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
@@ -593,10 +593,10 @@ Méthodes contextuelles
   }
 
   /**
-   * Méthode permettant d'afficher la page d'une tâche, de la liste courante
+   * Méthode permettant d'afficher la page d'une tâche
    *
    * @private
-   * @param {string[]} mots ensemble de mots entendus par le micro
+   * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
