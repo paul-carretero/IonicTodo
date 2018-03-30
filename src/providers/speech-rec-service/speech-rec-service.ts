@@ -19,6 +19,20 @@ import { IParsedRequest } from './parsed-req';
 export class SpeechRecServiceProvider {
   private allOK = false;
 
+  private readonly nb_essais_pour_aide = 3;
+  private nb_essais_courant = 0;   
+  private readonly message_aide_page_home = " Exemples d'utilisation depuis la page de l'ensemble des listes : \n" + 
+  " Créer la liste maison. \n" +
+  " Afficher la liste maison. \n " +
+  " Modifier la liste maison. \n " +
+  " Ajouter la tâche repassage dans la liste maison. \n"+
+  " Supprimer la tâche repassage dans la liste maison. \n" +
+  " Supprimer la liste maison. \n" ; 
+  private readonly message_aide_page_todo_list = "Exemples d'utilisation depuis la page d'une liste : \n" + 
+  " Ajouter la tâche repassage. \n"+
+  " Afficher la tâche repassage. \n" +
+  " Supprimer la tâche repassage. \n" ; 
+
   private readonly parser: SpeechParser;
 
   /**
@@ -136,8 +150,13 @@ export class SpeechRecServiceProvider {
        }
        
         // si aucune action n'a été reconnue
-        if (res_rec.reconnu == null || !res_rec.reconnu) {
+        if (res_rec.reconnu == null || !res_rec.reconnu) {    
           this.speechSynthService.synthText("Je n'ai pas compris");
+          this.nb_essais_courant ++;
+          if(this.nb_essais_courant >= this.nb_essais_pour_aide){
+            this.speechSynthService.synthText("Si vous voulez de l'aide, dites aide");
+          }
+          
         }
         // si l'action a été reconnue mais n'a pas pu être réalisée
         // on affiche son message d'erreur
@@ -178,7 +197,7 @@ export class SpeechRecServiceProvider {
       const contain_update = (sentence.request.request === MenuRequestType.EDIT);
       const contain_delete = (sentence.request.request === MenuRequestType.DELETE);
       const contain_view = (sentence.request.request === MenuRequestType.VIEW);
-
+      const contain_aide = (sentence.request.request === MenuRequestType.HELP);
     
       // CRÉER UNE NOUVELLE LISTE ?
       if(contain_create && contain_list && !contain_todo){
@@ -234,6 +253,17 @@ export class SpeechRecServiceProvider {
       if (contain_view && !contain_list && contain_todo) {
         phrase_reconnue = true;
         resultat_action = this.afficherTodo(sentence);
+      }
+      // DEMANDER L'AIDE
+      if(contain_aide){
+        phrase_reconnue = true;
+        if(this.evtCtrl.getCurrentContext(true) != null){
+          this.speechSynthService.synthText(this.message_aide_page_todo_list);
+        }
+        else{
+          this.speechSynthService.synthText(this.message_aide_page_home);
+        }
+        resultat_action = {action_success : true, message_error : ""};
       }
     }
 
