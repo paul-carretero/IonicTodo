@@ -21,10 +21,17 @@
         </ion-segment-button>
       </ion-segment>
     </ion-card-header>
-    une jolie image nfc ici
+    <ion-card-content>
+      <img src="assets/imgs/nfc.png" class="nfc-img" />
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card padding [innerHTML]="shareSendDesc"></ion-card>
+
+  <ion-card class="button-wrapper">
+    <button ion-button block small (click)="export()">
+      <ion-icon class="button-icon" name="build"></ion-icon>
+      Ecrire la liste sur un Tag NFC
+    </button>
   </ion-card>
 </ion-content>
-
-<ion-footer padding>
-  <button ion-button full small round (click)="export()">Ecrire la liste sur un Tag NFC</button>
-</ion-footer>

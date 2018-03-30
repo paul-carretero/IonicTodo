@@ -23,6 +23,8 @@
     </ion-segment>
   </ion-card>
 
+  <ion-card padding [innerHTML]="shareSendDesc"></ion-card>
+
   <ion-card *ngIf="contactList.length === 0">
     <ion-card-header icon-start>
       <ion-icon name="key"></ion-icon>
@@ -36,50 +38,47 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card>
-    <ion-card-header icon-start>
-      <ion-icon name="contacts"></ion-icon>
-      Associer des contacts
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list>
-        <button ion-item color="light" (click)="openContactPopup()" type="button">
-          <ion-icon name="add-circle" item-start></ion-icon>
-          Ajouter des contacts
-        </button>
+  <ion-card class="button-wrapper">
+    <ion-list>
+      <button ion-item color="secondary" (click)="openContactPopup()" type="button">
+        <ion-icon name="contacts" item-start></ion-icon>
+        Ajouter des contacts
+        <ion-icon name="add" item-end></ion-icon>
+      </button>
 
-        <ion-item-sliding *ngFor="let contact of contactList">
-          <ion-item>
-            {{contact.displayName}} ({{contact.email}})
-          </ion-item>
-          <ion-item-options side="right">
-            <button ion-button color="danger" (click)="deleteContact(contact)">
-              <ion-icon name="trash">
-                supprimer
-              </ion-icon>
-            </button>
-          </ion-item-options>
-        </ion-item-sliding>
-
-        <ion-list-header color="light">Options</ion-list-header>
-        <ion-item *ngIf="contactList.length > 0">
-          <ion-label>Envoyer un sms à vos contacts:</ion-label>
-          <ion-toggle [(ngModel)]="sendSMS"></ion-toggle>
-        </ion-item>
+      <ion-item-sliding *ngFor="let contact of contactList">
         <ion-item>
-          Cette opération est facultative.
-          <br/> Les contacts choisis seront
-          <br/> automatiquement ajoutés à
-          <br/> votre {{sendPartage[2]}} s'ils
-          <br/> possèdent un compte sur
-          <br/> OhMyTask
+          {{contact.displayName}} ({{contact.email}})
         </ion-item>
-      </ion-list>
-    </ion-card-content>
+        <ion-item-options side="right">
+          <button ion-button color="danger" (click)="deleteContact(contact)">
+            <ion-icon name="trash">
+              supprimer
+            </ion-icon>
+          </button>
+        </ion-item-options>
+      </ion-item-sliding>
+
+      <ion-item-divider *ngIf="contactList.length > 0" color="light">Option:</ion-item-divider>
+      <ion-item *ngIf="contactList.length > 0">
+        <ion-label>Envoyer un sms à vos contacts:</ion-label>
+        <ion-toggle [(ngModel)]="sendSMS"></ion-toggle>
+      </ion-item>
+    </ion-list>
   </ion-card>
 
   <ion-card padding>
-    <button ion-button full large round (click)="shareWrapper()">{{sendPartage[0]}} cette liste</button>
-    <span>Le {{sendPartage[2]}} sera disponible 24h</span>
+    votre {{sendPartage[2]}} sera disponible 24h. Si vous ne spécifier pas de contact à qui {{sendPartage[0]}} cette liste alors
+    il sera disponible sur le cloud OhMyTask. Vous pouvez spécifier un mot de passe limitant l'accès à cette liste. Si vous
+    spécifiez un ou des contacts alors ces contacts récupèreront cette liste lors de leur prochaine connexion. Dans les 2
+    cas, ce {{sendPartage[2]}} sera supprimé dans 24h
   </ion-card>
+
+  <ion-card class="button-wrapper">
+    <button ion-button block (click)="shareWrapper()">
+      <ion-icon class="button-icon" name="checkmark"></ion-icon>
+      {{sendPartage[0]}} cette liste
+    </button>
+  </ion-card>
+
 </ion-content>

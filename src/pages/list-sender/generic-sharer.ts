@@ -1,7 +1,6 @@
 import { NavController, NavParams } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
-import { MenuRequestType } from '../../model/menu-request-type';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
@@ -10,24 +9,60 @@ import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ITodoListPath } from './../../model/todo-list-path';
 
+/**
+ * page abstraite pour la gestion des fonctionalités lié à la génération d'un objet de liste exportable par valeur ou référence ou référence en lecture seule
+ *
+ * @export
+ * @class GenericSharer
+ * @extends {GenericPage}
+ */
 export class GenericSharer extends GenericPage {
+  /**************************** PRIVATE FIELDS ******************************/
+
   /**
-   * Identifiant unique de la liste à partager
+   * requête utilisateur pour l'échange, contenant également l'uuid de la liste à partaer
    *
-   * @readonly
-   * @type {string}
+   * @private
+   * @type {IMenuRequest}
    * @memberof GenericSharer
    */
-  protected readonly listUUID: string;
+  private readonly request: IMenuRequest;
 
-  protected readonly request: IMenuRequest;
+  /**
+   * objet d'échange de liste pour un envoie par valeur ou par référence, défini par le choix utilisateur
+   *
+   * @private
+   * @type {ITodoListPath}
+   * @memberof GenericSharer
+   */
+  private readonly listPath: ITodoListPath;
 
-  protected listShare: ITodoListPath;
+  /***************************** PUBLIC FIELDS ******************************/
 
-  protected listSend: ITodoListPath;
-
+  /**
+   * choix courrant de l'utilisateur sur, respectivement, partage readonly, partage par référence, envoie par valeur
+   *
+   * @protected
+   * @type {('lock' | 'unlock' | 'send')}
+   * @memberof GenericSharer
+   */
   protected choice: 'lock' | 'unlock' | 'send';
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of GenericSharer.
+   * @param {NavParams} navParams
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {TodoServiceProvider} todoCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @memberof GenericSharer
+   */
   constructor(
     protected readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
@@ -38,11 +73,15 @@ export class GenericSharer extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
-    this.listUUID = navParams.get('uuid');
     this.request = navParams.get('request');
-    this.sendListHandler();
-    this.shareListHandler();
+    if (this.request.uuid != null) {
+      this.listPath = this.todoCtrl.getListLink(this.request.uuid);
+    }
   }
+
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
 
   /**
    * Charge le liste demandé et la stocke dans un json
@@ -51,57 +90,85 @@ export class GenericSharer extends GenericPage {
    */
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
-    this.choice = 'unlock';
 
-    this.deleteSub = this.todoCtrl
-      .getDeleteSubject(this.listUUID)
-      .subscribe(() => this.hasBeenRemoved(true));
+    if (this.request == null || this.request.uuid == null) {
+      this.navCtrl.pop();
+    } else {
+      this.choice = 'unlock';
+      this.deleteSub = this.todoCtrl
+        .getDeleteSubject(this.request.uuid)
+        .subscribe(() => this.hasBeenRemoved(true));
+    }
   }
 
-  ionViewWillLeave() {
+  /**
+   * désinscription de la surveillance de la suppression de liste
+   *
+   * @memberof GenericSharer
+   */
+  ionViewWillLeave(): void {
     this.todoCtrl.unsubDeleteSubject();
   }
 
-  get creatingLink(): boolean {
-    return this.request.request === MenuRequestType.SHARE;
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * retourne le json de l'échange, configuré en fonction du choix utilisateur
+   *
+   * @readonly
+   * @protected
+   * @type {string}
+   * @memberof GenericSharer
+   */
+  protected get json(): string {
+    return JSON.stringify(this.list);
   }
 
-  get json(): string {
+  /**
+   * retourne l'objet déchange de liste en fonction du choix utilisateur et le configure si bersoin
+   *
+   * @readonly
+   * @protected
+   * @type {ITodoListPath}
+   * @memberof GenericSharer
+   */
+  protected get list(): ITodoListPath {
     if (this.choice === 'send') {
-      return JSON.stringify(this.listSend);
-    }
-    if (this.choice === 'lock') {
-      this.listShare.locked = true;
+      this.listPath.shareByReference = false;
+      this.listPath.locked = false;
+    } else if (this.choice === 'lock') {
+      this.listPath.shareByReference = true;
+      this.listPath.locked = true;
     } else {
-      this.listShare.locked = false;
+      this.listPath.shareByReference = true;
+      this.listPath.locked = false;
     }
-    return JSON.stringify(this.listShare);
+    return this.listPath;
   }
 
-  get list(): ITodoListPath {
+  /**
+   * génère une chaine de caractère décrivant le choix utilisateur pour l'échange de liste
+   *
+   * @readonly
+   * @protected
+   * @type {string}
+   * @memberof GenericSharer
+   */
+  protected get shareSendDesc(): string {
     if (this.choice === 'send') {
-      return this.listSend;
-    }
-
-    if (this.choice === 'lock') {
-      this.listShare.locked = true;
+      return "Votre (ou vos) destinataire(s) recevront une copie de cette liste. Vos modification future n'impacteront pas leur liste et inversement";
+    } else if (this.choice === 'lock') {
+      return 'Votre (ou vos) destinataire(s) recevront un lien vers cette liste. Vos modification future seront repercuter sur leur liste mais ils ne pourront pas modifier cette liste ou les tâche qui la compose';
     } else {
-      this.listShare.locked = false;
+      return 'Votre (ou vos) destinataire(s) recevront un lien vers cette liste. Vos modification future seront repercuter sur leur liste et inversement';
     }
-    return this.listShare;
   }
 
-  private shareListHandler(): void {
-    this.listShare = this.todoCtrl.getListLink(this.listUUID);
-    this.listShare.locked = false;
-    this.listShare.shareByReference = true;
-  }
-
-  private sendListHandler(): void {
-    this.listSend = this.todoCtrl.getListLink(this.listUUID);
-    this.listSend.locked = false;
-    this.listSend.shareByReference = false;
-  }
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
 
   /**
    * @override

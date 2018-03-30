@@ -447,23 +447,21 @@ export class TodoListPage extends GenericPage {
         }
         break;
       case MenuRequestType.SHARE: {
+        req.uuid = this.listUUID;
         switch (req.media) {
           case Media.QR_CODE:
             this.navCtrl.push('QrcodeGeneratePage', {
-              uuid: this.listUUID,
-              request: { request: MenuRequestType.SHARE, media: Media.QR_CODE }
+              request: req
             });
             break;
           case Media.NFC:
             this.navCtrl.push('NfcSenderPage', {
-              uuid: this.listUUID,
-              request: { request: MenuRequestType.SHARE, media: Media.NFC }
+              request: req
             });
             break;
           case Media.CLOUD:
             this.navCtrl.push('CloudSenderPage', {
-              uuid: this.listUUID,
-              request: { request: MenuRequestType.SHARE, media: Media.CLOUD }
+              request: req
             });
             break;
         }

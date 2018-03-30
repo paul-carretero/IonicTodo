@@ -6,7 +6,7 @@ import { Base64 } from '@ionic-native/base64';
 import { Camera, CameraOptions } from '@ionic-native/camera';
 import { DatePicker } from '@ionic-native/date-picker';
 import { File } from '@ionic-native/file';
-import { IonicPage, ModalController, NavController, NavParams } from 'ionic-angular';
+import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
 
@@ -144,7 +144,6 @@ export class TodoEditPage extends GenericPage {
    * @param {TodoServiceProvider} todoService
    * @param {FormBuilder} formBuilder
    * @param {DatePicker} datePicker
-   * @param {ModalController} modalCtrl
    * @param {Base64} base64Ctrl
    * @param {File} fileCtrl
    * @param {AndroidPermissions} permsCtrl
@@ -162,7 +161,6 @@ export class TodoEditPage extends GenericPage {
     private readonly todoService: TodoServiceProvider,
     private readonly formBuilder: FormBuilder,
     private readonly datePicker: DatePicker,
-    private readonly modalCtrl: ModalController,
     private readonly base64Ctrl: Base64,
     private readonly fileCtrl: File,
     private readonly permsCtrl: AndroidPermissions,
@@ -552,13 +550,8 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   protected openContactPopup(): void {
-    this.isInModdal = true;
-    const contactModal = this.modalCtrl.create('ContactModalPage', {
+    this.navCtrl.push('ContactModalPage', {
       contacts: this.todo.contacts
-    });
-    contactModal.present();
-    contactModal.onDidDismiss(() => {
-      this.isInModdal = false;
     });
   }
 

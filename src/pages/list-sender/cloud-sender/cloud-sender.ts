@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, ModalController, NavController, NavParams } from 'ionic-angular';
+import { IonicPage, NavController, NavParams } from 'ionic-angular';
 
 import { AuthServiceProvider } from '../../../providers/auth-service/auth-service';
 import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
@@ -36,7 +36,6 @@ export class CloudSenderPage extends GenericSharer {
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
     private readonly cloudCtrl: CloudServiceProvider,
-    private readonly modalCtrl: ModalController,
     private readonly contactCtrl: ContactServiceProvider
   ) {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
@@ -99,11 +98,10 @@ export class CloudSenderPage extends GenericSharer {
   }
 
   protected openContactPopup(): void {
-    const contactModal = this.modalCtrl.create('ContactModalPage', {
+    this.navCtrl.push('ContactModalPage', {
       contacts: this.contactList,
       onlyEmail: true
     });
-    contactModal.present();
   }
 
   protected deleteContact(contact: ISimpleContact): void {

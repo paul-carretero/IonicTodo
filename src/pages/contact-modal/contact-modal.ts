@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
@@ -14,6 +14,7 @@ import { Global } from './../../shared/global';
 
 /**
  * Page orienté modal créée pour permettre de choisir plusieurs contacts parmis la listes des contacts du terminal.
+ * En fait ce n'est plus un moddal désolé pour le nom, une page normale c'est mieux...
  *
  * @export
  * @class ContactModalPage
@@ -67,7 +68,6 @@ export class ContactModalPage extends GenericPage {
    * @param {SpeechSynthServiceProvider} ttsCtrl
    * @param {AuthServiceProvider} authCtrl
    * @param {UiServiceProvider} uiCtrl
-   * @param {ViewController} viewCtrl
    * @param {Contacts} contactsCtrl
    * @memberof ContactModalPage
    */
@@ -77,19 +77,15 @@ export class ContactModalPage extends GenericPage {
     protected readonly ttsCtrl: SpeechSynthServiceProvider,
     protected readonly authCtrl: AuthServiceProvider,
     protected readonly uiCtrl: UiServiceProvider,
-    private readonly viewCtrl: ViewController,
     private readonly navParams: NavParams,
     private readonly contactsCtrl: ContactServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
-
     this.exportedContacts = this.navParams.get('contacts');
-
     this.emailRequired = false;
     if (this.navParams.get('onlyEmail') != null) {
       this.emailRequired = this.navParams.get('onlyEmail');
     }
-
     this.fullContactList = [];
   }
 
@@ -105,11 +101,13 @@ export class ContactModalPage extends GenericPage {
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     const header = Global.getValidablePageData();
-    header.title = 'Contacts';
-    header.subtitle = 'Selectionner vos contacts';
+    header.title = 'Selectionner vos contacts';
+    header.subtitle = 'Contacts disponibles';
     this.evtCtrl.setHeader(header);
     this.initSelected();
   }
+
+  ionViewWillLeave(): void {}
 
   /**************************************************************************/
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
@@ -121,9 +119,8 @@ export class ContactModalPage extends GenericPage {
    * @protected
    * @memberof ContactModalPage
    */
-  protected dismiss() {
-    const data = {};
-    this.viewCtrl.dismiss(data);
+  protected validate() {
+    this.navCtrl.pop();
   }
 
   /**
@@ -237,7 +234,7 @@ export class ContactModalPage extends GenericPage {
   protected menuEventHandler(req: IMenuRequest): void {
     switch (req.request) {
       case MenuRequestType.VALIDATE:
-        this.dismiss();
+        this.validate();
         break;
     }
   }
