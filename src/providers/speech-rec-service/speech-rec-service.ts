@@ -19,33 +19,6 @@ import { IParsedRequest } from './parsed-req';
 export class SpeechRecServiceProvider {
   private allOK = false;
 
-  /**
-   * Contient les mots qui sont reconnus comme mots clés
-   *
-   * @private
-   * @readonly
-   * @memberof SpeechRecServiceProvider
-   */
-  private readonly motClefs = {
-    list: ['liste', 'ensemble'],
-    todo: ['tâche', 'todo', 'tâches', 'note'],
-    create: ['créer', 'ajouter', 'créée', 'créé', 'crée'],
-    update: [
-      'éditer',
-      'modifier',
-      'édite',
-      'édites',
-      'éditait',
-      'éditais',
-      'éditons',
-      'éditez',
-      'modifie'
-    ],
-    delete: ['supprimer', 'enlever', 'retirer', 'retire', 'retirez', 'supprime', 'supprimez'],
-    view: ['afficher', 'visionner', 'voir', 'affiche'],
-    insulte: ['chier', 'putain', 'merde']
-  };
-
   private readonly parser: SpeechParser;
 
   /**
@@ -138,7 +111,7 @@ export class SpeechRecServiceProvider {
    */
   private async startListening(): Promise<void> {
     this.speechRecognition.startListening().subscribe(
-      (matches: string[]) => {
+      async (matches: string[]) => {
         this.uiCtrl.dismissLoading();
         console.log(matches);
 
@@ -150,41 +123,27 @@ export class SpeechRecServiceProvider {
         res_rec = { reconnu: false, action_success: false, message_error: '' };
 
         // pour chaque "phrase" possible reconnue par le micro
-        this.parser
-          .init()
-          .then(() => this.parser.parse(matches[0]).then( res => {
-              console.log(res);
-              res_rec = this.reconnaissanceAction(res);
-              // si aucune action n'a été reconnue
-              if (res_rec.reconnu == null || !res_rec.reconnu) {
-                this.speechSynthService.synthText("Je n'ai pas compris");
-              }
-              // si l'action a été reconnue mais n'a pas pu être réalisée
-              // on affiche son message d'erreur
-              if (res_rec.reconnu != null && res_rec.reconnu && !res_rec.action_success) {
-                this.speechSynthService.synthText(res_rec.message_error);
-              }
-            }));
-          
-/*
         for (const item of matches) {
-          // on sépare cette phrase en mots
-
-          //const mots: string[] = item.split(' ');
-
-          // on veux reconnaitre l'action associée
-
-          //res_rec = this.reconnaissanceAction(mots);
-
-          // si une action a réussi, alors on quitte la reconnaissance
-
-          if (res_rec.action_success) {
+          await this.parser.init();
+          // on parse cette phrase
+          const sentence : IParsedRequest = await this.parser.parse(item);
+          console.log(sentence);
+          
+          res_rec = this.reconnaissanceAction(sentence);
+          if(res_rec.action_success){
             break;
-          }
-          item;
-          this.reconnaissanceAction;
-        }*/
-        
+          }       
+       }
+       
+        // si aucune action n'a été reconnue
+        if (res_rec.reconnu == null || !res_rec.reconnu) {
+          this.speechSynthService.synthText("Je n'ai pas compris");
+        }
+        // si l'action a été reconnue mais n'a pas pu être réalisée
+        // on affiche son message d'erreur
+        if (res_rec.reconnu != null && res_rec.reconnu && !res_rec.action_success) {
+          this.speechSynthService.synthText(res_rec.message_error);
+        }        
       },
       () => {
         this.uiCtrl.alert('Erreur', 'une erreur inattendue est survenue');
@@ -202,16 +161,7 @@ export class SpeechRecServiceProvider {
    * @memberof SpeechRecServiceProvider
    */
   private reconnaissanceAction(sentence : IParsedRequest): ISpeechReqResult {
-    this.speechSynthService.synthText("J'analyse votre demande");
-    const mots : string[] = [""];    
-    // reconnaissance des mots clefs dans les mots entendus
-    const contain_list = this.contain_motclef(mots, this.motClefs.list);
-    const contain_todo = this.contain_motclef(mots, this.motClefs.todo);
-    const contain_create = this.contain_motclef(mots, this.motClefs.create);
-    const contain_update = this.contain_motclef(mots, this.motClefs.update);
-    const contain_delete = this.contain_motclef(mots, this.motClefs.delete);
-    const contain_view = this.contain_motclef(mots, this.motClefs.view);
-
+ 
     let phrase_reconnue = false;
     let resultat_action: { action_success: boolean; message_error: string };
     resultat_action = {
@@ -219,80 +169,73 @@ export class SpeechRecServiceProvider {
       message_error: "L'action n'a pas pu être réalisée"
     };
 
+
     if(sentence.request != null){
-      if(sentence.request.request === MenuRequestType.CREATE){
+      // reconnaissance des mots clefs dans les mots entendus
+      const contain_list = (sentence.newListName != null || sentence.listFound != null);
+      const contain_todo = (sentence.newTodoName != null || sentence.todoFound != null);
+      const contain_create = (sentence.request.request === MenuRequestType.CREATE);
+      const contain_update = (sentence.request.request === MenuRequestType.EDIT);
+      const contain_delete = (sentence.request.request === MenuRequestType.DELETE);
+      const contain_view = (sentence.request.request === MenuRequestType.VIEW);
+
+    
+      // CRÉER UNE NOUVELLE LISTE ?
+      if(contain_create && contain_list && !contain_todo){
         phrase_reconnue = true;
         resultat_action = this.creerListe(sentence);
       }
-
+      // AJOUTER UNE TACHE DANS UNE LISTE ?
+      if (contain_create && contain_list && contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.creerTache(sentence);
+      }
+      // AJOUTER UNE TACHE CONTEXTUELLEMENT ?
+      if (contain_create && !contain_list && contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.creerTacheContext(sentence);
+      }
+      // METTRE A JOUR UNE LISTE ?
+      if (contain_update && contain_list && !contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.updateListe(sentence);
+      }
+      // METTRE A JOUR UNE TACHE ?
+      if (contain_update && contain_list && contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.updateTache(sentence);
+      }
+      // METTRE A JOUR UNE TACHE CONTEXTUELLEMENT ?
+      if (contain_update && !contain_list && contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.updateTacheContext(sentence);
+      }
+      // SUPPRIMER UNE LISTE ?
+      if (contain_delete && contain_list && !contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.supprimerListe(sentence);
+      }
+      // SUPPRIMER UNE TACHE ?
+      if (contain_delete && contain_list && contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.supprimerTache(sentence);
+      }
+      // SUPPRIMER UNE TACHE CONTEXTUELLEMENT ?
+      if (contain_delete && !contain_list && contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.deleteTacheContext(sentence);
+      }
+      //AFFICHER UNE LISTES ?
+      if (contain_view && contain_list && !contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.afficherListe(sentence);
+      }
+      //AFFICHER UNE TACHE CONTEXTUELLEMENT ?
+      if (contain_view && !contain_list && contain_todo) {
+        phrase_reconnue = true;
+        resultat_action = this.afficherTodo(sentence);
+      }
     }
-
-/*
-    // CRÉER UNE NOUVELLE LISTE ?
-    if (contain_create && contain_list && !contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.creerListe(mots);
-    }
-  */
-    // AJOUTER UNE TACHE DANS UNE LISTE ?
-    if (contain_create && contain_list && contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.creerTache(mots);
-    }
-    // AJOUTER UNE TACHE CONTEXTUELLEMENT ?
-    if (contain_create && !contain_list && contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.creerTacheContext(mots);
-    }
-    // METTRE A JOUR UNE LISTE ?
-    if (contain_update && contain_list && !contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.updateListe(mots);
-    }
-    // METTRE A JOUR UNE TACHE ?
-    if (contain_update && contain_list && contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.updateTache(mots);
-    }
-    // METTRE A JOUR UNE TACHE CONTEXTUELLEMENT ?
-    if (contain_update && !contain_list && contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.updateTacheContext(mots);
-    }
-    // SUPPRIMER UNE LISTE ?
-    if (contain_delete && contain_list && !contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.supprimerListe(mots);
-    }
-    // SUPPRIMER UNE TACHE ?
-    if (contain_delete && contain_list && contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.supprimerTache(mots);
-    }
-    // SUPPRIMER UNE TACHE CONTEXTUELLEMENT ?
-    if (contain_delete && !contain_list && contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.deleteTacheContext(mots);
-    }
-    //AFFICHER UNE LISTES ?
-    if (contain_view && contain_list && !contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.afficherListe(mots);
-    }
-
-    //AFFICHER UNE TACHE CONTEXTUELLEMENT ?
-    if (contain_view && !contain_list && contain_todo) {
-      phrase_reconnue = true;
-      resultat_action = this.afficherTodo(mots);
-    }
-
-    if (this.contain_motclef(mots, this.motClefs.insulte)) {
-      phrase_reconnue = true;
-      resultat_action.action_success = true;
-      this.speechSynthService.synthText('Veuillez rester polis');
-    }
-    console.log("reconnu ? " + phrase_reconnue);
-    console.log("success ? " + resultat_action.action_success);
 
     return {
       reconnu: phrase_reconnue,
@@ -300,90 +243,9 @@ export class SpeechRecServiceProvider {
       message_error: resultat_action.message_error
     };
   }
+  
 
-  /********************************************
-
-Méthodes liées à la reconnaissance de mots
-
-*******************************************/
-
-  /**
-   * Méthode permettant de reconnaitre un mot clef dans un ensemble de mots
-   * @param mots ensemble de mots à vérifier
-   * @param motclefs mot clef à trouver (et ses synonymes)
-   */
-  private contain_motclef(mots: string[], motclefs: string[]): boolean {
-    for (const motclef of motclefs) {
-      if (mots.indexOf(motclef) !== -1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Méthode permettant de récupérer le nom de la liste, dans un ensemble de mots
-   */
-  private getNameList(mots: string[]): string {
-    return mots[mots.indexOf('liste') + 1];
-  }
-
-  /**
-   * Méthode permettant de récupérer le nom de la tâche, dans un ensemble de mots
-   */
-  private getNameTodo(mots: string[]): string {
-    let name = '';
-    for (const todo of this.motClefs.todo) {
-      if (mots.includes(todo)) {
-        name = mots[mots.indexOf(todo) + 1];
-      }
-    }
-    return name;
-  }
-
-  /********************************************
-
-Méthodes de vérification et de recherche
-
-*******************************************/
-
-  /**
-   * Méthode permettant de vérifier si une liste existe, la retourne dans ce cas là
-   * @param name nom de la liste à rechercher
-   */
-  private does_list_exist(name: string): { list: ITodoList; exist: boolean } {
-    let list_found: ITodoList = Global.getBlankList();
-    let is_success: boolean = false;
-    this.todoService.getAllList().forEach(liste => {
-      if (liste.name === name) {
-        list_found = liste;
-        is_success = true;
-      }
-    });
-    return { list: list_found, exist: is_success };
-  }
-
-  /**
-   * Méthode permettant de vérifier si une tâche existe dans une liste donnée, la retourne dans ce cas là
-   * @param name le nom de la tâche recherchée
-   * @param uuidList l'uuid de la liste où l'on veut chercher la tâche
-   */
-  private does_todo_existed(
-    name: string,
-    uuidList: string
-  ): { todo: ITodoItem; success: boolean } {
-    let todo_found: ITodoItem = Global.getBlankTodo();
-    let is_success: boolean = false;
-    this.todoService.getAllTodos(uuidList).forEach(todo => {
-      if (todo.name === name) {
-        todo_found = todo;
-        is_success = true;
-      }
-    });
-    return { todo: todo_found, success: is_success };
-  }
-
-  /********************************************
+/********************************************
 
 Méthodes pour les actions liées aux listes
 
@@ -401,12 +263,11 @@ Méthodes pour les actions liées aux listes
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
     const nameList = sentence.newListName;
-    //const liste = this.does_list_exist(nameList);
-
+  
     if (nameList == null) {
       message_error = "Je n'ai pas compris le nom de la liste à créer. Veuillez essayer de nouveau.";
     } else {
-      if(sentence.listFound){
+      if(sentence.listFound != null){
         message_error = 'La liste ' + nameList + ' existe déjà';
       }
       else {
@@ -446,21 +307,18 @@ Méthodes pour les actions liées aux listes
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private afficherListe(mots: string[]): ISpeechReqResult {
+  private afficherListe(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    const nomListe: string = this.getNameList(mots);
-
-    const liste_search = this.does_list_exist(nomListe);
-    if (liste_search.exist) {
+    if (sentence.listFound != null) {
       action_success = true;
-      this.speechSynthService.synthText('Affichage de la liste ' + nomListe);
+      this.speechSynthService.synthText('Affichage de la liste ' + sentence.listFound.name);
       this.evtCtrl
         .getNavRequestSubject()
-        .next({ page: 'TodoListPage', data: { uuid: liste_search.list.uuid } });
+        .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
     } else {
-      message_error = 'La liste ' + nomListe + " n'a pas été trouvée";
+      message_error = 'La liste ' + sentence.newListName + " n'a pas été trouvée";
     }
     return { action_success: action_success, message_error: message_error };
   }
@@ -473,20 +331,18 @@ Méthodes pour les actions liées aux listes
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private updateListe(mots: string[]): ISpeechReqResult {
+  private updateListe(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
-    const nomListe: string = this.getNameList(mots);
-    const liste_search = this.does_list_exist(nomListe);
 
-    if (liste_search.exist) {
+    if (sentence.listFound != null) {
       action_success = true;
-      this.speechSynthService.synthText('Vous pouvez modifier la liste ' + nomListe);
+      this.speechSynthService.synthText('Vous pouvez modifier la liste ' + sentence.listFound.name);
       this.evtCtrl
         .getNavRequestSubject()
-        .next({ page: 'ListEditPage', data: { uuid: liste_search.list } });
+        .next({ page: 'ListEditPage', data: { uuid: sentence.listFound.uuid } });
     } else {
-      message_error = 'La liste ' + nomListe + "n'a pas été trouvée";
+      message_error = 'La liste ' + sentence.newListName + "n'a pas été trouvée";
     }
     return { action_success: action_success, message_error: message_error };
   }
@@ -499,22 +355,22 @@ Méthodes pour les actions liées aux listes
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private supprimerListe(mots: string[]): ISpeechReqResult {
+  private supprimerListe(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    const nomListe: string = this.getNameList(mots);
-
-    const liste_search = this.does_list_exist(nomListe);
-    if (liste_search.exist && liste_search.list.uuid != null) {
-      this.speechSynthService.synthText('Suppression de la liste ' + nomListe);
-      this.todoService.deleteList(liste_search.list.uuid);
+    if (sentence.listFound != null && sentence.listFound.uuid != null) {
+      this.speechSynthService.synthText('Suppression de la liste ' + sentence.listFound.name);
+      this.todoService.deleteList(sentence.listFound.uuid);
       action_success = true;
     } else {
-      message_error = 'La liste ' + nomListe + "n'a pas étée trouvée. Suppression impossible";
+      message_error = 'La liste ' + sentence.newListName + "n'a pas étée trouvée. Suppression impossible";
     }
     return { action_success: action_success, message_error: message_error };
   }
+
+
+
 
   /********************************************
 
@@ -530,34 +386,33 @@ Méthodes pour les actions liées aux tâches
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private creerTache(mots: string[]): ISpeechReqResult {
+  private creerTache(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    const nameList = this.getNameList(mots);
-    const list_search = this.does_list_exist(nameList);
-    if (list_search.exist && list_search.list.uuid != null) {
-      const nameTodo = this.getNameTodo(mots);
-      const data: ITodoItem = Global.getBlankTodo();
-      data.name = nameTodo;
+    if (sentence.listFound != null){ 
+      if(sentence.listFound.uuid != null) {      
+        const data: ITodoItem = Global.getBlankTodo();
+        data.name = sentence.newTodoName;
+        const refDoc = this.todoService.addTodo(sentence.listFound.uuid, data);
+        action_success = (refDoc != null);
 
-      const refDoc = this.todoService.addTodo(list_search.list.uuid, data);
-      action_success = refDoc != null;
+        if (action_success) {
+          this.speechSynthService.synthText(
+            'Tâche ' + sentence.newTodoName + ' a été ajoutée dans la liste ' + sentence.listFound.name
+          );
+          this.evtCtrl
+            .getNavRequestSubject()
+            .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
+      
+          } else {
+          message_error = 'La tâche ' + sentence.newTodoName + "n'a pas pu être créée";
+        }
 
-      if (action_success) {
-        this.speechSynthService.synthText(
-          'Tâche ' + nameTodo + ' a été ajoutée dans la liste ' + list_search.list.name
-        );
-        this.evtCtrl
-          .getNavRequestSubject()
-          .next({ page: 'TodoListPage', data: { uuid: list_search.list.uuid } });
       } else {
-        message_error = 'La tâche ' + nameTodo + "n'a pas pu être créée";
+        message_error = 'La liste ' + sentence.listFound.name + "n'a pas étée trouvée";
       }
-    } else {
-      message_error = 'La liste ' + nameList + "n'a pas étée trouvée";
     }
-
     return { action_success: action_success, message_error: message_error };
   }
 
@@ -569,32 +424,28 @@ Méthodes pour les actions liées aux tâches
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private updateTache(mots: string[]): ISpeechReqResult {
+  private updateTache(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'as pas pu être réalisée";
 
-    const nameList = this.getNameList(mots);
-    const list_found = this.does_list_exist(nameList);
-    if (list_found.exist && list_found.list.uuid != null) {
-      const nameTodo = this.getNameTodo(mots);
-      const todo_found = this.does_todo_existed(nameTodo, list_found.list.uuid);
-      if (todo_found.success) {
+    if (sentence.listFound != null && sentence.listFound.uuid != null) {
+      if (sentence.todoFound != null) {
         this.evtCtrl
           .getNavRequestSubject()
-          .next({ page: 'TodoEditPage', data: { todoRef: todo_found.todo.ref } });
+          .next({ page: 'TodoEditPage', data: { todoRef: sentence.todoFound.ref } });
         this.speechSynthService.synthText(
-          'Vous pouvez maintenant modifier la tâche ' + nameTodo + ' de la liste ' + nameList
+          'Vous pouvez maintenant modifier la tâche ' + sentence.todoFound.name + ' de la liste ' + sentence.listFound.name
         );
         action_success = true;
       } else {
         message_error =
           'La tâche ' +
-          this.getNameTodo(mots) +
+          sentence.newTodoName +
           " n'a pas étée trouvée dans la liste " +
-          this.getNameList(mots);
+          sentence.listFound.name;
       }
     } else {
-      message_error = 'La liste ' + this.getNameList(mots) + "n'a pas étée trouvée";
+      message_error = 'La liste ' + sentence.newListName + "n'a pas étée trouvée";
     }
 
     return { action_success: action_success, message_error: message_error };
@@ -608,39 +459,36 @@ Méthodes pour les actions liées aux tâches
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private supprimerTache(mots: string[]): ISpeechReqResult {
+  private supprimerTache(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    const nomListe: string = this.getNameList(mots);
-    const nomTache: string = this.getNameTodo(mots);
-
-    const liste_search = this.does_list_exist(nomListe);
-
-    if (liste_search.exist && liste_search.list.uuid != null) {
-      const todo_search = this.does_todo_existed(nomTache, liste_search.list.uuid);
-
+    if (sentence.listFound != null && sentence.listFound.uuid != null) {
+      
       if (
-        todo_search.success &&
-        todo_search.todo.ref != null &&
-        todo_search.todo.uuid != null
+        sentence.todoFound != null &&
+        sentence.todoFound.ref != null &&
+        sentence.todoFound.uuid != null
       ) {
         this.speechSynthService.synthText(
-          'Suppression de la tâche ' + nomTache + ' de la liste ' + nomListe
+          'Suppression de la tâche ' + sentence.todoFound.name + ' de la liste ' + sentence.listFound.name
         );
-        this.todoService.deleteTodo(todo_search.todo.ref, todo_search.todo.uuid);
+        this.todoService.deleteTodo(sentence.todoFound.ref, sentence.todoFound.uuid);
         this.evtCtrl
           .getNavRequestSubject()
-          .next({ page: 'TodoListPage', data: { uuid: liste_search.list } });
+          .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
         action_success = true;
       } else {
-        message_error = 'La tâche ' + nomTache + " n'a pas été trouvée";
+        message_error = 'La tâche ' + sentence.newTodoName + " n'a pas été trouvée";
       }
     } else {
-      message_error = 'La liste ' + nomListe + " n'a pas été trouvée";
+      message_error = 'La liste ' + sentence.newListName + " n'a pas été trouvée";
     }
     return { action_success: action_success, message_error: message_error };
   }
+
+
+
 
   /********************************************
 
@@ -655,29 +503,27 @@ Méthodes contextuelles
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private creerTacheContext(mots: string[]): ISpeechReqResult {
+  private creerTacheContext(sentence: IParsedRequest): ISpeechReqResult {
     const res: ISpeechReqResult = {
       action_success: false,
       message_error: "L'action n'a pas pu être réalisée"
     };
 
-    const nameTodo = this.getNameTodo(mots);
     const uuidList = this.evtCtrl.getCurrentContext(true);
 
     if (uuidList != null) {
-      const todo_found = this.does_todo_existed(nameTodo, uuidList);
-      if (!todo_found.success) {
+      if (sentence.todoFound == null) {
         const new_todo = Global.getBlankTodo();
-        new_todo.name = nameTodo;
+        new_todo.name = sentence.newTodoName;
         this.todoService.addTodo(uuidList, new_todo);
-        this.speechSynthService.synthText('Ajout de la tâche ' + nameTodo);
+        this.speechSynthService.synthText('Ajout de la tâche ' + sentence.newTodoName);
         res.action_success = true;
       } else {
-        res.message_error = 'La tâche ' + nameTodo + ' existe déjà dans la liste';
+        res.message_error = 'La tâche ' + sentence.newTodoName + ' existe déjà dans la liste';
       }
     } else {
       res.message_error =
-        'Veuillez indiquer dans quelle liste créer la tâche ' + nameTodo + ' .';
+        'Veuillez indiquer dans quelle liste créer la tâche ' + sentence.newTodoName + ' .';
     }
     return res;
   }
@@ -690,31 +536,28 @@ Méthodes contextuelles
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private updateTacheContext(mots: string[]): ISpeechReqResult {
+  private updateTacheContext(sentence: IParsedRequest): ISpeechReqResult {
     const res: ISpeechReqResult = {
       action_success: false,
       message_error: "L'action n'a pas pu être réalisée"
     };
 
-    const nameTodo = this.getNameTodo(mots);
-    const uuidList = this.evtCtrl.getCurrentContext(true);
-
-    if (uuidList != null) {
-      const todo_found = this.does_todo_existed(nameTodo, uuidList);
-      if (todo_found.success) {
+    const list_uuid = this.evtCtrl.getCurrentContext(true);
+    if (list_uuid != null) {
+      if (sentence.todoFound != null) {
         this.evtCtrl
           .getNavRequestSubject()
-          .next({ page: 'TodoEditPage', data: { todoRef: todo_found.todo.ref } });
+          .next({ page: 'TodoEditPage', data: { todoRef: sentence.todoFound.ref } });
         this.speechSynthService.synthText(
-          'Vous pouvez maintenant modifier la tâche ' + nameTodo
+          'Vous pouvez maintenant modifier la tâche ' + sentence.todoFound.name
         );
         res.action_success = true;
       } else {
-        res.message_error = 'La tâche ' + nameTodo + " n'existe pas dans la liste";
+        res.message_error = 'La tâche ' + sentence.newTodoName + " n'existe pas dans la liste";
       }
     } else {
       res.message_error =
-        'Veuillez indiquer dans quelle liste modifier la tâche ' + nameTodo + ' .';
+        'Veuillez indiquer dans quelle liste modifier la tâche ' + sentence.newTodoName + ' .';
     }
     return res;
   }
@@ -727,27 +570,24 @@ Méthodes contextuelles
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private deleteTacheContext(mots: string[]): ISpeechReqResult {
+  private deleteTacheContext(sentence: IParsedRequest): ISpeechReqResult {
     const res: ISpeechReqResult = {
       action_success: false,
       message_error: "L'action n'a pas pu être réalisée"
     };
 
-    const nameTodo = this.getNameTodo(mots);
-    const uuidList = this.evtCtrl.getCurrentContext(true);
-
-    if (uuidList != null) {
-      const todo_found = this.does_todo_existed(nameTodo, uuidList);
-      if (todo_found.success && todo_found.todo.ref != null && todo_found.todo.uuid != null) {
-        this.todoService.deleteTodo(todo_found.todo.ref, todo_found.todo.uuid);
-        this.speechSynthService.synthText('La tâche ' + nameTodo + ' a été supprimée. ');
+    const list_uuid = this.evtCtrl.getCurrentContext(true);
+    if (list_uuid != null) {
+      if (sentence.todoFound != null && sentence.todoFound.ref != null && sentence.todoFound.uuid != null) {
+        this.todoService.deleteTodo(sentence.todoFound.ref, sentence.todoFound.uuid);
+        this.speechSynthService.synthText('La tâche ' + sentence.todoFound.name + ' a été supprimée. ');
         res.action_success = true;
       } else {
-        res.message_error = 'La tâche ' + nameTodo + " n'existe pas dans la liste";
+        res.message_error = 'La tâche ' + sentence.newTodoName + " n'existe pas dans la liste";
       }
     } else {
       res.message_error =
-        'Veuillez indiquer dans quelle liste supprimer la tâche ' + nameTodo + ' .';
+        'Veuillez indiquer dans quelle liste supprimer la tâche ' + sentence.newTodoName + ' .';
     }
     return res;
   }
@@ -760,30 +600,29 @@ Méthodes contextuelles
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private afficherTodo(mots: string[]): ISpeechReqResult {
+  private afficherTodo(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    const nomTodo: string = this.getNameTodo(mots);
     const list_uuid = this.evtCtrl.getCurrentContext(true);
+
     if (list_uuid != null) {
-      const todo_search = this.does_todo_existed(nomTodo, list_uuid);
-      if (todo_search.success) {
+      if (sentence.todoFound != null) {
         action_success = true;
-        this.speechSynthService.synthText('Affichage de la tâche ' + nomTodo);
+        this.speechSynthService.synthText('Affichage de la tâche ' + sentence.todoFound.name);
         this.evtCtrl.getNavRequestSubject().next({
           page: 'TodoPage',
           data: {
-            todoRef: todo_search.todo.ref,
+            todoRef: sentence.todoFound.ref,
             listUuid: list_uuid,
             isExternal: false
           }
         });
       } else {
-        message_error = 'La tâche ' + nomTodo + " n'a pas été trouvée. ";
+        message_error = 'La tâche ' + sentence.newTodoName + " n'a pas été trouvée. ";
       }
     } else {
-      message_error = 'Veuillez préciser la liste où se trouve la tâche ' + nomTodo;
+      message_error = 'Veuillez préciser la liste où se trouve la tâche ' + sentence.newTodoName;
     }
     return { action_success: action_success, message_error: message_error };
   }
