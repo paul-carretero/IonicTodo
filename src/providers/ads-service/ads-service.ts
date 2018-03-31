@@ -31,11 +31,23 @@ export class AdsServiceProvider {
     id: 'ca-app-pub-6084326990034246/5632218137'
   };
 
+  /**
+   * paramètres pour la page de pub intersticiel
+   *
+   * @private
+   * @static
+   * @type {AdMobFreeInterstitialConfig}
+   * @memberof AdsServiceProvider
+   */
   private static readonly interstitialConfig: AdMobFreeInterstitialConfig = {
     isTesting: false,
     autoShow: true,
     id: 'ca-app-pub-6084326990034246/4133759041'
   };
+
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
 
   /**
    * Creates an instance of AdsServiceProvider.
@@ -47,6 +59,10 @@ export class AdsServiceProvider {
     private readonly adsCtrl: AdMobFree,
     private readonly dbCtrl: DBServiceProvider
   ) {}
+
+  /**************************************************************************/
+  /********************** METHODES PUBLIQUES/INTERFACE **********************/
+  /**************************************************************************/
 
   /**
    * en fonction des paramètres locaux, affiche ou masque la bannière top
@@ -64,12 +80,22 @@ export class AdsServiceProvider {
     }
   }
 
+  /**
+   * affiche une pub de type insterstitial au bout d'un petit moment
+   *
+   * @returns {Promise<void>}
+   * @memberof AdsServiceProvider
+   */
   public async showInterstitial(): Promise<void> {
     this.adsCtrl.interstitial.config(AdsServiceProvider.interstitialConfig);
     try {
       await this.adsCtrl.interstitial.prepare();
     } catch (error) {}
   }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
 
   /**
    * prépare et affiche la bannière top

@@ -1,7 +1,7 @@
-import { ISimpleContact } from './../../model/simple-contact';
-import { ITodoItem } from './../../model/todo-item';
-import { IMenuRequest } from './../../model/menu-request';
-import { ITodoList } from '../../model/todo-list';
+import { ISimpleContact } from './simple-contact';
+import { ITodoItem } from './todo-item';
+import { IMenuRequest } from './menu-request';
+import { ITodoList } from './todo-list';
 
 /**
  * représente une requête utilisateur parsé comprenant notament les informations auquel il fait référence

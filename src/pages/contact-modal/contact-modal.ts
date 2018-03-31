@@ -107,8 +107,6 @@ export class ContactModalPage extends GenericPage {
     this.initSelected();
   }
 
-  ionViewWillLeave(): void {}
-
   /**************************************************************************/
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/

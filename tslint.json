@@ -29,7 +29,7 @@
     "class-name": true,
     "arrow-return-shorthand": [true, "multiline"],
     "rulesDirectory": ["node_modules/tslint-eslint-rules/dist/rules"],
-    // "completed-docs": true,
+    //"completed-docs": true,
     "interface-name": [true, "always-prefix"]
   }
 }

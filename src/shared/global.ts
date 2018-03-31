@@ -1,4 +1,3 @@
-import { ISimpleContact } from './../model/simple-contact';
 import { ILatLng } from '@ionic-native/google-maps';
 import * as firebase from 'firebase';
 
@@ -8,6 +7,7 @@ import { ITodoList } from '../model/todo-list';
 import { ITodoListPath } from '../model/todo-list-path';
 import { ICloudSharedList } from './../model/cloud-shared-list';
 import { IPageData } from './../model/page-data';
+import { ISimpleContact } from './../model/simple-contact';
 
 /**
  * Contient des structure de données constante (ou semi constante)

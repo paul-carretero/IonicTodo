@@ -57,6 +57,12 @@ import { FirebaseCredentials } from './firebase.credentials';
 import { appOpts } from './app-opts';
 import { AdsServiceProvider } from '../providers/ads-service/ads-service';
 
+/**
+ * AppModule
+ *
+ * @export
+ * @class AppModule
+ */
 @NgModule({
   declarations: [MyApp],
   imports: [

@@ -4,6 +4,8 @@ import { AuthentificationPage } from './authentification';
 import { ComponentsModule } from '../../components/components.module';
 
 /**
+ * AuthentificationPageModule
+ *
  * @export
  * @class AuthentificationPageModule
  */

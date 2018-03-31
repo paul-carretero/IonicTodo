@@ -15,11 +15,21 @@ import { FirebaseCredentials } from '../../app/firebase.credentials';
 import * as firebase from 'firebase/app';
 import { OnDestroy } from '@angular/core/src/metadata/lifecycle_hooks';
 
+/**
+ * composant de connexion à un compte utilisateur
+ *
+ * @export
+ * @class LoginAccountComponent
+ * @implements {OnInit}
+ * @implements {OnDestroy}
+ */
 @Component({
   selector: 'login-account',
   templateUrl: 'login-account.html'
 })
 export class LoginAccountComponent implements OnInit, OnDestroy {
+  /***************************** PUBLIC FIELDS ******************************/
+
   /**
    * Formulaire de connexion
    *
@@ -38,10 +48,42 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
    */
   protected offlineDisabled: boolean = true;
 
+  /**
+   * true si la machine est connecté aux interwebz, false sinon
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof LoginAccountComponent
+   */
   protected netStatus: boolean;
 
+  /**************************** PRIVATE FIELDS ******************************/
+
+  /**
+   * subscription aux sujet de connexion réseau
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof LoginAccountComponent
+   */
   private netSub: Subscription;
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of LoginAccountComponent.
+   * @param {NavController} navCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {GooglePlus} googlePlus
+   * @param {FormBuilder} formBuilder
+   * @param {DBServiceProvider} settingCtrl
+   * @param {AngularFireAuth} fireAuthCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @memberof LoginAccountComponent
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly authCtrl: AuthServiceProvider,
@@ -59,6 +101,16 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
     this.netStatus = false;
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * à l'initialisation recherche la dernière addresse mail à s'être connecté et défini les constante de la page
+   * applique également la politique de restriction de l'utilisation hors connexion
+   *
+   * @memberof LoginAccountComponent
+   */
   ngOnInit(): void {
     this.setDefaultEmail();
 
@@ -82,23 +134,39 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * termine le subscription à la disponibilité réseau
+   *
+   * @memberof LoginAccountComponent
+   */
   ngOnDestroy(): void {
     if (this.netSub != null) {
       this.netSub.unsubscribe();
     }
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
   /**
    * return true si l'application est utilisé en mode hors ligne
    *
+   * @protected
    * @readonly
    * @type {boolean}
    * @memberof AuthentificationPage
    */
-  get isOffline(): boolean {
+  protected get isOffline(): boolean {
     return this.authCtrl.isOffline();
   }
 
+  /**
+   * défini dans le formulaire l'email à renseigné par défault, celui de la dernière connexion ou vide
+   *
+   * @protected
+   * @memberof LoginAccountComponent
+   */
   protected setDefaultEmail(): void {
     this.settingCtrl.getSettingStr(Settings.LAST_FIRE_EMAIL_LOGIN).then((res: string) => {
       const email = this.authForm.get('email');
@@ -190,6 +258,13 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * ouvre un popup pour réinitialiser le mot de passe de l'application, l'email renseigné y est pré-rempli
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof LoginAccountComponent
+   */
   protected async resetPassword(): Promise<void> {
     const emailForm = this.authForm.get('email');
     let email = '';

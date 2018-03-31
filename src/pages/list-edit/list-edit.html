@@ -22,7 +22,10 @@
       <ion-label>Liste Locale:</ion-label>
       <ion-toggle formControlName="local"></ion-toggle>
     </ion-item>
-    <button full ion-button type="submit" [disabled]="!newList.valid">{{submitText}}</button>
+    <button block ion-button type="submit" [disabled]="!newList.valid">
+      <ion-icon name="checkmark" class="button-icon"></ion-icon>
+      {{submitText}}
+    </button>
   </form>
 
 </ion-content>

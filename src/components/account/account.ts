@@ -4,17 +4,55 @@ import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { User } from 'firebase/app';
 import moment from 'moment';
 
+/**
+ * permet de réprésenter un compte utilisateur et les informations qui y sont associées
+ *
+ * @export
+ * @class AccountComponent
+ * @implements {OnInit}
+ */
 @Component({
   selector: 'account',
   templateUrl: 'account.html'
 })
 export class AccountComponent implements OnInit {
+  /**
+   * profile utilisateur si il est connecté
+   *
+   * @protected
+   * @type {(User | null)}
+   * @memberof AccountComponent
+   */
   protected userProfile: User | null;
 
+  /**
+   * date humaine de la création du compte utilisateur
+   *
+   * @protected
+   * @type {string}
+   * @memberof AccountComponent
+   */
   protected createDate: string;
 
+  /**
+   * date humaine du dernier login de l'utilisateur
+   *
+   * @protected
+   * @type {string}
+   * @memberof AccountComponent
+   */
   protected lastLogin: string;
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of AccountComponent.
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @memberof AccountComponent
+   */
   constructor(
     private readonly authCtrl: AuthServiceProvider,
     private readonly uiCtrl: UiServiceProvider
@@ -24,6 +62,15 @@ export class AccountComponent implements OnInit {
     this.lastLogin = '';
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * au chargement du composant, recherche les informations de l'utilisateur
+   *
+   * @memberof AccountComponent
+   */
   ngOnInit(): void {
     this.userProfile = this.authCtrl.getUser();
     if (this.userProfile != null && this.userProfile.metadata != null) {
@@ -39,6 +86,10 @@ export class AccountComponent implements OnInit {
       }
     }
   }
+
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
 
   /**
    * Si un utilisateur est connecté, le déconnecte

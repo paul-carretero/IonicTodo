@@ -286,6 +286,44 @@ export class HomePage extends GenericPage {
       });
   }
 
+  /**
+   * génère une description pour un tableau de liste donné
+   *
+   * @private
+   * @param {ITodoList[]} todoList
+   * @param {string} type
+   * @returns {string}
+   * @memberof HomePage
+   */
+  private getDescription(todoList: ITodoList[], type: string): string {
+    let description = '';
+
+    let list_desc = '';
+    let have_list = false;
+    for (const list of todoList) {
+      have_list = true;
+      if (list.metadata.atLeastOneLate) {
+        list_desc +=
+          ' ' +
+          list.name +
+          ' . Attention la liste ' +
+          list.name +
+          ' a au moins une tâche en retard ! ';
+      } else {
+        list_desc += ' ' + list.name + ' ,';
+      }
+    }
+    if (have_list && todoList.length > 1) {
+      description += ' Vos listes ' + type + ' sont : ' + list_desc + ' . ';
+    }
+
+    if (have_list && todoList.length === 1) {
+      description += ' Votre liste ' + type + ' est : ' + list_desc + ' . ';
+    }
+
+    return description;
+  }
+
   /**************************************************************************/
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/
@@ -390,35 +428,6 @@ export class HomePage extends GenericPage {
     description += this.getDescription(this.completeTodoList, ' terminées ');
     description += this.getDescription(this.sharedTodoList, ' partagées ');
     description += this.getDescription(this.localTodoList, ' locales ');
-
-    return description;
-  }
-
-  private getDescription(todoList: ITodoList[], type: string): string {
-    let description = '';
-
-    let list_desc = '';
-    let have_list = false;
-    for (const list of todoList) {
-      have_list = true;
-      if (list.metadata.atLeastOneLate) {
-        list_desc +=
-          ' ' +
-          list.name +
-          ' . Attention la liste ' +
-          list.name +
-          ' a au moins une tâche en retard ! ';
-      } else {
-        list_desc += ' ' + list.name + ' ,';
-      }
-    }
-    if (have_list && todoList.length > 1) {
-      description += ' Vos listes ' + type + ' sont : ' + list_desc + ' . ';
-    }
-
-    if (have_list && todoList.length === 1) {
-      description += ' Votre liste ' + type + ' est : ' + list_desc + ' . ';
-    }
 
     return description;
   }

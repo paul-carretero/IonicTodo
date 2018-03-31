@@ -4,6 +4,8 @@ import { TodoPage } from './todo';
 import { ComponentsModule } from '../../components/components.module';
 
 /**
+ * TodoPageModule
+ *
  * @export
  * @class TodoPageModule
  */

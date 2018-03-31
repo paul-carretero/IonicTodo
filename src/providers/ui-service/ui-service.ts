@@ -73,6 +73,12 @@ export class UiServiceProvider {
   /********************** METHODES PUBLIQUES/INTERFACE **********************/
   /**************************************************************************/
 
+  /**
+   * redéfini si l'on doit lire ou non une alert
+   *
+   * @returns {Promise<void>}
+   * @memberof UiServiceProvider
+   */
   public async refreshAutoRead(): Promise<void> {
     this.autoRead = await this.dbCtrl.getSetting(Settings.AUTO_READ_ALERT);
   }
@@ -141,6 +147,11 @@ export class UiServiceProvider {
     this.loading.present();
   }
 
+  /**
+   * Termine tout loader existant
+   *
+   * @memberof UiServiceProvider
+   */
   public dismissLoading(): void {
     if (this.loading != null) {
       this.loading.dismiss();
@@ -233,6 +244,12 @@ export class UiServiceProvider {
     });
   }
 
+  /**
+   * retourne une alert vide créée par le controlleur natif des alertes
+   *
+   * @returns {Alert}
+   * @memberof UiServiceProvider
+   */
   public getBasicAlert(): Alert {
     return this.alertCtrl.create();
   }

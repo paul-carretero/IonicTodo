@@ -4,6 +4,8 @@ import { TodoListPage } from './todo-list';
 import { ComponentsModule } from '../../components/components.module';
 
 /**
+ * TodoListPageModule
+ *
  * @export
  * @class TodoListPageModule
  */

@@ -40,6 +40,10 @@ export class SpeechSynthServiceProvider {
     this.listenForStop();
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
   /**
    * Workaround pour corriger un bug sur la fonction TextToSpeech.stop()
    * @see https://github.com/ionic-team/ionic-native/issues/2137
@@ -66,20 +70,6 @@ export class SpeechSynthServiceProvider {
   }
 
   /**
-   * permet d'ajouter du texte à synthétiser
-   *
-   * @param {string} text
-   * @memberof SpeechSynthServiceProvider
-   */
-  public synthText(text: string) {
-    if (this.synthQueue.indexOf(text) !== -1) {
-      this.stop();
-    } else if (this.synthQueue.push(text) === 1) {
-      this.play();
-    }
-  }
-
-  /**
    * permet de lire du texte à synthétiser tant qu'il y en a dans la file
    *
    * @private
@@ -91,6 +81,24 @@ export class SpeechSynthServiceProvider {
         this.synthQueue.shift();
         this.play();
       });
+    }
+  }
+
+  /**************************************************************************/
+  /********************** METHODES PUBLIQUES/INTERFACE **********************/
+  /**************************************************************************/
+
+  /**
+   * permet d'ajouter du texte à synthétiser
+   *
+   * @param {string} text
+   * @memberof SpeechSynthServiceProvider
+   */
+  public synthText(text: string) {
+    if (this.synthQueue.indexOf(text) !== -1) {
+      this.stop();
+    } else if (this.synthQueue.push(text) === 1) {
+      this.play();
     }
   }
 }

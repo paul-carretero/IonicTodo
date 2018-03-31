@@ -8,6 +8,12 @@ import { UiServiceProvider } from '../ui-service/ui-service';
 import { EventServiceProvider } from '../event/event-service';
 import { Settings } from '../../model/settings';
 
+/**
+ * gère les notifications native pour l'utilisateur et se synchronise avec les todo existant
+ *
+ * @export
+ * @class NotifServiceProvider
+ */
 @Injectable()
 export class NotifServiceProvider {
   /**
@@ -19,8 +25,25 @@ export class NotifServiceProvider {
    */
   private todoIAlreadyAnnoyedUserFor: string[];
 
+  /**
+   * timeout après chaque connexion pour charger l'ensemble des todos connus et les synchroniser
+   *
+   * @private
+   * @type {*}
+   * @memberof NotifServiceProvider
+   */
   private timeoutLog: any;
 
+  /**
+   * Creates an instance of NotifServiceProvider.
+   * @param {LocalNotifications} localNotifCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {DBServiceProvider} dbCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {TodoServiceProvider} todoCtrl
+   * @memberof NotifServiceProvider
+   */
   constructor(
     private readonly localNotifCtrl: LocalNotifications,
     private readonly uiCtrl: UiServiceProvider,
@@ -289,7 +312,6 @@ export class NotifServiceProvider {
         this.roundTime(todo.notif),
         this.authCtrl.getUserId()
       );
-      console.log('added todo notif for @' + todo.uuid);
     }
   }
 

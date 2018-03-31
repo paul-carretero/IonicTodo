@@ -11,6 +11,13 @@ import { Global } from '../../../shared/global';
 import { ICloudSharedList } from './../../../model/cloud-shared-list';
 import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-service';
 
+/**
+ * page permettant de récupérer des liste disponible sur le cloud ohmytask
+ *
+ * @export
+ * @class CloudSpacePage
+ * @extends {GenericPage}
+ */
 @IonicPage()
 @Component({
   selector: 'page-cloud-space',
@@ -85,6 +92,14 @@ export class CloudSpacePage extends GenericPage {
   /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/
 
+  /**
+   * permet d'importer dans le compte utilisateur courrant une liste du cloud ohmytask
+   *
+   * @protected
+   * @param {ICloudSharedList} list
+   * @returns {Promise<void>}
+   * @memberof CloudSpacePage
+   */
   protected async importList(list: ICloudSharedList): Promise<void> {
     this.uiCtrl.showLoading('Importation de la liste ' + list.name + ' en cours');
     await this.cloudCtrl.importCloudList(list);

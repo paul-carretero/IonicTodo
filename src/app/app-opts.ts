@@ -1,3 +1,7 @@
+/**
+ * options d'initialisation pour l'application,
+ * Défini notament la langue des mois et évite que le clavier déclanche du padding inutile...
+ */
 export const appOpts = {
   monthNames: [
     'Janvier',

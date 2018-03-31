@@ -35,6 +35,13 @@ import { StorageServiceProvider } from './../../providers/storage-service/storag
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { Global } from './../../shared/global';
 
+/**
+ * Affiche un todo et les information qui y sont associé
+ *
+ * @export
+ * @class TodoPage
+ * @extends {GenericPage}
+ */
 @IonicPage()
 @Component({
   selector: 'page-todo',
@@ -135,7 +142,7 @@ export class TodoPage extends GenericPage {
   private map: GoogleMap;
 
   /**
-   * marker google map de l'addresse de ce tdo
+   * marker google map de l'addresse de ce todo
    *
    * @private
    * @type {(Marker | null)}
@@ -144,7 +151,7 @@ export class TodoPage extends GenericPage {
   private todoAddressMarker: Marker | null;
 
   /**
-   *
+   * marker googleMap de la position de création
    *
    * @private
    * @type {(Marker | null)}
@@ -153,7 +160,7 @@ export class TodoPage extends GenericPage {
   private todoAuthorMapMarker: Marker | null;
 
   /**
-   * marker googleMap de la position de création
+   * marker googleMap de la position de complétion
    *
    * @private
    * @type {(Marker | null)}
@@ -252,6 +259,12 @@ export class TodoPage extends GenericPage {
     this.construct();
   }
 
+  /**
+   * a chaque nouveau todo, reset les constante de la page (lié à un todo)
+   *
+   * @private
+   * @memberof TodoPage
+   */
   private construct(): void {
     this.editable = true;
     this.completeLoading = false;

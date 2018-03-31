@@ -3,6 +3,8 @@ import { IonicPageModule } from 'ionic-angular';
 import { PopoverOptionsPage } from './popover-options';
 
 /**
+ * PopoverOptionsPageModule
+ *
  * @export
  * @class PopoverOptionsPageModule
  */

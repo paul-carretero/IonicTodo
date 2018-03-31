@@ -129,7 +129,13 @@ export class OcrModdalPage extends GenericPage {
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
 
-  protected takePicture(): void {
+  /**
+   * démarre la capture d'une photo à reconnaitre par OCR
+   *
+   * @private
+   * @memberof OcrModdalPage
+   */
+  private takePicture(): void {
     this.cameraCtrl.getPicture(this.cameraOpts).then(
       imageData => {
         this.srcImage = imageData;

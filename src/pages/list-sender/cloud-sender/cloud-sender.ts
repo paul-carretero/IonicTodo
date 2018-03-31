@@ -13,20 +13,76 @@ import { Global } from './../../../shared/global';
 import { GenericSharer } from './../generic-sharer';
 import { ContactServiceProvider } from '../../../providers/contact-service/contact-service';
 
+/**
+ * page permettant d'envoyer une liste à des contacts ou sur le cloud ohmytask
+ *
+ * @export
+ * @class CloudSenderPage
+ * @extends {GenericSharer}
+ */
 @IonicPage()
 @Component({
   selector: 'page-cloud-sender',
   templateUrl: 'cloud-sender.html'
 })
 export class CloudSenderPage extends GenericSharer {
-  public password: string | null;
+  /**************************** PRIVATE FIELDS ******************************/
 
+  /**
+   * donnée de la liste pour export sur le cloud, contient notament une référence vers cette liste
+   *
+   * @private
+   * @type {ICloudSharedList}
+   * @memberof CloudSenderPage
+   */
   private readonly shareData: ICloudSharedList;
 
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * listes, éventuellement vide, des contacts associés à ce partage (si vide alors on utilise le cloud publique, sinon seul les contact peuvent voir la liste)
+   *
+   * @protected
+   * @type {ISimpleContact[]}
+   * @memberof CloudSenderPage
+   */
   protected readonly contactList: ISimpleContact[];
 
+  /**
+   * true si l'on doit envoyer un sms aux contacts selectionné ayant un mobile lors de la création du partage
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof CloudSenderPage
+   */
   protected sendSMS: boolean = false;
 
+  /**
+   * mot de passe éventuelement null protégeant l'envoie si il s'agit d'un envoie vers le cloud publique
+   *
+   * @protected
+   * @type {(string | null)}
+   * @memberof CloudSenderPage
+   */
+  protected password: string | null;
+
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of CloudSenderPage.
+   * @param {NavParams} navParams
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {TodoServiceProvider} todoCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {CloudServiceProvider} cloudCtrl
+   * @param {ContactServiceProvider} contactCtrl
+   * @memberof CloudSenderPage
+   */
   constructor(
     public readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
@@ -44,6 +100,15 @@ export class CloudSenderPage extends GenericSharer {
     this.password = null;
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * au chargement de la page, met à jour le header
+   *
+   * @memberof CloudSenderPage
+   */
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
@@ -52,13 +117,37 @@ export class CloudSenderPage extends GenericSharer {
     this.evtCtrl.setHeader(pageData);
   }
 
-  get sendPartage(): string[] {
+  /**************************************************************************/
+  /********************************* GETTER *********************************/
+  /**************************************************************************/
+
+  /**
+   * retourne un tableau désignant plus précisément l'opération en cours
+   *
+   * @readonly
+   * @protected
+   * @type {string[]}
+   * @memberof CloudSenderPage
+   */
+  protected get sendPartage(): string[] {
     if (this.choice === 'send') {
       return ['envoyer', 'envoyée', 'envoi'];
     }
     return ['partager', 'partagée', 'partage'];
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * créer l'objet de partage et l'envoie sur le cloud ohmytask
+   *
+   * @private
+   * @param {(string | null)} email
+   * @returns {Promise<void>}
+   * @memberof CloudSenderPage
+   */
   private async share(email: string | null): Promise<void> {
     this.uiCtrl.showLoading(this.sendPartage[2] + ' de votre liste en cours');
     this.shareData.list = this.list;
@@ -80,6 +169,16 @@ export class CloudSenderPage extends GenericSharer {
     this.navCtrl.pop();
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * gère le partage, soit aux contacts selectionné, soit sur le
+   *
+   * @protected
+   * @memberof CloudSenderPage
+   */
   protected shareWrapper(): void {
     if (this.contactList.length > 0) {
       for (const contact of this.contactList) {
@@ -97,6 +196,12 @@ export class CloudSenderPage extends GenericSharer {
     }
   }
 
+  /**
+   * ouvre la page pour selectionner des contacts
+   *
+   * @protected
+   * @memberof CloudSenderPage
+   */
   protected openContactPopup(): void {
     this.navCtrl.push('ContactModalPage', {
       contacts: this.contactList,
@@ -104,12 +209,23 @@ export class CloudSenderPage extends GenericSharer {
     });
   }
 
+  /**
+   * supprime un contact de la liste des contacts qui recevront une invitation
+   *
+   * @protected
+   * @param {ISimpleContact} contact
+   * @memberof CloudSenderPage
+   */
   protected deleteContact(contact: ISimpleContact): void {
     const index = this.contactList.findIndex(c => c.id === contact.id);
     if (index !== -1) {
       this.contactList.splice(index, 1);
     }
   }
+
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
 
   /**
    * @override

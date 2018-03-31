@@ -29,6 +29,13 @@ import { StorageServiceProvider } from '../storage-service/storage-service';
 import { ContactServiceProvider } from '../contact-service/contact-service';
 import { UiServiceProvider } from '../ui-service/ui-service';
 
+/**
+ * Service principale de l'application gérant les liste et todo de l'utilisateur
+ * Garde également la liste des derniers todo et listes connues (service de snapshot)
+ *
+ * @export
+ * @class TodoServiceProvider
+ */
 @Injectable()
 export class TodoServiceProvider {
   /**
@@ -321,6 +328,13 @@ export class TodoServiceProvider {
   /**************************** PRIVATE METHODS *****************************/
   /**************************************************************************/
 
+  /**
+   * si une Subscription n'est pas nulle alors tente de s'y désinscrire
+   *
+   * @private
+   * @param {Subscription} sub
+   * @memberof TodoServiceProvider
+   */
   private tryUnsub(sub: Subscription) {
     if (sub != null) {
       sub.unsubscribe();
@@ -670,7 +684,7 @@ export class TodoServiceProvider {
     listData.uuid = null;
     listData.order = 0;
     const listUuid = await this.addList(listData);
-    this.cloneTodo(path.listUUID, path.userUUID, listUuid);
+    await this.cloneTodo(path.listUUID, path.userUUID, listUuid);
   }
 
   /**
@@ -712,7 +726,7 @@ export class TodoServiceProvider {
       icon: data.icon,
       order: data.order,
       author: author,
-      externTodos: [],
+      externTodos: data.externTodos,
       metadata: data.metadata
     });
     if (this.online) {
@@ -768,6 +782,14 @@ export class TodoServiceProvider {
     return data.uuid;
   }
 
+  /**
+   * met à jour l'ordre d'un todo
+   *
+   * @param {(string | null)} listUuid
+   * @param {number} ord
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
   public async updateOrder(listUuid: string | null, ord: number): Promise<void> {
     if (listUuid == null) {
       return;
@@ -1128,6 +1150,67 @@ export class TodoServiceProvider {
   }
 
   /**
+   * Permet de cloner les todos d'une liste vers une autre liste
+   *
+   * @private
+   * @param {string} listUuidSrc
+   * @param {string} userUuidSrc
+   * @param {string} listUuidDest
+   * @returns {Promise<void>}
+   * @memberof TodoServiceProvider
+   */
+  private async cloneTodo(
+    listUuidSrc: string,
+    userUuidSrc: string,
+    listUuidDest: string
+  ): Promise<void> {
+    const collection = this.firestoreCtrl.collection<ITodoItem>(
+      '/user/' + userUuidSrc + '/list/' + listUuidSrc + '/todo'
+    );
+    const promises: Promise<any>[] = [];
+    const docs = (await collection.ref.get()).docs;
+    for (const doc of docs) {
+      const todo: ITodoItem = doc.data() as ITodoItem;
+      if (todo.uuid != null) {
+        promises.push(this.addTodo(listUuidDest, this.deepCloneTodo(todo)));
+      }
+    }
+    await Promise.all(promises);
+    await this.refreshTodoSnapForList(listUuidDest);
+  }
+
+  /**
+   * retourne une copie par valeur d'un todo
+   *
+   * @private
+   * @param {ITodoItem} todo
+   * @returns {ITodoItem}
+   * @memberof TodoServiceProvider
+   */
+  private deepCloneTodo(todo: ITodoItem): ITodoItem {
+    return {
+      uuid: null,
+      name: String(todo.name),
+      address: String(todo.address),
+      author: todo.author,
+      complete: Boolean(todo.complete),
+      completeAuthor: todo.completeAuthor,
+      contacts: todo.contacts.slice(0),
+      deadline: todo.deadline,
+      notif: todo.notif,
+      desc: String(todo.desc),
+      order: Number(todo.order),
+      pictures: [],
+      ref: todo.ref,
+      sendSMS: Boolean(todo.sendSMS)
+    };
+  }
+
+  /**************************************************************************/
+  /************************* PUBLIC TODOS INTERFACE *************************/
+  /**************************************************************************/
+
+  /**
    * reconfigure le sujet de suppression de liste/todo pour la reference de todo
    * passé en paramètre et retoune le sujet
    *
@@ -1445,6 +1528,7 @@ export class TodoServiceProvider {
 
   /**
    * Permet de lier un todo à une liste par référence.
+   * Vérifie également que l'on peut copier la tache (si elle ne provient pas de la liste passé en paramètre et si elle n'a pas déjà été copié ici)
    *
    * @param {string} listUuid la liste dans laquelle lié un todo
    * @param {DocumentReference} todoRef une référence de todo
@@ -1461,6 +1545,20 @@ export class TodoServiceProvider {
 
     const destSnap = this.getAListSnapshot(listUuid);
     if (destSnap == null || todoRef == null) {
+      return;
+    }
+
+    const exists = destSnap.externTodos.find(e => e.isEqual(todoRef)) != null;
+    const listParent = todoRef.path.includes(listUuid);
+    if (exists) {
+      this.uiCtrl.alert('Echec', 'La tâche à déjà été copié dans cette liste');
+      return;
+    }
+    if (listParent) {
+      this.uiCtrl.alert(
+        'Echec',
+        "Vous ne pouvez pas copier une tâche dans sa liste d'origine"
+      );
       return;
     }
 
@@ -1560,60 +1658,6 @@ export class TodoServiceProvider {
     return metaData;
   }
 
-  /**
-   * Permet de cloner les todos d'une liste vers une autre liste
-   *
-   * @public
-   * @param {string} listUuidSrc
-   * @param {string} userUuidSrc
-   * @param {string} listUuidDest
-   * @returns {Promise<void>}
-   * @memberof TodoServiceProvider
-   */
-  public cloneTodo(listUuidSrc: string, userUuidSrc: string, listUuidDest: string): void {
-    const collection = this.firestoreCtrl.collection<ITodoItem>(
-      '/user/' + userUuidSrc + '/list/' + listUuidSrc + '/todo'
-    );
-    const sub = collection.valueChanges().subscribe((todos: ITodoItem[]) => {
-      if (todos != null) {
-        for (const todo of todos) {
-          if (todo != null) {
-            this.addTodo(listUuidDest, this.deepCloneTodo(todo));
-          }
-          this.refreshTodoSnapForList(listUuidDest);
-        }
-      }
-      sub.unsubscribe();
-    });
-  }
-
-  /**
-   * retourne une copie par valeur d'un todo
-   *
-   * @private
-   * @param {ITodoItem} todo
-   * @returns {ITodoItem}
-   * @memberof TodoServiceProvider
-   */
-  private deepCloneTodo(todo: ITodoItem): ITodoItem {
-    return {
-      uuid: null,
-      name: String(todo.name),
-      address: String(todo.address),
-      author: todo.author,
-      complete: Boolean(todo.complete),
-      completeAuthor: todo.completeAuthor,
-      contacts: todo.contacts.slice(0),
-      deadline: todo.deadline,
-      notif: todo.notif,
-      desc: String(todo.desc),
-      order: Number(todo.order),
-      pictures: [],
-      ref: todo.ref,
-      sendSMS: Boolean(todo.sendSMS)
-    };
-  }
-
   /**************************************************************************/
   /************************* TODO SNAPSHOT SERVICE **************************/
   /**************************************************************************/
@@ -1693,12 +1737,27 @@ export class TodoServiceProvider {
     this.lastAllTodosSnapshot.push(snap);
   }
 
+  /**
+   * permet d'ajouter un tableau de todo dans la snapshot actuel de l'ensemble des todos
+   *
+   * @private
+   * @param {ITodoItem[]} todos
+   * @param {string} listUuid
+   * @memberof TodoServiceProvider
+   */
   private addTodosSnap(todos: ITodoItem[], listUuid: string): void {
     for (const todo of todos) {
       this.addTodoSnap(todo, listUuid);
     }
   }
 
+  /**
+   * permet de supprimer une liste de l'ensemble des snapshot de todos
+   *
+   * @private
+   * @param {string} listUuid
+   * @memberof TodoServiceProvider
+   */
   private deleteListTodoSnap(listUuid: string): void {
     for (const snap of this.lastAllTodosSnapshot) {
       if (snap.listUuids != null && snap.uuid != null) {

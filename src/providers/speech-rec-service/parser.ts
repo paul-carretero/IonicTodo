@@ -1,13 +1,19 @@
 import { MenuRequestType } from './../../model/menu-request-type';
 import { Media } from './../../model/media';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
-import { IParsedRequest } from './parsed-req';
+import { IParsedRequest } from '../../model/parsed-req';
 import { ITodoItem } from '../../model/todo-item';
 import { ITodoList } from '../../model/todo-list';
 import { ISimpleContact } from '../../model/simple-contact';
 import { ContactServiceProvider } from '../contact-service/contact-service';
 import { EventServiceProvider } from '../event/event-service';
 
+/**
+ * parse un phrase d'un utilisateur à la recherche de mot clé et de requête applicative
+ *
+ * @export
+ * @class SpeechParser
+ */
 export class SpeechParser {
   /***************************** STATIC FIELDS ******************************/
 
@@ -32,7 +38,6 @@ export class SpeechParser {
     ],
     [MenuRequestType.SEND, ['envoie', 'envoyer', 'envoi', 'clone']],
     [MenuRequestType.SHARE, ['partage', 'partager', 'lier', 'lie']],
-    [MenuRequestType.COPY, ['copier', 'copie']],
     [MenuRequestType.HELP, ['aide', 'aider', 'help', 'aidez', 'aidé']],
     [MenuRequestType.COMPLETE, ['termine', 'complete', 'terminer', 'completer']]
   ]);
@@ -145,6 +150,12 @@ export class SpeechParser {
     this.clear();
   }
 
+  /**
+   * réinitialise les constante d'environement
+   *
+   * @private
+   * @memberof SpeechParser
+   */
   private clear(): void {
     this.currentTodos = [];
     this.currentLists = [];
@@ -157,9 +168,18 @@ export class SpeechParser {
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
 
+  /**
+   * retourne la requête de type MenuRequestType si elle existe et défini par des mot clés
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {(MenuRequestType | null)}
+   * @memberof SpeechParser
+   */
   private getMenuRequest(req: IParsedRequest): MenuRequestType | null {
     for (const word of req.sentence) {
-      for (const key of SpeechParser.keywords.keys()) {
+      const keys = Array.from(SpeechParser.keywords.keys());
+      for (const key of keys) {
         if (SpeechParser.strArrayInclude(word, SpeechParser.keywords.get(key))) {
           return key;
         }
@@ -168,9 +188,18 @@ export class SpeechParser {
     return null;
   }
 
+  /**
+   * recherche et retourne un media si il existe et défini par des mot clés
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {(Media | null)}
+   * @memberof SpeechParser
+   */
   private getMediaType(req: IParsedRequest): Media | null {
     for (const word of req.sentence) {
-      for (const key of SpeechParser.medias.keys()) {
+      const keys = Array.from(SpeechParser.medias.keys());
+      for (const key of keys) {
         if (SpeechParser.strArrayInclude(word, SpeechParser.medias.get(key))) {
           return key;
         }
@@ -179,6 +208,15 @@ export class SpeechParser {
     return null;
   }
 
+  /**
+   * recherche et associe la requête IMenuRequest d'une phrase de l'utilisateur, le media n'est rechercher que si une requête à été trouvée
+   *
+   * @see IMenuRequest
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {void}
+   * @memberof SpeechParser
+   */
   private defMenuRequest(req: IParsedRequest): void {
     const menuReq = this.getMenuRequest(req);
     if (menuReq == null) {
@@ -191,6 +229,14 @@ export class SpeechParser {
     };
   }
 
+  /**
+   * recherche si l'utilisateur a spécifié le nom de l'un de ses contacts
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {void}
+   * @memberof SpeechParser
+   */
   private defContact(req: IParsedRequest): void {
     for (const contact of this.currentContacts) {
       if (SpeechParser.strInclude(req.origSentence, contact.displayName)) {
@@ -200,6 +246,14 @@ export class SpeechParser {
     }
   }
 
+  /**
+   * recherche un todo auquel l'utilisateur à pu faire allusion, se base sur le nom de chaque todo
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {void}
+   * @memberof SpeechParser
+   */
   private defTodoFind(req: IParsedRequest): void {
     if (
       this.currentTodo != null &&
@@ -208,7 +262,6 @@ export class SpeechParser {
       req.todoFound = this.currentTodo;
       return;
     }
-    console.log(this.currentTodos);
     for (const todo of this.currentTodos) {
       if (SpeechParser.strInclude(req.origSentence, todo.name)) {
         req.todoFound = todo;
@@ -217,6 +270,14 @@ export class SpeechParser {
     }
   }
 
+  /**
+   * recherche et défini une liste à laquelle l'utilisateur se rapporte
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {void}
+   * @memberof SpeechParser
+   */
   private defListFind(req: IParsedRequest): void {
     if (
       this.currentList != null &&
@@ -234,6 +295,15 @@ export class SpeechParser {
     }
   }
 
+  /**
+   * recherche un nouveau de liste spécifié par l'utilisateur
+   * Peut être confondu avec une liste existante...
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {void}
+   * @memberof SpeechParser
+   */
   private defNewListName(req: IParsedRequest): void {
     let listKeyIndex: number = -1;
 
@@ -254,14 +324,18 @@ export class SpeechParser {
       return;
     }
 
-    if (remainingWords.length === 2) {
-      req.newListName = remainingWords[1];
-      return;
-    }
-
     req.newListName = this.buildName(remainingWords, 'liste ');
   }
 
+  /**
+   * recherche un nouveau nom de todo spécifié par l'utilisateur
+   * Peut être confondu avec un todo existant
+   *
+   * @private
+   * @param {IParsedRequest} req
+   * @returns {void}
+   * @memberof SpeechParser
+   */
   private defNewTodoName(req: IParsedRequest): void {
     let todoKeyIndex: number = -1;
 
@@ -285,6 +359,16 @@ export class SpeechParser {
     req.newTodoName = this.buildName(remainingWords, 'tâche ');
   }
 
+  /**
+   * construit un nom de liste ou de todo à partir d'une occurence d'un mot clé de todo ou liste et jusqu'a la prochaine occurence d'un mot clé (max 3)
+   * Aujoute automatiquement le mot tache ou liste si le mot qui suit est une coordination ('de' par exemple)
+   *
+   * @private
+   * @param {string[]} remainingWords
+   * @param {('liste ' | 'tâche ')} type
+   * @returns {string}
+   * @memberof SpeechParser
+   */
   private buildName(remainingWords: string[], type: 'liste ' | 'tâche '): string {
     let res = '';
 
@@ -311,6 +395,7 @@ export class SpeechParser {
 
   /**
    * un ensemble de règles non générique à appliquer à la requête
+   * Principalement pour définir si l'utilisateur se rapport au contexte courrant
    *
    * @private
    * @param {IParsedRequest} req
@@ -323,8 +408,7 @@ export class SpeechParser {
     } else if (
       req.todoFound == null &&
       this.currentTodo != null &&
-      (req.request.request === MenuRequestType.COPY ||
-        req.request.request === MenuRequestType.COMPLETE ||
+      (req.request.request === MenuRequestType.COMPLETE ||
         (req.request.request === MenuRequestType.CREATE && req.listFound == null) ||
         (req.request.request === MenuRequestType.DELETE && req.listFound == null) ||
         (req.request.request === MenuRequestType.EDIT && req.listFound == null))
@@ -350,13 +434,25 @@ export class SpeechParser {
   /****************************** STATIC HELPER *****************************/
   /**************************************************************************/
 
+  /**
+   * recherche si un mot est un mot clé
+   *
+   * @private
+   * @static
+   * @param {string} str true si le mot à été trouvé dans la liste des mot clé
+   * @returns {boolean}
+   * @memberof SpeechParser
+   */
   private static isKeyword(str: string): boolean {
-    for (const key of SpeechParser.keywords.keys()) {
+    const keysKeywords = Array.from(SpeechParser.keywords.keys());
+    for (const key of keysKeywords) {
       if (SpeechParser.strArrayInclude(str, SpeechParser.keywords.get(key))) {
         return true;
       }
     }
-    for (const key of SpeechParser.medias.keys()) {
+
+    const keysMedia = Array.from(SpeechParser.medias.keys());
+    for (const key of keysMedia) {
       if (SpeechParser.strArrayInclude(str, SpeechParser.medias.get(key))) {
         return true;
       }
@@ -439,7 +535,7 @@ export class SpeechParser {
       arr.push(SpeechParser.normalize(item));
     }
 
-    return arr.includes(str);
+    return arr.indexOf(str) !== -1;
   }
 
   /**
@@ -463,7 +559,16 @@ export class SpeechParser {
     return s;
   }
 
-  private static UpFirst(s: string) {
+  /**
+   * permet de mettre en capitale la première lettre d'une chaine
+   *
+   * @private
+   * @static
+   * @param {string} s
+   * @returns {string}
+   * @memberof SpeechParser
+   */
+  private static UpFirst(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 

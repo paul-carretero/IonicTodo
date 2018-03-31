@@ -8,6 +8,12 @@ import { IonicPage } from 'ionic-angular';
 import { Settings } from '../../model/settings';
 import { DBServiceProvider } from './../../providers/db/db-service';
 
+/**
+ * page permettant à l'utilisateur de configurer ses préférence locale pour l'application
+ *
+ * @export
+ * @class SettingsPage
+ */
 @IonicPage()
 @Component({
   selector: 'page-settings',
@@ -89,7 +95,7 @@ export class SettingsPage {
   protected enableUnsure: boolean = false;
 
   /**
-   *
+   * SHOW_ADS_BANNER
    *
    * @protected
    * @type {boolean}

@@ -5,7 +5,7 @@ import { SQLite, SQLiteObject } from '@ionic-native/sqlite';
 import { Settings } from '../../model/settings';
 
 /**
- *
+ * fourni des services à persistence locale en SQLite
  * @export
  * @class DBServiceProvider
  */

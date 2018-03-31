@@ -24,6 +24,13 @@ import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../ui-service/ui-service';
 import { ILatLng } from '@ionic-native/google-maps';
 
+/**
+ * fournit des méthodes pour importer automatiquement des liste partagé avec l'utilisateur courrant
+ * fournit des méthodes pour importer et exporter des listes du cloud ohmytask
+ *
+ * @export
+ * @class CloudServiceProvider
+ */
 @Injectable()
 export class CloudServiceProvider {
   /**

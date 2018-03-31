@@ -4,6 +4,8 @@ import { QrReaderPage } from './qr-reader';
 import { ComponentsModule } from '../../../components/components.module';
 
 /**
+ * QrReaderPageModule
+ *
  * @export
  * @class QrReaderPageModule
  */

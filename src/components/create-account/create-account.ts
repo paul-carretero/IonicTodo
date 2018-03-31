@@ -11,15 +11,57 @@ import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { LoginAccountComponent } from '../login-account/login-account';
 import { EventServiceProvider } from './../../providers/event/event-service';
 
+/**
+ * composant permettant à un utilisateur non connecté de créer un compte sur l'application ou de le mettre à jour si il est connecté
+ *
+ * @export
+ * @class CreateAccountComponent
+ * @extends {LoginAccountComponent}
+ * @implements {OnInit}
+ */
 @Component({
   selector: 'create-account',
   templateUrl: 'create-account.html'
 })
 export class CreateAccountComponent extends LoginAccountComponent implements OnInit {
+  /**************************** PRIVATE FIELDS ******************************/
+
+  /**
+   * user firebase courrant si il est connecté, false sinon
+   *
+   * @private
+   * @type {(User | null)}
+   * @memberof CreateAccountComponent
+   */
   private account: User | null;
 
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * text pour la validation du formulaire
+   *
+   * @protected
+   * @type {('Mettre à jour mon compte' | 'Créer mon compte')}
+   * @memberof CreateAccountComponent
+   */
   protected validText: 'Mettre à jour mon compte' | 'Créer mon compte';
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of CreateAccountComponent.
+   * @param {NavController} navCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {GooglePlus} googlePlus
+   * @param {FormBuilder} formBuilder
+   * @param {DBServiceProvider} settingCtrl
+   * @param {AngularFireAuth} fireAuthCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @memberof CreateAccountComponent
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly authCtrl: AuthServiceProvider,
@@ -49,11 +91,24 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
     this.validText = 'Créer mon compte';
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * lors du chargement du composant, recherche si l'utilisateur est connecté et adapte le formulaire pour une création ou une mise à jour
+   *
+   * @memberof CreateAccountComponent
+   */
   ngOnInit(): void {
     super.ngOnInit();
     this.account = this.authCtrl.getUser();
     this.prepareForEdit();
   }
+
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
 
   /**
    * Initialise l'email avec soit rien, soit la valeur du compte courrant
@@ -76,6 +131,35 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
     }
   }
 
+  /**
+   * permet de valider les informations saisies et créer ou mettre à jour le compte
+   *
+   * @protected
+   * @returns {void}
+   * @memberof CreateAccountComponent
+   */
+  protected validate(): void {
+    if (!this.authForm.valid) {
+      return;
+    }
+    if (this.account == null) {
+      this.createCount();
+    } else {
+      this.editCount();
+    }
+  }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * configure le formulaire pour éditer certaine informations d'un utilisateur connecté
+   *
+   * @private
+   * @returns {void}
+   * @memberof CreateAccountComponent
+   */
   private prepareForEdit(): void {
     if (this.account == null) {
       return;
@@ -178,30 +262,4 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
     }
     this.uiCtrl.dismissLoading();
   }
-
-  protected validate(): void {
-    if (!this.authForm.valid) {
-      return;
-    }
-    if (this.account == null) {
-      this.createCount();
-    } else {
-      this.editCount();
-    }
-  }
 }
-
-/*private get isProviderGoogle(): boolean {
-    if (
-      this.account == null ||
-      this.account.providerData == null ||
-      this.account.providerData.length === 0
-    ) {
-      return false;
-    }
-    const data = this.account.providerData[0];
-    if (data == null) {
-      return false;
-    }
-    return data.providerId === 'google.com';
-  }*/

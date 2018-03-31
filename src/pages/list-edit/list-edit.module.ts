@@ -4,6 +4,8 @@ import { ListEditPage } from './list-edit';
 import { ComponentsModule } from '../../components/components.module';
 
 /**
+ * ListEditPageModule
+ *
  * @export
  * @class ListEditPageModule
  */

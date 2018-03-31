@@ -9,12 +9,34 @@ import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-s
 import { GenericSharer } from './../generic-sharer';
 import { Global } from '../../../shared/global';
 
+/**
+ * page permettant d'afficher le qr code pour envoyer ou partager une liste passé en paramètre
+ *
+ * @export
+ * @class QrcodeGeneratePage
+ * @extends {GenericSharer}
+ */
 @IonicPage()
 @Component({
   selector: 'page-qrcode-generate',
   templateUrl: 'qrcode-generate.html'
 })
 export class QrcodeGeneratePage extends GenericSharer {
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of QrcodeGeneratePage.
+   * @param {NavParams} navParams
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {TodoServiceProvider} todoCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @memberof QrcodeGeneratePage
+   */
   constructor(
     protected readonly navParams: NavParams,
     protected readonly navCtrl: NavController,
@@ -27,11 +49,22 @@ export class QrcodeGeneratePage extends GenericSharer {
     super(navParams, navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
 
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
+
+  /**
+   * initialise la page et son header
+   *
+   * @memberof QrcodeGeneratePage
+   */
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Exporter par QR Code';
-    pageData.subtitle = this.evtCtrl.getHeader().title;
+    if (this.list.listUUID != null) {
+      pageData.subtitle = 'Liste ' + this.todoCtrl.getAListSnapshot(this.list.listUUID).name;
+    }
     this.evtCtrl.setHeader(pageData);
   }
 }

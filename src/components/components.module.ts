@@ -6,19 +6,30 @@ import { AuthorDisplayComponent } from './author-display/author-display';
 import { AccountComponent } from './account/account';
 import { CreateAccountComponent } from './create-account/create-account';
 import { LoginAccountComponent } from './login-account/login-account';
+
+/**
+ * ComponentsModule
+ *
+ * @export
+ * @class ComponentsModule
+ */
 @NgModule({
-  declarations: [HeaderComponent,
+  declarations: [
+    HeaderComponent,
     AuthorDisplayComponent,
     AccountComponent,
     CreateAccountComponent,
     LoginAccountComponent,
-    LoginAccountComponent],
+    LoginAccountComponent
+  ],
   imports: [IonicPageModule.forChild(HeaderComponent), CommonModule],
-  exports: [HeaderComponent,
+  exports: [
+    HeaderComponent,
     AuthorDisplayComponent,
     AccountComponent,
     CreateAccountComponent,
     LoginAccountComponent,
-    LoginAccountComponent]
+    LoginAccountComponent
+  ]
 })
 export class ComponentsModule {}

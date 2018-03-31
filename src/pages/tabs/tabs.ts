@@ -19,13 +19,70 @@ import { UiServiceProvider } from './../../providers/ui-service/ui-service';
   templateUrl: 'tabs.html'
 })
 export class TabsPage {
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * page principale de l'application
+   *
+   * @protected
+   * @memberof TabsPage
+   */
   protected readonly tab1Root = 'HomePage';
+
+  /**
+   * page d'authentification
+   *
+   * @protected
+   * @memberof TabsPage
+   */
   protected readonly tab2Root = 'AuthentificationPage';
+
+  /**
+   * page de paramètre
+   *
+   * @protected
+   * @memberof TabsPage
+   */
   protected readonly tab3Root = 'SettingsPage';
+
+  /**
+   * true si la lampe est allumé, false sinon
+   *
+   * @protected
+   * @memberof TabsPage
+   */
   protected JeVoisBien = false;
+
+  /**
+   * true si on est connecté aux interwebz false sinon
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof TabsPage
+   */
   protected netStatus: boolean;
+
+  /**
+   * bar des tabs
+   *
+   * @type {Tabs}
+   * @memberof TabsPage
+   */
   @ViewChild('navTabs') tabRef: Tabs;
 
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of TabsPage.
+   * @param {EventServiceProvider} evtCtrl
+   * @param {Flashlight} flashlight
+   * @param {AuthServiceProvider} authCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {AdsServiceProvider} adsCtrl
+   * @memberof TabsPage
+   */
   constructor(
     private readonly evtCtrl: EventServiceProvider,
     private readonly flashlight: Flashlight,
@@ -39,11 +96,31 @@ export class TabsPage {
     });
   }
 
-  get allowNavigate(): boolean {
+  /**************************************************************************/
+  /********************************* GETTER *********************************/
+  /**************************************************************************/
+
+  /**
+   * retourne si l'on est authorisé à accéder aux onglet protégés
+   *
+   * @readonly
+   * @protected
+   * @type {boolean}
+   * @memberof TabsPage
+   */
+  protected get allowNavigate(): boolean {
     return this.authCtrl.navAllowed();
   }
 
-  get modeName(): string {
+  /**
+   * retourne le nom du mode d'authentification actuel
+   *
+   * @readonly
+   * @protected
+   * @type {string}
+   * @memberof TabsPage
+   */
+  protected get modeName(): string {
     if (this.authCtrl.isConnected()) {
       return 'Authentifié';
     } else {
@@ -51,15 +128,43 @@ export class TabsPage {
     }
   }
 
-  get canLogOut(): boolean {
+  /**
+   * retourne true si l'on peut se déconnecter, false sinon
+   *
+   * @readonly
+   * @protected
+   * @type {boolean}
+   * @memberof TabsPage
+   */
+  protected get canLogOut(): boolean {
     return this.authCtrl.isConnected();
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * défini le tab courrant
+   *
+   * @private
+   * @param {number} root
+   * @memberof TabsPage
+   */
   private setRoot(root: number) {
     this.tabRef.select(root);
   }
 
-  public showAds(): void {
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * affiche une publicité intersticiel
+   *
+   * @memberof TabsPage
+   */
+  protected showAds(): void {
     this.adsCtrl.showInterstitial();
   }
 
@@ -68,7 +173,7 @@ export class TabsPage {
    *
    * @memberof TabsPage
    */
-  public showQrPage(): void {
+  protected showQrPage(): void {
     this.evtCtrl.getNavRequestSubject().next({ page: 'QrReaderPage' });
   }
 
@@ -77,7 +182,7 @@ export class TabsPage {
    *
    * @memberof TabsPage
    */
-  public showCloudPage(): void {
+  protected showCloudPage(): void {
     this.evtCtrl.getNavRequestSubject().next({ page: 'CloudSpacePage' });
   }
 
@@ -87,7 +192,7 @@ export class TabsPage {
    *
    * @memberof TabsPage
    */
-  public voirMieux(): void {
+  protected voirMieux(): void {
     this.JeVoisBien = !this.JeVoisBien;
     if (this.JeVoisBien) {
       this.flashlight.switchOn().catch(() => {
@@ -107,7 +212,7 @@ export class TabsPage {
    *
    * @memberof TabsPage
    */
-  public logInOut(): void {
+  protected logInOut(): void {
     if (this.authCtrl.isConnected()) {
       this.authCtrl.logout();
     }
@@ -119,7 +224,7 @@ export class TabsPage {
    *
    * @memberof TabsPage
    */
-  public home(): void {
+  protected home(): void {
     this.setRoot(Global.HOMEPAGE);
   }
 }

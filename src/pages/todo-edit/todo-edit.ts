@@ -28,6 +28,13 @@ import { Global } from './../../shared/global';
 import { Observable } from 'rxjs/Observable';
 import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
 
+/**
+ * page d'édition ou de création d'un todo (si aucun uuid n'est passé en paramètre)
+ *
+ * @export
+ * @class TodoEditPage
+ * @extends {GenericPage}
+ */
 @IonicPage()
 @Component({
   selector: 'page-todo-edit',

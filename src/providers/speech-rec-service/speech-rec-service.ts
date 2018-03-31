@@ -1,25 +1,61 @@
-import { MenuRequestType } from './../../model/menu-request-type';
-import { ContactServiceProvider } from './../contact-service/contact-service';
-import { ISpeechReqResult } from '../../model/speech-req-res';
-import { UiServiceProvider } from './../ui-service/ui-service';
-import { EventServiceProvider } from './../event/event-service';
 import { Injectable } from '@angular/core';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
-import { ListType, ITodoList } from '../../model/todo-list';
-import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
-import { Global } from '../../shared/global';
+
+import { ISpeechReqResult } from '../../model/speech-req-res';
 import { ITodoItem } from '../../model/todo-item';
+import { ITodoList, ListType } from '../../model/todo-list';
+import { Global } from '../../shared/global';
 import { AuthServiceProvider } from '../auth-service/auth-service';
 import { SpeechSynthServiceProvider } from '../speech-synth-service/speech-synth-service';
+import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
+import { ICloudSharedList } from './../../model/cloud-shared-list';
+import { MenuRequestType } from './../../model/menu-request-type';
+import { CloudServiceProvider } from './../cloud-service/cloud-service';
+import { ContactServiceProvider } from './../contact-service/contact-service';
+import { EventServiceProvider } from './../event/event-service';
+import { UiServiceProvider } from './../ui-service/ui-service';
+import { IParsedRequest } from '../../model/parsed-req';
 import { SpeechParser } from './parser';
-import { IParsedRequest } from './parsed-req';
+import { Media } from '../../model/media';
 
+/**
+ * permet d'écouter les phrase de l'utilisateur et de les traduire en commande de l'application
+ *
+ * @export
+ * @class SpeechRecServiceProvider
+ */
 @Injectable()
 export class SpeechRecServiceProvider {
+  /**
+   * true si les paramètre de reconnaissance vocale ont déjà été vérifiés
+   *
+   * @private
+   * @memberof SpeechRecServiceProvider
+   */
   private allOK = false;
 
+  /**
+   * nombre de tentative de reconnaissance infructueuse avant de proposer de l'aide
+   *
+   * @private
+   * @memberof SpeechRecServiceProvider
+   */
   private readonly nb_essais_pour_aide = 3;
+
+  /**
+   * nombre d'essais courrant infructueux
+   *
+   * @private
+   * @memberof SpeechRecServiceProvider
+   */
   private nb_essais_courant = 0;
+
+  /**
+   * messaege d'aide non contextuel
+   *
+   * @private
+   * @memberof SpeechRecServiceProvider
+   */
   private readonly message_aide_page_home = " Exemples d'utilisation depuis la page de l'ensemble des listes : \n" +
     ' Créer la liste maison. \n' +
     ' Afficher la liste maison. \n ' +
@@ -27,11 +63,25 @@ export class SpeechRecServiceProvider {
     ' Ajouter la tâche repassage dans la liste maison. \n' +
     ' Supprimer la tâche repassage dans la liste maison. \n' +
     ' Supprimer la liste maison. \n';
+
+  /**
+   * message d'aide contextuel
+   *
+   * @private
+   * @memberof SpeechRecServiceProvider
+   */
   private readonly message_aide_page_todo_list = "Exemples d'utilisation depuis la page d'une liste : \n" +
     ' Ajouter la tâche repassage. \n' +
     ' Afficher la tâche repassage. \n' +
     ' Supprimer la tâche repassage. \n';
 
+  /**
+   * parseur de phrase
+   *
+   * @private
+   * @type {SpeechParser}
+   * @memberof SpeechRecServiceProvider
+   */
   private readonly parser: SpeechParser;
 
   /**************************************************************************/
@@ -55,6 +105,7 @@ export class SpeechRecServiceProvider {
     private readonly uiCtrl: UiServiceProvider,
     private readonly authCtrl: AuthServiceProvider,
     private readonly speechSynthService: SpeechSynthServiceProvider,
+    private readonly cloudCtrl: CloudServiceProvider,
     contactCtrl: ContactServiceProvider
   ) {
     this.parser = new SpeechParser(todoService, contactCtrl, evtCtrl);
@@ -233,36 +284,41 @@ export class SpeechRecServiceProvider {
           if (contain_list && !contain_todo) {
             // METTRE A JOUR UNE LISTE ?
             resultat_action = this.updateListe(sentence);
+            phrase_reconnue = true;
           } else if (contain_todo) {
             // METTRE A JOUR UNE TACHE ?
             resultat_action = this.updateTache(sentence);
+            phrase_reconnue = true;
           }
-          phrase_reconnue = true;
+
           break;
 
         case MenuRequestType.DELETE:
-          if (sentence.newListName != null && (sentence.listFound != null && !contain_todo)) {
+          if (sentence.newListName != null && sentence.listFound != null && !contain_todo) {
             // SUPPRIMER UNE LISTE ? (on est obligé de préciser le mot liste pour suppr)
             resultat_action = this.supprimerListe(sentence);
+            phrase_reconnue = true;
           } else if (sentence.newTodoName != null && sentence.todoFound != null) {
             // SUPPRIMER UNE TACHE ? (on est obligé de préciser le mot tache pour suppr)
             resultat_action = this.supprimerTache(sentence);
+            phrase_reconnue = true;
           } else if (contain_list || contain_todo) {
+            phrase_reconnue = true;
             resultat_action.message_error =
               'Vous devez préciser le mot liste ou tâche suivi du nom de la liste ou tâche à supprimer pour pouvoir la supprimer';
           }
-          phrase_reconnue = true;
           break;
 
         case MenuRequestType.VIEW:
           if (contain_list && !contain_todo) {
             //AFFICHER UNE LISTES ?
             resultat_action = this.afficherListe(sentence);
+            phrase_reconnue = true;
           } else if (contain_todo) {
             //AFFICHER UNE TACHE ?
             resultat_action = this.afficherTodo(sentence);
+            phrase_reconnue = true;
           }
-          phrase_reconnue = true;
           break;
 
         case MenuRequestType.HELP:
@@ -276,15 +332,27 @@ export class SpeechRecServiceProvider {
           break;
 
         case MenuRequestType.SHARE:
+          if (contain_list && !contain_todo) {
+            //PARTAGER UNE LISTE ?
+            resultat_action = this.sendOrShareListHandler(sentence);
+            phrase_reconnue = true;
+          }
           break;
 
         case MenuRequestType.SEND:
+          if (contain_list && !contain_todo) {
+            //ENVOYER UNE LISTE ?
+            resultat_action = this.sendOrShareListHandler(sentence);
+            phrase_reconnue = true;
+          }
           break;
 
         case MenuRequestType.COMPLETE:
-          break;
-
-        case MenuRequestType.COPY:
+          // MARQUER UNE TACHE COMME COMPLETE
+          if (contain_todo) {
+            resultat_action = this.completeTodo(sentence);
+            phrase_reconnue = true;
+          }
           break;
       }
     }
@@ -421,6 +489,133 @@ export class SpeechRecServiceProvider {
         'La liste ' + sentence.newListName + "n'a pas étée trouvée. Suppression impossible";
     }
     return { action_success: action_success, message_error: message_error };
+  }
+
+  /**
+   * permet de partager ou d'envoyer une liste par un media ou à un contact
+   *
+   * @private
+   * @param {IParsedRequest} sentence
+   * @returns {ISpeechReqResult}
+   * @memberof SpeechRecServiceProvider
+   */
+  private sendOrShareListHandler(sentence: IParsedRequest): ISpeechReqResult {
+    let action_success = false;
+    let message_error = "L'action n'a pas pu être réalisée";
+
+    if (sentence.listFound != null) {
+      if (sentence.contact != null) {
+        if (sentence.contact.email != null && sentence.contact.email !== '') {
+          action_success = true;
+          this.sendOrShareToContact(sentence);
+        } else {
+          message_error =
+            'Impossible de partager la liste ' +
+            sentence.newListName +
+            ' avec ' +
+            sentence.contact.displayName +
+            " car aucune addresse email n'existe pour ce contact";
+        }
+      } else if (sentence.request != null) {
+        action_success = true;
+        this.sendOrShareHandler(sentence);
+      }
+    } else {
+      message_error = 'La liste ' + sentence.newListName + "n'a pas été trouvée";
+    }
+    return { action_success: action_success, message_error: message_error };
+  }
+
+  /**
+   * en fonction du media choisi, ouvre la page de partage, le cloud est par défault
+   *
+   * @private
+   * @param {IParsedRequest} sentence
+   * @returns {void}
+   * @memberof SpeechRecServiceProvider
+   */
+  private sendOrShareHandler(sentence: IParsedRequest): void {
+    if (sentence.listFound == null || sentence.request == null) {
+      return;
+    }
+    sentence.request.uuid = sentence.listFound.uuid;
+    switch (sentence.request.media) {
+      case Media.NFC:
+        this.evtCtrl
+          .getNavRequestSubject()
+          .next({ page: 'NfcSenderPage', data: { request: sentence.request } });
+        this.speechSynthService.synthText(
+          'Vous pouvez maintenant partager la liste ' + sentence.listFound.name + ' par NFC '
+        );
+        break;
+
+      case Media.QR_CODE:
+        this.evtCtrl
+          .getNavRequestSubject()
+          .next({ page: 'QrcodeGeneratePage', data: { request: sentence.request } });
+        this.speechSynthService.synthText(
+          'Vous pouvez maintenant partager la liste ' +
+            sentence.listFound.name +
+            ' par QR Code '
+        );
+        break;
+
+      default:
+        this.evtCtrl
+          .getNavRequestSubject()
+          .next({ page: 'CloudSenderPage', data: { request: sentence.request } });
+        this.speechSynthService.synthText(
+          'Vous pouvez maintenant partager la liste ' +
+            sentence.listFound.name +
+            ' sur le cloud OhMyTask '
+        );
+        break;
+    }
+  }
+
+  /**
+   * permet d'envoyer une liste en envoi ou partage à un contact
+   *
+   * @private
+   * @param {IParsedRequest} sentence
+   * @returns {Promise<void>}
+   * @memberof SpeechRecServiceProvider
+   */
+  private async sendOrShareToContact(sentence: IParsedRequest): Promise<void> {
+    if (
+      sentence.contact == null ||
+      sentence.listFound == null ||
+      sentence.listFound.uuid == null ||
+      sentence.request == null
+    ) {
+      return;
+    }
+
+    const author = await this.authCtrl.getAuthor(false);
+    const data: ICloudSharedList = Global.getDefaultCloudShareData();
+    data.author = author;
+    data.email = sentence.contact.email;
+    data.list = this.todoService.getListLink(sentence.listFound.uuid);
+    data.name = sentence.listFound.name;
+    if (sentence.request.request === MenuRequestType.SHARE) {
+      data.list.shareByReference = true;
+      await this.cloudCtrl.postNewShareRequest(data);
+      this.speechSynthService.synthText(
+        'La liste ' +
+          sentence.listFound.name +
+          ' a été partagé avec ' +
+          sentence.contact.displayName
+      );
+    } else if (sentence.request.request === MenuRequestType.SEND) {
+      data.list.shareByReference = false;
+      await this.cloudCtrl.postNewShareRequest(data);
+      this.speechSynthService.synthText(
+        'La liste ' +
+          sentence.listFound.name +
+          ' a été envoyée a ' +
+          sentence.contact.displayName
+      );
+    }
   }
 
   /**************************************************************************/
@@ -616,6 +811,60 @@ export class SpeechRecServiceProvider {
       if (sentence.newListName == null || sentence.newListName === '') {
         message_error =
           'Veuillez indiquer dans quelle liste visualiser la tâche ' +
+          sentence.newTodoName +
+          ' .';
+      } else {
+        message_error = 'La liste ' + sentence.newListName + " n'a pas été trouvée.";
+      }
+    }
+    return { action_success: action_success, message_error: message_error };
+  }
+
+  /**
+   * Méthode permettant de supprimer une tâche d'une liste
+   *
+   * @private
+   * @param {IParsedRequest} sentence la phrase parsée
+   * @returns {ISpeechReqResult}
+   * @memberof SpeechRecServiceProvider
+   */
+  private completeTodo(sentence: IParsedRequest): ISpeechReqResult {
+    let action_success = false;
+    let message_error = "L'action n'a pas pu être réalisée.";
+
+    if (sentence.listFound != null && sentence.listFound.uuid != null) {
+      if (
+        sentence.todoFound != null &&
+        sentence.todoFound.ref != null &&
+        sentence.todoFound.uuid != null
+      ) {
+        if (!sentence.todoFound.complete) {
+          this.speechSynthService.synthText(
+            'Complétion de la tâche ' +
+              sentence.todoFound.name +
+              ' de la liste ' +
+              sentence.listFound.name
+          );
+          sentence.todoFound.complete = true;
+          this.todoService.complete(sentence.todoFound);
+        } else {
+          this.speechSynthService.synthText(
+            'Impossible, la tâche ' +
+              sentence.todoFound.name +
+              ' de la liste ' +
+              sentence.listFound.name +
+              ' a déjà été complétée.'
+          );
+        }
+
+        action_success = true;
+      } else {
+        message_error = 'La tâche ' + sentence.newTodoName + " n'a pas été trouvée";
+      }
+    } else {
+      if (sentence.newListName == null || sentence.newListName === '') {
+        message_error =
+          'Veuillez indiquer dans quelle liste supprimer la tâche ' +
           sentence.newTodoName +
           ' .';
       } else {

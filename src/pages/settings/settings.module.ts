@@ -4,6 +4,8 @@ import { SettingsPage } from './settings';
 import { ComponentsModule } from '../../components/components.module';
 
 /**
+ * SettingsPageModule
+ *
  * @export
  * @class SettingsPageModule
  */

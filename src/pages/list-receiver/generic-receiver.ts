@@ -5,10 +5,17 @@ import { EventServiceProvider } from '../../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
-import { ListType } from './../../model/todo-list';
 import { ITodoListPath } from './../../model/todo-list-path';
 import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 
+/**
+ * page générique fournissant la gestion de l'objet à importer pour importer ou lier une liste
+ *
+ * @export
+ * @abstract
+ * @class GenericReceiver
+ * @extends {GenericPage}
+ */
 export abstract class GenericReceiver extends GenericPage {
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -71,9 +78,6 @@ export abstract class GenericReceiver extends GenericPage {
    */
   private async todoListHandler(path: ITodoListPath): Promise<boolean> {
     const data = await this.todoCtrl.getAListSnapshotFromPath(path);
-    data.order = 0;
-    data.uuid = null;
-
     const resConf: boolean = await this.uiCtrl.confirm(
       'Confirmation',
       'Etes vous sur de vouloir copier cette liste ( ' + data.name + ' ) sur votre compte ?'
@@ -82,7 +86,7 @@ export abstract class GenericReceiver extends GenericPage {
     if (resConf === false) {
       return false;
     }
-    await this.todoCtrl.addList(data, ListType.PRIVATE);
+    await this.todoCtrl.importList(path);
     this.uiCtrl.dismissLoading();
     return true;
   }
@@ -111,9 +115,9 @@ export abstract class GenericReceiver extends GenericPage {
     }
 
     if (listData.shareByReference === true) {
-      return this.todoListHandler(listData);
-    } else {
       return this.listPathHandler(listData);
+    } else {
+      return this.todoListHandler(listData);
     }
   }
 
@@ -138,6 +142,16 @@ export abstract class GenericReceiver extends GenericPage {
    * @memberof GenericReceiver
    */
   protected basicAuthRequired(): boolean {
+    return true;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof GenericReceiver
+   */
+  protected networkRequired(): boolean {
     return true;
   }
 }

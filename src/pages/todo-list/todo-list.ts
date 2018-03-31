@@ -22,6 +22,13 @@ import { CloudServiceProvider } from './../../providers/cloud-service/cloud-serv
 import { Global } from './../../shared/global';
 import { ItemSliding } from 'ionic-angular/components/item/item-sliding';
 
+/**
+ * page permettant d'afficher une liste de tache
+ *
+ * @export
+ * @class TodoListPage
+ * @extends {GenericPage}
+ */
 @IonicPage()
 @Component({
   selector: 'page-todo-list',
@@ -586,6 +593,15 @@ export class TodoListPage extends GenericPage {
     });
   }
 
+  /**
+   * retourne true si un todo est compatible avec une recherche utilisateur
+   *
+   * @protected
+   * @param {ITodoItem} todo
+   * @param {string} search
+   * @returns {boolean}
+   * @memberof TodoListPage
+   */
   protected areTodoMatching(todo: ITodoItem, search: string): boolean {
     if (search == null || search === '' || search === '#') {
       return true;

@@ -10,6 +10,13 @@ import { INavRequest } from './../model/nav-request';
 import { AuthServiceProvider } from './../providers/auth-service/auth-service';
 import { UiServiceProvider } from './../providers/ui-service/ui-service';
 
+/**
+ * page générique de l'application, fournie des méthode helper et overridable pour facilité le déploiements d'autre pages
+ *
+ * @export
+ * @abstract
+ * @class GenericPage
+ */
 export abstract class GenericPage {
   /**
    * subscription aux requêtes de navigation internes

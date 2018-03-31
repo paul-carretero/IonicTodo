@@ -2,4 +2,19 @@ page-qr-reader {
   ion-content {
     background-color: lightgrey !important;
   }
+  .load-gif {
+    width: 50%;
+    height: auto;
+    margin-left: 25%;
+    margin-top: 50px;
+  }
+  .button-wrapper {
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+  .button-icon {
+    position: absolute !important;
+    left: 10px !important;
+  }
 }

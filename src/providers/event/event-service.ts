@@ -136,6 +136,12 @@ export class EventServiceProvider {
     this.authCtrl.registerEvtCtrl(this);
   }
 
+  /**
+   * permet au controlleur UI de s'enregistrer et évite les cyclic dependencies
+   *
+   * @param {UiServiceProvider} u
+   * @memberof EventServiceProvider
+   */
   public registerUiCtrl(u: UiServiceProvider): void {
     this.uiCtrl = u;
   }

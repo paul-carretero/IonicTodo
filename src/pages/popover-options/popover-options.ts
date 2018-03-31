@@ -6,23 +6,105 @@ import { MenuRequestType } from '../../model/menu-request-type';
 import { Media } from './../../model/media';
 import { EventServiceProvider } from './../../providers/event/event-service';
 
+/**
+ * fourni des options supplémentaire contextuelles
+ *
+ * @export
+ * @class PopoverOptionsPage
+ */
 @IonicPage()
 @Component({
   selector: 'page-popover-options',
   templateUrl: 'popover-options.html'
 })
 export class PopoverOptionsPage {
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * true si editable
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof PopoverOptionsPage
+   */
   protected editable: boolean;
+
+  /**
+   * true si shareable
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof PopoverOptionsPage
+   */
   protected shareable: boolean;
+
+  /**
+   * true si importable
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof PopoverOptionsPage
+   */
   protected importable: boolean;
+
+  /**
+   * true si pastable
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof PopoverOptionsPage
+   */
   protected pastable: boolean;
+
+  /**
+   * true si copiable
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof PopoverOptionsPage
+   */
   protected copiable: boolean;
+
+  /**
+   * true si isList
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof PopoverOptionsPage
+   */
   protected isList: boolean;
+
+  /**
+   * true si onLine
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof PopoverOptionsPage
+   */
   protected onLine: boolean;
 
+  /**
+   * MenuRequestType pour template
+   *
+   * @protected
+   * @memberof PopoverOptionsPage
+   */
   protected request = MenuRequestType;
 
+  /**************************** PRIVATE FIELDS ******************************/
+
+  /**
+   * subscription au status online
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof PopoverOptionsPage
+   */
   private onlineSub: Subscription;
+
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
 
   /**
    * Creates an instance of PopoverOptionsPage.
@@ -80,6 +162,16 @@ export class PopoverOptionsPage {
     }
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * ouvre le sous menu de choix pour le media a utiliser pour exporter la liste
+   *
+   * @private
+   * @memberof PopoverOptionsPage
+   */
   private openShareMenu(): void {
     const actionSheet = this.actionSheetCtrl.create({
       title: '⇄ Partager Cette liste',
@@ -123,6 +215,16 @@ export class PopoverOptionsPage {
     actionSheet.present();
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * ferme le menu
+   *
+   * @protected
+   * @memberof PopoverOptionsPage
+   */
   protected close() {
     this.viewCtrl.dismiss();
   }

@@ -3,8 +3,12 @@
 </ion-header>
 
 <ion-content padding>
+  <img src="assets/imgs/loading.gif" class="load-gif" />
 </ion-content>
 
-<ion-footer padding>
-  <button [disabled]="!okToScan" ion-button full large round (click)="scan()">Scanner le QR Code</button>
+<ion-footer padding class="button-wrapper">
+  <button [disabled]="!okToScan" ion-button block large (click)="scan()">
+    <ion-icon name="qr-scanner" class="button-icon"></ion-icon>
+    Scanner le QR Code
+  </button>
 </ion-footer>

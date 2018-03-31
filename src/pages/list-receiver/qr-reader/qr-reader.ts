@@ -13,12 +13,29 @@ import { GenericReceiver } from '../generic-receiver';
 import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../../../providers/ui-service/ui-service';
 
+/**
+ * page permettant de lire un qrcode d'export de liste et de l'envoyer au service pour importer la liste par valeur ou référence
+ *
+ * @export
+ * @class QrReaderPage
+ * @extends {GenericReceiver}
+ */
 @IonicPage()
 @Component({
   selector: 'page-qr-reader',
   templateUrl: 'qr-reader.html'
 })
 export class QrReaderPage extends GenericReceiver {
+  /**************************** PRIVATE FIELDS ******************************/
+
+  /**
+   * Options pour la preview
+   *
+   * @private
+   * @static
+   * @type {CameraPreviewOptions}
+   * @memberof QrReaderPage
+   */
   private static readonly CAMERA_OPTS: CameraPreviewOptions = {
     x: 0,
     y: 120,
@@ -41,13 +58,6 @@ export class QrReaderPage extends GenericReceiver {
   private static readonly MAX_SCAN_TIME = 10000;
 
   /**
-   * vrai si on peut démarrer le scan de qr code == si la class de scan est prepared
-   *
-   * @memberof QrReaderPage
-   */
-  public okToScan = false;
-
-  /**
    * vrai si la visualisation est activée, faux sinon
    *
    * @private
@@ -64,6 +74,33 @@ export class QrReaderPage extends GenericReceiver {
    */
   private scanSub: Subscription;
 
+  /***************************** PUBLIC FIELDS ******************************/
+
+  /**
+   * vrai si on peut démarrer le scan de qr code == si la class de scan est prepared
+   *
+   * @protected
+   * @memberof QrReaderPage
+   */
+  protected okToScan = false;
+
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
+
+  /**
+   * Creates an instance of QrReaderPage.
+   * @param {NavController} navCtrl
+   * @param {EventServiceProvider} evtCtrl
+   * @param {SpeechSynthServiceProvider} ttsCtrl
+   * @param {TodoServiceProvider} todoCtrl
+   * @param {UiServiceProvider} uiCtrl
+   * @param {AuthServiceProvider} authCtrl
+   * @param {QRScanner} qrScanner
+   * @param {CameraPreview} cameraPreview
+   * @param {ScreenOrientation} screenCtrl
+   * @memberof QrReaderPage
+   */
   constructor(
     protected readonly navCtrl: NavController,
     protected readonly evtCtrl: EventServiceProvider,
@@ -77,6 +114,10 @@ export class QrReaderPage extends GenericReceiver {
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, todoCtrl, authCtrl, uiCtrl);
   }
+
+  /**************************************************************************/
+  /**************************** LIFECYCLE EVENTS ****************************/
+  /**************************************************************************/
 
   /**
    * initialise la page une fois qu'on est entrée (preview oblige)
@@ -109,6 +150,17 @@ export class QrReaderPage extends GenericReceiver {
     this.screenCtrl.unlock();
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
+
+  /**
+   * retourne une promise qui indique si l'on peut scanner (càd si le scanner est ready)
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof QrReaderPage
+   */
   private async checkAuthForScan(): Promise<void> {
     const status: QRScannerStatus = await this.qrScanner.prepare();
     if (status.authorized) {
@@ -116,6 +168,13 @@ export class QrReaderPage extends GenericReceiver {
     }
   }
 
+  /**
+   * démarre la preview si possible et concerve l'information
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof QrReaderPage
+   */
   private async startPreview(): Promise<void> {
     if (this.cameraOn === false) {
       this.qrScanner.destroy();
@@ -124,6 +183,13 @@ export class QrReaderPage extends GenericReceiver {
     }
   }
 
+  /**
+   * termine la preview si possible et concerve l'information
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @memberof QrReaderPage
+   */
   private async stopPreview(): Promise<void> {
     if (this.cameraOn === true) {
       await this.cameraPreview.stopCamera();
@@ -131,6 +197,12 @@ export class QrReaderPage extends GenericReceiver {
     }
   }
 
+  /**
+   * au bout d'un certain temps arrête de chercher un qr code et reset
+   *
+   * @private
+   * @memberof QrReaderPage
+   */
   private timeoutNoData(): void {
     setTimeout(() => {
       if (!this.scanSub.closed) {
@@ -143,6 +215,16 @@ export class QrReaderPage extends GenericReceiver {
     }, QrReaderPage.MAX_SCAN_TIME);
   }
 
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
+
+  /**
+   * permet d'arréter la preview et de commencer à scanner un qr code pendant une certaine durée.
+   *
+   * @returns {Promise<void>}
+   * @memberof QrReaderPage
+   */
   public async scan(): Promise<void> {
     this.stopPreview();
     this.uiCtrl.showLoading('Tentative de scan en cours', QrReaderPage.MAX_SCAN_TIME);

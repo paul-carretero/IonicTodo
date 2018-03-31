@@ -8,6 +8,7 @@ import { TodoServiceProvider } from '../../providers/todo-service-ts/todo-servic
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ITodoListPath } from './../../model/todo-list-path';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 /**
  * page abstraite pour la gestion des fonctionalités lié à la génération d'un objet de liste exportable par valeur ou référence ou référence en lecture seule
@@ -74,7 +75,7 @@ export class GenericSharer extends GenericPage {
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.request = navParams.get('request');
-    if (this.request.uuid != null) {
+    if (this.request != null && this.request.uuid != null) {
       this.listPath = this.todoCtrl.getListLink(this.request.uuid);
     }
   }
@@ -91,10 +92,20 @@ export class GenericSharer extends GenericPage {
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
 
+    if (this.listPath == null) {
+      this.uiCtrl.alert('Echec', 'Une erreur est survenue pendant la tentative de partage');
+      this.navCtrl.pop();
+    }
+
     if (this.request == null || this.request.uuid == null) {
       this.navCtrl.pop();
     } else {
-      this.choice = 'unlock';
+      if (this.request.request === MenuRequestType.SEND) {
+        this.choice = 'send';
+      } else {
+        this.choice = 'unlock';
+      }
+
       this.deleteSub = this.todoCtrl
         .getDeleteSubject(this.request.uuid)
         .subscribe(() => this.hasBeenRemoved(true));
@@ -187,6 +198,16 @@ export class GenericSharer extends GenericPage {
    * @memberof GenericSharer
    */
   protected basicAuthRequired(): boolean {
+    return true;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof GenericReceiver
+   */
+  protected networkRequired(): boolean {
     return true;
   }
 }
