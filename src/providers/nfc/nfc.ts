@@ -73,26 +73,6 @@ export class NfcProvider {
   }
 
   /**
-   * permet de partager en p2p nfc une liste
-   *
-   * @public
-   * @param {string} json
-   * @returns {Promise<void>}
-   * @memberof NfcProvider
-   */
-  public async share(json: string): Promise<void> {
-    console.log('<->');
-    console.log(json);
-    const message = this.ndef.textRecord('lol', 'en', '42');
-    console.log('<-->');
-    console.log(message);
-    await this.nfc.unshare();
-    console.log('<--->');
-    await this.nfc.share([message]);
-    console.log('<---->');
-  }
-
-  /**
    * permet d'écrire un chemin de partage de liste sur un tag nfc
    *
    * @public
@@ -117,7 +97,7 @@ export class NfcProvider {
    * @returns {Promise<void>}
    * @memberof NfcProvider
    */
-  public async publishJson(json: ITodoListPath): Promise<void> {
+  private async publishJson(json: ITodoListPath): Promise<void> {
     if (json == null) {
       return;
     }

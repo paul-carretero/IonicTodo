@@ -6,7 +6,7 @@
 <ion-content padding>
   <ion-card *ngIf="json">
     <ion-card-header>
-      <ion-segment [(ngModel)]="choice" color="primary" (ionChange)="updateSharedTag()">
+      <ion-segment [(ngModel)]="choice" color="primary">
         <ion-segment-button value="send" icon-start>
           Envoyer
           <ion-icon name="copy"></ion-icon>
@@ -29,7 +29,7 @@
   <ion-card padding [innerHTML]="shareSendDesc"></ion-card>
 
   <ion-card class="button-wrapper">
-    <button ion-button block small (click)="export()">
+    <button ion-button block (click)="export()">
       <ion-icon class="button-icon" name="build"></ion-icon>
       Ecrire la liste sur un Tag NFC
     </button>
