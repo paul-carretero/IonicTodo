@@ -1572,7 +1572,7 @@ export class TodoServiceProvider {
    */
   public cloneTodo(listUuidSrc: string, userUuidSrc: string, listUuidDest: string): void {
     const collection = this.firestoreCtrl.collection<ITodoItem>(
-      '/user/' + userUuidSrc + '/list/' + listUuidSrc
+      '/user/' + userUuidSrc + '/list/' + listUuidSrc + '/todo'
     );
     const sub = collection.valueChanges().subscribe((todos: ITodoItem[]) => {
       if (todos != null) {

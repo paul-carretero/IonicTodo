@@ -318,13 +318,14 @@ export class CloudServiceProvider {
     if (!this.authCtrl.isConnected()) {
       return;
     }
-
     this.tryUnsub(this.availableSTSListsSub);
 
     const forSTSImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
       'cloud',
       ref => ref.where('shakeToShare', '==', true)
     );
+
+    this.uiCtrl.showLoading('Analyse STS en cours', CloudServiceProvider.MAX_SECONDS * 500);
 
     this.availableSTSListsSub = forSTSImportCollection
       .snapshotChanges()
@@ -394,7 +395,8 @@ export class CloudServiceProvider {
 
   /**
    * permet d'importer une liste cloud qui a été créé en sts
-   * effectue également les vérifications associées
+   * effectue également les vérifications associées.
+   * n'importe la liste que si elle n'est pas déjà importé
    *
    * @private
    * @param {ICloudSharedList} data
@@ -402,7 +404,18 @@ export class CloudServiceProvider {
    * @memberof CloudServiceProvider
    */
   private async importBySTS(data: ICloudSharedList): Promise<void> {
-    if (data == null) {
+    if (
+      data == null ||
+      data.list == null ||
+      data.author == null ||
+      data.author.coord == null ||
+      data.author.timestamp == null
+    ) {
+      return;
+    }
+
+    const existList = this.todoCtrl.getAllList();
+    if (existList.find(l => l.uuid === data.list.listUUID) != null) {
       return;
     }
 
@@ -421,15 +434,11 @@ export class CloudServiceProvider {
       myPos = Global.roundILatLng(myPos);
       const myGeoPos = Global.getGeoPoint(myPos);
 
-      if (
-        data.author != null &&
-        data.author.coord != null &&
-        data.author.timestamp != null &&
-        myGeoPos.isEqual(data.author.coord)
-      ) {
+      if (myGeoPos.isEqual(data.author.coord)) {
         const now = await this.timestampAreCloseToNow(data.author.timestamp);
         if (now) {
-          this.todoCtrl.importList(data.list);
+          this.todoCtrl.addListLink(data.list);
+          this.uiCtrl.dismissLoading();
         }
       }
     }
@@ -446,7 +455,6 @@ export class CloudServiceProvider {
   private async DocumentImportHandler(importdoc: DocumentSnapshot): Promise<void> {
     const myEmail = this.authCtrl.getEmail();
     const data: ICloudSharedList = importdoc.data() as ICloudSharedList;
-
     if (
       data == null ||
       data.list == null ||
@@ -455,13 +463,11 @@ export class CloudServiceProvider {
     ) {
       return;
     }
-
     if (data.email != null && data.email === myEmail && data.email !== '') {
       this.importSharedList(data.list);
       importdoc.ref.delete();
       return;
     }
-
     if (data.shakeToShare != null && data.shakeToShare) {
       this.importBySTS(data);
       return;

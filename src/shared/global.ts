@@ -293,8 +293,8 @@ export class Global {
    */
   public static roundILatLng(pos: ILatLng): ILatLng {
     return {
-      lat: Global.precisionRound(pos.lat, 3),
-      lng: Global.precisionRound(pos.lng, 3)
+      lat: Global.precisionRound(pos.lat, 1),
+      lng: Global.precisionRound(pos.lng, 1)
     };
   }
 
