@@ -78,7 +78,7 @@ export class TodoPage extends GenericPage {
    * @type {DocumentReference}
    * @memberof TodoPage
    */
-  private readonly todoRef: DocumentReference;
+  private todoRef: DocumentReference;
 
   /**
    * référence vers la liste ayant mené ce todo
@@ -87,7 +87,7 @@ export class TodoPage extends GenericPage {
    * @type {(string | null)}
    * @memberof TodoPage
    */
-  private readonly fromListUuid: string | null;
+  private fromListUuid: string | null;
 
   /**
    * true si le todo était un externe de la liste de référence
@@ -96,7 +96,7 @@ export class TodoPage extends GenericPage {
    * @type {boolean}
    * @memberof TodoPage
    */
-  private readonly isExternal: boolean;
+  private isExternal: boolean;
 
   /**
    * true si le todo est editable, false sinon
@@ -105,7 +105,7 @@ export class TodoPage extends GenericPage {
    * @type {boolean}
    * @memberof TodoPage
    */
-  private readonly editable: boolean;
+  private editable: boolean;
 
   /**
    * Subscription aux mise à jour de ce todo
@@ -237,16 +237,10 @@ export class TodoPage extends GenericPage {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
     this.fromListUuid = this.navParams.get('listUuid');
-
     this.mapLoaded = false;
-    this.editable = true;
-    this.completeLoading = false;
-    this.isMine = false;
-    this.isInCalendar = false;
     this.todoAddressMarker = null;
     this.todoAuthorMapMarker = null;
     this.todoCompleteAuthorMapMarker = null;
-
     if (this.navParams.get('isExternal') == null) {
       this.isExternal = false;
     } else {
@@ -255,6 +249,14 @@ export class TodoPage extends GenericPage {
       }
       this.isExternal = this.navParams.get('isExternal');
     }
+    this.construct();
+  }
+
+  private construct(): void {
+    this.editable = true;
+    this.completeLoading = false;
+    this.isMine = false;
+    this.isInCalendar = false;
   }
 
   /**************************************************************************/
@@ -273,11 +275,7 @@ export class TodoPage extends GenericPage {
       this.navCtrl.popToRoot();
       this.uiCtrl.displayToast('Une erreur est survenue pendant le chargement de la tâche');
     }
-
-    const pageData = Global.getEditCopyPageData();
-    pageData.editable = this.editable;
-    pageData.subtitle = 'Détail de la tâche';
-    this.initPage(pageData);
+    this.genericInitView();
   }
 
   /**
@@ -299,7 +297,7 @@ export class TodoPage extends GenericPage {
    */
   ionViewWillLeave(): void {
     this.tryUnSub(this.todoSub);
-    this.evtCtrl.setCurrentContext(null, null);
+    this.evtCtrl.resetContext();
   }
 
   /**
@@ -321,6 +319,19 @@ export class TodoPage extends GenericPage {
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
+
+  /**
+   * initialise la vue, le header etc.
+   *
+   * @private
+   * @memberof TodoPage
+   */
+  private genericInitView(): void {
+    const pageData = Global.getEditCopyPageData();
+    pageData.editable = this.editable;
+    pageData.subtitle = 'Détail de la tâche';
+    this.initPage(pageData);
+  }
 
   /**
    * défini si la tâche à été créer par l'utilisateur courrant ou non
@@ -362,9 +373,9 @@ export class TodoPage extends GenericPage {
         }
         this.loadMap().then(() => this.resetMarker());
         this.storageCtrl.refreshDownloadLink(this.todo);
-        this.evtCtrl.setCurrentContext(todo.uuid, null);
+        this.evtCtrl.setCurrentContext(false, todo.uuid);
       } else {
-        this.evtCtrl.setCurrentContext(null, null);
+        this.evtCtrl.resetContext();
         this.navCtrl.popToRoot();
         this.uiCtrl.displayToast('Une erreur est survenue');
       }
@@ -1019,6 +1030,17 @@ export class TodoPage extends GenericPage {
       case MenuRequestType.COPY: {
         this.evtCtrl.setCopiedTodoRef(this.todoRef);
         this.uiCtrl.displayToast('Cette à tâche à bien été copiée');
+        break;
+      }
+      case MenuRequestType.VIEW: {
+        if (req.ref != null && req.uuid != null) {
+          this.todoRef = req.ref;
+          this.fromListUuid = req.uuid;
+          this.isExternal = false;
+          this.construct();
+          this.tryUnSub(this.todoSub);
+          this.genericInitView();
+        }
         break;
       }
     }

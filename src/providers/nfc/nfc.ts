@@ -81,8 +81,15 @@ export class NfcProvider {
    * @memberof NfcProvider
    */
   public async share(json: string): Promise<void> {
-    const message = this.ndef.textRecord(json, 'en', '42');
+    console.log('<->');
+    console.log(json);
+    const message = this.ndef.textRecord('lol', 'en', '42');
+    console.log('<-->');
+    console.log(message);
+    await this.nfc.unshare();
+    console.log('<--->');
     await this.nfc.share([message]);
+    console.log('<---->');
   }
 
   /**
@@ -110,7 +117,7 @@ export class NfcProvider {
    * @returns {Promise<void>}
    * @memberof NfcProvider
    */
-  private async publishJson(json: ITodoListPath): Promise<void> {
+  public async publishJson(json: ITodoListPath): Promise<void> {
     if (json == null) {
       return;
     }

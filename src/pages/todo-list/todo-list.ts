@@ -226,7 +226,7 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   ionViewDidEnter(): void {
-    this.evtCtrl.setCurrentContext(null, this.listUUID);
+    this.evtCtrl.setCurrentContext(true, this.listUUID);
   }
 
   /**
@@ -243,7 +243,7 @@ export class TodoListPage extends GenericPage {
     this.tryUnSub(this.exportedSub);
     this.tryUnSub(this.todoSub);
     this.tryUnSub(this.completedSub);
-    this.evtCtrl.setCurrentContext(null, null);
+    this.evtCtrl.resetContext();
   }
 
   /**************************************************************************/

@@ -35,10 +35,12 @@ export class NfcSenderPage extends GenericSharer {
     pageData.title = 'Exporter par NFC';
     pageData.subtitle = this.evtCtrl.getHeader().title;
     this.evtCtrl.setHeader(pageData);
+    this.updateSharedTag();
   }
 
   public async updateSharedTag(): Promise<void> {
-    await this.nfcCtrl.write(this.json);
+    this.uiCtrl.displayToast('Vous pouvez approcher un Smartphone');
+    await this.nfcCtrl.share(this.json);
     this.uiCtrl.displayToast(
       'Vous pouvez utiliser un Smartphone NFC pour lire le tag et importer la liste!'
     );

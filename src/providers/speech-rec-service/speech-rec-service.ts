@@ -1,10 +1,10 @@
+import { MenuRequestType } from './../../model/menu-request-type';
 import { ContactServiceProvider } from './../contact-service/contact-service';
 import { ISpeechReqResult } from '../../model/speech-req-res';
 import { UiServiceProvider } from './../ui-service/ui-service';
 import { EventServiceProvider } from './../event/event-service';
 import { Injectable } from '@angular/core';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
-import { MenuRequestType } from '../../model/menu-request-type';
 import { ListType, ITodoList } from '../../model/todo-list';
 import { TodoServiceProvider } from '../todo-service-ts/todo-service-ts';
 import { Global } from '../../shared/global';
@@ -14,26 +14,29 @@ import { SpeechSynthServiceProvider } from '../speech-synth-service/speech-synth
 import { SpeechParser } from './parser';
 import { IParsedRequest } from './parsed-req';
 
-
 @Injectable()
 export class SpeechRecServiceProvider {
   private allOK = false;
 
   private readonly nb_essais_pour_aide = 3;
-  private nb_essais_courant = 0;   
-  private readonly message_aide_page_home = " Exemples d'utilisation depuis la page de l'ensemble des listes : \n" + 
-  " Créer la liste maison. \n" +
-  " Afficher la liste maison. \n " +
-  " Modifier la liste maison. \n " +
-  " Ajouter la tâche repassage dans la liste maison. \n"+
-  " Supprimer la tâche repassage dans la liste maison. \n" +
-  " Supprimer la liste maison. \n" ; 
-  private readonly message_aide_page_todo_list = "Exemples d'utilisation depuis la page d'une liste : \n" + 
-  " Ajouter la tâche repassage. \n"+
-  " Afficher la tâche repassage. \n" +
-  " Supprimer la tâche repassage. \n" ; 
+  private nb_essais_courant = 0;
+  private readonly message_aide_page_home = " Exemples d'utilisation depuis la page de l'ensemble des listes : \n" +
+    ' Créer la liste maison. \n' +
+    ' Afficher la liste maison. \n ' +
+    ' Modifier la liste maison. \n ' +
+    ' Ajouter la tâche repassage dans la liste maison. \n' +
+    ' Supprimer la tâche repassage dans la liste maison. \n' +
+    ' Supprimer la liste maison. \n';
+  private readonly message_aide_page_todo_list = "Exemples d'utilisation depuis la page d'une liste : \n" +
+    ' Ajouter la tâche repassage. \n' +
+    ' Afficher la tâche repassage. \n' +
+    ' Supprimer la tâche repassage. \n';
 
   private readonly parser: SpeechParser;
+
+  /**************************************************************************/
+  /****************************** CONSTRUCTOR *******************************/
+  /**************************************************************************/
 
   /**
    * Creates an instance of SpeechRecServiceProvider.
@@ -57,6 +60,10 @@ export class SpeechRecServiceProvider {
     this.parser = new SpeechParser(todoService, contactCtrl, evtCtrl);
   }
 
+  /**************************************************************************/
+  /********************** METHODES PUBLIQUES/INTERFACE **********************/
+  /**************************************************************************/
+
   /**
    * démarre le service reconnaissance vocale lorsque l'utilisateur utilise la fonction du menu.
    * Si la reconnaissance vocale à déjà été utilisé alors tente de l'utiliser directement
@@ -75,6 +82,10 @@ export class SpeechRecServiceProvider {
       }
     });
   }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
 
   /**
    * Appelé au début pour vérification des authorisations de la reconnaissance vocale
@@ -123,46 +134,10 @@ export class SpeechRecServiceProvider {
    * @returns {Promise<void>}
    * @memberof SpeechRecServiceProvider
    */
-  private async startListening(): Promise<void> {
+  private startListening(): void {
     this.speechRecognition.startListening().subscribe(
-      async (matches: string[]) => {
-        this.uiCtrl.dismissLoading();
-        console.log(matches);
-
-        // variable permettant de savoir si :
-        // - une action à été reconnue,
-        // - si elle a réussi,
-        // - et dans le cas contraire, le message d'erreur associé
-        let res_rec: ISpeechReqResult;
-        res_rec = { reconnu: false, action_success: false, message_error: '' };
-
-        // pour chaque "phrase" possible reconnue par le micro
-        for (const item of matches) {
-          await this.parser.init();
-          // on parse cette phrase
-          const sentence : IParsedRequest = await this.parser.parse(item);
-          console.log(sentence);
-          
-          res_rec = this.reconnaissanceAction(sentence);
-          if(res_rec.action_success){
-            break;
-          }       
-       }
-       
-        // si aucune action n'a été reconnue
-        if (res_rec.reconnu == null || !res_rec.reconnu) {    
-          this.speechSynthService.synthText("Je n'ai pas compris");
-          this.nb_essais_courant ++;
-          if(this.nb_essais_courant >= this.nb_essais_pour_aide){
-            this.speechSynthService.synthText("Si vous voulez de l'aide, dites aide");
-          }
-          
-        }
-        // si l'action a été reconnue mais n'a pas pu être réalisée
-        // on affiche son message d'erreur
-        if (res_rec.reconnu != null && res_rec.reconnu && !res_rec.action_success) {
-          this.speechSynthService.synthText(res_rec.message_error);
-        }        
+      (matches: string[]) => {
+        this.matchesHandler(matches);
       },
       () => {
         this.uiCtrl.alert('Erreur', 'une erreur inattendue est survenue');
@@ -172,98 +147,145 @@ export class SpeechRecServiceProvider {
   }
 
   /**
-   * Méthode permettant de reconnaitre l'action à réaliser 
+   * méthodes permettant de traiter un tableau de matches issue de la reconnaissance vocale
+   *
+   * @private
+   * @param {string[]} matches tableau des différentes chaines possible
+   * @returns {Promise<void>}
+   * @memberof SpeechRecServiceProvider
+   */
+  private async matchesHandler(matches: string[]): Promise<void> {
+    this.uiCtrl.showLoading('Veuillez patienter, analyse en cours');
+
+    let res_rec: ISpeechReqResult = {
+      reconnu: false,
+      action_success: false,
+      message_error: ''
+    };
+
+    await this.parser.init();
+
+    // pour chaque "phrase" possible reconnue par le micro
+    for (const item of matches) {
+      // on parse cette phrase
+      const sentence: IParsedRequest = await this.parser.parse(item);
+      console.log(sentence);
+
+      res_rec = this.reconnaissanceAction(sentence);
+      if (res_rec.action_success) {
+        break;
+      }
+    }
+
+    // si aucune action n'a été reconnue
+    if (res_rec.reconnu == null || !res_rec.reconnu) {
+      this.speechSynthService.synthText("Je n'ai pas compris");
+      this.nb_essais_courant++;
+      if (this.nb_essais_courant >= this.nb_essais_pour_aide) {
+        this.speechSynthService.synthText("Si vous voulez de l'aide, dites aide");
+      }
+    }
+
+    // si l'action a été reconnue mais n'a pas pu être réalisée
+    // on affiche son message d'erreur
+    if (res_rec.reconnu != null && res_rec.reconnu && !res_rec.action_success) {
+      this.speechSynthService.synthText(res_rec.message_error);
+    }
+
+    this.uiCtrl.dismissLoading();
+  }
+
+  /**
+   * Méthode permettant de reconnaitre l'action à réaliser
    *
    * @private
    * @param {IParsedRequest} sentence la phrase parsée
    * @returns {ISpeechReqResult}
    * @memberof SpeechRecServiceProvider
    */
-  private reconnaissanceAction(sentence : IParsedRequest): ISpeechReqResult {
- 
-    let phrase_reconnue = false;
-    let resultat_action: { action_success: boolean; message_error: string };
+  private reconnaissanceAction(sentence: IParsedRequest): ISpeechReqResult {
+    let phrase_reconnue = true;
+    let resultat_action: ISpeechReqResult;
     resultat_action = {
       action_success: false,
-      message_error: "L'action n'a pas pu être réalisée"
+      message_error: "Je n'ai pas compris votre demande"
     };
 
-
-    if(sentence.request != null){
+    if (sentence.request != null) {
       // reconnaissance des mots clefs dans les mots entendus
-      const contain_list = (sentence.newListName != null || sentence.listFound != null);
-      const contain_todo = (sentence.newTodoName != null || sentence.todoFound != null);
-      const contain_create = (sentence.request.request === MenuRequestType.CREATE);
-      const contain_update = (sentence.request.request === MenuRequestType.EDIT);
-      const contain_delete = (sentence.request.request === MenuRequestType.DELETE);
-      const contain_view = (sentence.request.request === MenuRequestType.VIEW);
-      const contain_aide = (sentence.request.request === MenuRequestType.HELP);
-    
-      // CRÉER UNE NOUVELLE LISTE ?
-      if(contain_create && contain_list && !contain_todo){
-        phrase_reconnue = true;
-        resultat_action = this.creerListe(sentence);
-      }
-      // AJOUTER UNE TACHE DANS UNE LISTE ?
-      if (contain_create && contain_list && contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.creerTache(sentence);
-      }
-      // AJOUTER UNE TACHE CONTEXTUELLEMENT ?
-      if (contain_create && !contain_list && contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.creerTacheContext(sentence);
-      }
-      // METTRE A JOUR UNE LISTE ?
-      if (contain_update && contain_list && !contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.updateListe(sentence);
-      }
-      // METTRE A JOUR UNE TACHE ?
-      if (contain_update && contain_list && contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.updateTache(sentence);
-      }
-      // METTRE A JOUR UNE TACHE CONTEXTUELLEMENT ?
-      if (contain_update && !contain_list && contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.updateTacheContext(sentence);
-      }
-      // SUPPRIMER UNE LISTE ?
-      if (contain_delete && contain_list && !contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.supprimerListe(sentence);
-      }
-      // SUPPRIMER UNE TACHE ?
-      if (contain_delete && contain_list && contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.supprimerTache(sentence);
-      }
-      // SUPPRIMER UNE TACHE CONTEXTUELLEMENT ?
-      if (contain_delete && !contain_list && contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.deleteTacheContext(sentence);
-      }
-      //AFFICHER UNE LISTES ?
-      if (contain_view && contain_list && !contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.afficherListe(sentence);
-      }
-      //AFFICHER UNE TACHE CONTEXTUELLEMENT ?
-      if (contain_view && !contain_list && contain_todo) {
-        phrase_reconnue = true;
-        resultat_action = this.afficherTodo(sentence);
-      }
-      // DEMANDER L'AIDE
-      if(contain_aide){
-        phrase_reconnue = true;
-        if(this.evtCtrl.getCurrentContext(true) != null){
-          this.speechSynthService.synthText(this.message_aide_page_todo_list);
-        }
-        else{
-          this.speechSynthService.synthText(this.message_aide_page_home);
-        }
-        resultat_action = {action_success : true, message_error : ""};
+      const contain_todo = sentence.newTodoName != null || sentence.todoFound != null;
+      const contain_list = sentence.newListName != null || sentence.listFound != null;
+
+      switch (sentence.request.request) {
+        case MenuRequestType.CREATE:
+          if (sentence.newListName != null && !contain_todo) {
+            // CRÉER UNE NOUVELLE LISTE ?
+            phrase_reconnue = true;
+            resultat_action = this.creerListe(sentence);
+          } else if (sentence.newTodoName != null) {
+            // AJOUTER UNE TACHE DANS UNE LISTE ?
+            phrase_reconnue = true;
+            resultat_action = this.creerTache(sentence);
+          }
+          break;
+
+        case MenuRequestType.EDIT:
+          if (contain_list && !contain_todo) {
+            // METTRE A JOUR UNE LISTE ?
+            resultat_action = this.updateListe(sentence);
+          } else if (contain_todo) {
+            // METTRE A JOUR UNE TACHE ?
+            resultat_action = this.updateTache(sentence);
+          }
+          phrase_reconnue = true;
+          break;
+
+        case MenuRequestType.DELETE:
+          if (sentence.newListName != null && (sentence.listFound != null && !contain_todo)) {
+            // SUPPRIMER UNE LISTE ? (on est obligé de préciser le mot liste pour suppr)
+            resultat_action = this.supprimerListe(sentence);
+          } else if (sentence.newTodoName != null && sentence.todoFound != null) {
+            // SUPPRIMER UNE TACHE ? (on est obligé de préciser le mot tache pour suppr)
+            resultat_action = this.supprimerTache(sentence);
+          } else if (contain_list || contain_todo) {
+            resultat_action.message_error =
+              'Vous devez préciser le mot liste ou tâche suivi du nom de la liste ou tâche à supprimer pour pouvoir la supprimer';
+          }
+          phrase_reconnue = true;
+          break;
+
+        case MenuRequestType.VIEW:
+          if (contain_list && !contain_todo) {
+            //AFFICHER UNE LISTES ?
+            resultat_action = this.afficherListe(sentence);
+          } else if (contain_todo) {
+            //AFFICHER UNE TACHE ?
+            resultat_action = this.afficherTodo(sentence);
+          }
+          phrase_reconnue = true;
+          break;
+
+        case MenuRequestType.HELP:
+          resultat_action = { action_success: true, message_error: '' };
+          if (this.evtCtrl.getCurrentContext(true) != null) {
+            this.speechSynthService.synthText(this.message_aide_page_todo_list);
+          } else {
+            this.speechSynthService.synthText(this.message_aide_page_home);
+          }
+          phrase_reconnue = true;
+          break;
+
+        case MenuRequestType.SHARE:
+          break;
+
+        case MenuRequestType.SEND:
+          break;
+
+        case MenuRequestType.COMPLETE:
+          break;
+
+        case MenuRequestType.COPY:
+          break;
       }
     }
 
@@ -273,13 +295,10 @@ export class SpeechRecServiceProvider {
       message_error: resultat_action.message_error
     };
   }
-  
 
-/********************************************
-
-Méthodes pour les actions liées aux listes
-
-*******************************************/
+  /**************************************************************************/
+  /*************** Méthodes pour les actions liées aux listes ***************/
+  /**************************************************************************/
 
   /**
    * Méthode permettant de créer une liste
@@ -293,14 +312,14 @@ Méthodes pour les actions liées aux listes
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
     const nameList = sentence.newListName;
-  
+
     if (nameList == null) {
-      message_error = "Je n'ai pas compris le nom de la liste à créer. Veuillez essayer de nouveau.";
+      message_error =
+        "Je n'ai pas compris le nom de la liste à créer. Veuillez essayer de nouveau.";
     } else {
-      if(sentence.listFound != null){
-        message_error = 'La liste ' + nameList + ' existe déjà';
-      }
-      else {
+      if (sentence.listFound != null) {
+        message_error = 'La liste ' + nameList + ' éxiste déjà';
+      } else {
         this.addNewList(nameList);
         this.speechSynthService.synthText('Liste ' + nameList + ' créée.');
         action_success = true;
@@ -341,12 +360,14 @@ Méthodes pour les actions liées aux listes
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    if (sentence.listFound != null) {
+    if (sentence.listFound != null && sentence.listFound.uuid != null) {
       action_success = true;
       this.speechSynthService.synthText('Affichage de la liste ' + sentence.listFound.name);
-      this.evtCtrl
-        .getNavRequestSubject()
-        .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
+      if (this.evtCtrl.getCurrentContext(true) !== sentence.listFound.uuid) {
+        this.evtCtrl
+          .getNavRequestSubject()
+          .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
+      }
     } else {
       message_error = 'La liste ' + sentence.newListName + " n'a pas été trouvée";
     }
@@ -367,7 +388,9 @@ Méthodes pour les actions liées aux listes
 
     if (sentence.listFound != null) {
       action_success = true;
-      this.speechSynthService.synthText('Vous pouvez modifier la liste ' + sentence.listFound.name);
+      this.speechSynthService.synthText(
+        'Vous pouvez modifier la liste ' + sentence.listFound.name
+      );
       this.evtCtrl
         .getNavRequestSubject()
         .next({ page: 'ListEditPage', data: { uuid: sentence.listFound.uuid } });
@@ -394,22 +417,20 @@ Méthodes pour les actions liées aux listes
       this.todoService.deleteList(sentence.listFound.uuid);
       action_success = true;
     } else {
-      message_error = 'La liste ' + sentence.newListName + "n'a pas étée trouvée. Suppression impossible";
+      message_error =
+        'La liste ' + sentence.newListName + "n'a pas étée trouvée. Suppression impossible";
     }
     return { action_success: action_success, message_error: message_error };
   }
 
-
-
-
-  /********************************************
-
-Méthodes pour les actions liées aux tâches
-
-*******************************************/
+  /**************************************************************************/
+  /*************** Méthodes pour les actions liées aux tâches ***************/
+  /**************************************************************************/
 
   /**
-   * Méthode permettant de créer une tâche associée à une liste
+   * Méthode permettant de créer une tâche associée à une liste.
+   * Effectue des vérification si on peut créer une tache, (existance etc.)
+   * Redirige vers la page d'affichage de la liste ssi on y est pas déjà
    *
    * @private
    * @param {IParsedRequest} sentence la phrase parsée
@@ -420,28 +441,42 @@ Méthodes pour les actions liées aux tâches
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    if (sentence.listFound != null){ 
-      if(sentence.listFound.uuid != null) {      
-        const data: ITodoItem = Global.getBlankTodo();
-        data.name = sentence.newTodoName;
-        const refDoc = this.todoService.addTodo(sentence.listFound.uuid, data);
-        action_success = (refDoc != null);
+    if (sentence.listFound != null) {
+      if (sentence.todoFound == null) {
+        if (sentence.listFound.uuid != null) {
+          const data: ITodoItem = Global.getBlankTodo();
+          data.name = sentence.newTodoName;
+          const refDoc = this.todoService.addTodo(sentence.listFound.uuid, data);
+          action_success = refDoc != null;
 
-        if (action_success) {
-          this.speechSynthService.synthText(
-            'Tâche ' + sentence.newTodoName + ' a été ajoutée dans la liste ' + sentence.listFound.name
-          );
-          this.evtCtrl
-            .getNavRequestSubject()
-            .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
-      
+          if (action_success) {
+            this.speechSynthService.synthText(
+              'Tâche ' +
+                sentence.newTodoName +
+                ' a été ajoutée dans la liste ' +
+                sentence.listFound.name
+            );
+            if (this.evtCtrl.getCurrentContext(true) !== sentence.listFound.uuid) {
+              this.evtCtrl
+                .getNavRequestSubject()
+                .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
+            }
           } else {
-          message_error = 'La tâche ' + sentence.newTodoName + "n'a pas pu être créée";
+            message_error = 'La tâche ' + sentence.newTodoName + "n'a pas pu être créée";
+          }
+        } else {
+          message_error = 'La liste ' + sentence.listFound.name + "n'a pas étée trouvée";
         }
-
       } else {
-        message_error = 'La liste ' + sentence.listFound.name + "n'a pas étée trouvée";
+        message_error =
+          'La Tâche ' +
+          sentence.todoFound.name +
+          ' éxiste déjà dans la liste ' +
+          sentence.listFound.name;
       }
+    } else {
+      message_error =
+        'Veuillez indiquer dans quelle liste créer la tâche ' + sentence.newTodoName + ' .';
     }
     return { action_success: action_success, message_error: message_error };
   }
@@ -463,8 +498,12 @@ Méthodes pour les actions liées aux tâches
         this.evtCtrl
           .getNavRequestSubject()
           .next({ page: 'TodoEditPage', data: { todoRef: sentence.todoFound.ref } });
+
         this.speechSynthService.synthText(
-          'Vous pouvez maintenant modifier la tâche ' + sentence.todoFound.name + ' de la liste ' + sentence.listFound.name
+          'Vous pouvez maintenant modifier la tâche ' +
+            sentence.todoFound.name +
+            ' de la liste ' +
+            sentence.listFound.name
         );
         action_success = true;
       } else {
@@ -475,7 +514,14 @@ Méthodes pour les actions liées aux tâches
           sentence.listFound.name;
       }
     } else {
-      message_error = 'La liste ' + sentence.newListName + "n'a pas étée trouvée";
+      if (sentence.newListName == null || sentence.newListName === '') {
+        message_error =
+          'Veuillez indiquer dans quelle liste modifier la tâche ' +
+          sentence.newTodoName +
+          ' .';
+      } else {
+        message_error = 'La liste ' + sentence.newListName + "n'a pas étée trouvée.";
+      }
     }
 
     return { action_success: action_success, message_error: message_error };
@@ -491,135 +537,44 @@ Méthodes pour les actions liées aux tâches
    */
   private supprimerTache(sentence: IParsedRequest): ISpeechReqResult {
     let action_success = false;
-    let message_error = "L'action n'a pas pu être réalisée";
+    let message_error = "L'action n'a pas pu être réalisée.";
 
     if (sentence.listFound != null && sentence.listFound.uuid != null) {
-      
       if (
         sentence.todoFound != null &&
         sentence.todoFound.ref != null &&
         sentence.todoFound.uuid != null
       ) {
         this.speechSynthService.synthText(
-          'Suppression de la tâche ' + sentence.todoFound.name + ' de la liste ' + sentence.listFound.name
+          'Suppression de la tâche ' +
+            sentence.todoFound.name +
+            ' de la liste ' +
+            sentence.listFound.name
         );
+
         this.todoService.deleteTodo(sentence.todoFound.ref, sentence.todoFound.uuid);
-        this.evtCtrl
-          .getNavRequestSubject()
-          .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
+
+        if (this.evtCtrl.getCurrentContext(true) !== sentence.listFound.uuid) {
+          this.evtCtrl
+            .getNavRequestSubject()
+            .next({ page: 'TodoListPage', data: { uuid: sentence.listFound.uuid } });
+        }
+
         action_success = true;
       } else {
         message_error = 'La tâche ' + sentence.newTodoName + " n'a pas été trouvée";
       }
     } else {
-      message_error = 'La liste ' + sentence.newListName + " n'a pas été trouvée";
+      if (sentence.newListName == null || sentence.newListName === '') {
+        message_error =
+          'Veuillez indiquer dans quelle liste supprimer la tâche ' +
+          sentence.newTodoName +
+          ' .';
+      } else {
+        message_error = 'La liste ' + sentence.newListName + " n'a pas été trouvée.";
+      }
     }
     return { action_success: action_success, message_error: message_error };
-  }
-
-
-
-
-  /********************************************
-
-Méthodes contextuelles
-
-*******************************************/
-  /**
-   * Méthode permettant de créer une tâche dans la liste courante
-   * 
-   * @private
-   * @param {IParsedRequest} sentence la phrase parsée
-   * @returns {ISpeechReqResult}
-   * @memberof SpeechRecServiceProvider
-   */
-  private creerTacheContext(sentence: IParsedRequest): ISpeechReqResult {
-    const res: ISpeechReqResult = {
-      action_success: false,
-      message_error: "L'action n'a pas pu être réalisée"
-    };
-
-    const uuidList = this.evtCtrl.getCurrentContext(true);
-
-    if (uuidList != null) {
-      if (sentence.todoFound == null) {
-        const new_todo = Global.getBlankTodo();
-        new_todo.name = sentence.newTodoName;
-        this.todoService.addTodo(uuidList, new_todo);
-        this.speechSynthService.synthText('Ajout de la tâche ' + sentence.newTodoName);
-        res.action_success = true;
-      } else {
-        res.message_error = 'La tâche ' + sentence.newTodoName + ' existe déjà dans la liste';
-      }
-    } else {
-      res.message_error =
-        'Veuillez indiquer dans quelle liste créer la tâche ' + sentence.newTodoName + ' .';
-    }
-    return res;
-  }
-
-  /**
-   * Méthode permettant de modifier une tâche dans la liste courante
-   *
-   * @private
-   * @param {IParsedRequest} sentence la phrase parsée
-   * @returns {ISpeechReqResult}
-   * @memberof SpeechRecServiceProvider
-   */
-  private updateTacheContext(sentence: IParsedRequest): ISpeechReqResult {
-    const res: ISpeechReqResult = {
-      action_success: false,
-      message_error: "L'action n'a pas pu être réalisée"
-    };
-
-    const list_uuid = this.evtCtrl.getCurrentContext(true);
-    if (list_uuid != null) {
-      if (sentence.todoFound != null) {
-        this.evtCtrl
-          .getNavRequestSubject()
-          .next({ page: 'TodoEditPage', data: { todoRef: sentence.todoFound.ref } });
-        this.speechSynthService.synthText(
-          'Vous pouvez maintenant modifier la tâche ' + sentence.todoFound.name
-        );
-        res.action_success = true;
-      } else {
-        res.message_error = 'La tâche ' + sentence.newTodoName + " n'existe pas dans la liste";
-      }
-    } else {
-      res.message_error =
-        'Veuillez indiquer dans quelle liste modifier la tâche ' + sentence.newTodoName + ' .';
-    }
-    return res;
-  }
-
-  /**
-   * Méthode permettant de supprimer une tâche dans la liste courante
-   *
-   * @private
-   * @param {IParsedRequest} sentence la phrase parsée
-   * @returns {ISpeechReqResult}
-   * @memberof SpeechRecServiceProvider
-   */
-  private deleteTacheContext(sentence: IParsedRequest): ISpeechReqResult {
-    const res: ISpeechReqResult = {
-      action_success: false,
-      message_error: "L'action n'a pas pu être réalisée"
-    };
-
-    const list_uuid = this.evtCtrl.getCurrentContext(true);
-    if (list_uuid != null) {
-      if (sentence.todoFound != null && sentence.todoFound.ref != null && sentence.todoFound.uuid != null) {
-        this.todoService.deleteTodo(sentence.todoFound.ref, sentence.todoFound.uuid);
-        this.speechSynthService.synthText('La tâche ' + sentence.todoFound.name + ' a été supprimée. ');
-        res.action_success = true;
-      } else {
-        res.message_error = 'La tâche ' + sentence.newTodoName + " n'existe pas dans la liste";
-      }
-    } else {
-      res.message_error =
-        'Veuillez indiquer dans quelle liste supprimer la tâche ' + sentence.newTodoName + ' .';
-    }
-    return res;
   }
 
   /**
@@ -634,25 +589,38 @@ Méthodes contextuelles
     let action_success = false;
     let message_error = "L'action n'a pas pu être réalisée";
 
-    const list_uuid = this.evtCtrl.getCurrentContext(true);
-
-    if (list_uuid != null) {
+    if (sentence.listFound != null && sentence.listFound.uuid != null) {
       if (sentence.todoFound != null) {
         action_success = true;
         this.speechSynthService.synthText('Affichage de la tâche ' + sentence.todoFound.name);
-        this.evtCtrl.getNavRequestSubject().next({
-          page: 'TodoPage',
-          data: {
-            todoRef: sentence.todoFound.ref,
-            listUuid: list_uuid,
-            isExternal: false
-          }
-        });
+        if (this.evtCtrl.getCurrentContext(false) == null) {
+          this.evtCtrl.getNavRequestSubject().next({
+            page: 'TodoPage',
+            data: {
+              todoRef: sentence.todoFound.ref,
+              listUuid: sentence.listFound.uuid,
+              isExternal: false
+            }
+          });
+        } else {
+          this.evtCtrl.getMenuRequestSubject().next({
+            request: MenuRequestType.VIEW,
+            ref: sentence.todoFound.ref,
+            uuid: sentence.listFound.uuid
+          });
+        }
       } else {
         message_error = 'La tâche ' + sentence.newTodoName + " n'a pas été trouvée. ";
       }
     } else {
-      message_error = 'Veuillez préciser la liste où se trouve la tâche ' + sentence.newTodoName;
+      if (sentence.newListName == null || sentence.newListName === '') {
+        message_error =
+          'Veuillez indiquer dans quelle liste visualiser la tâche ' +
+          sentence.newTodoName +
+          ' .';
+      } else {
+        message_error = 'La liste ' + sentence.newListName + " n'a pas été trouvée.";
+      }
     }
     return { action_success: action_success, message_error: message_error };
   }

@@ -1,3 +1,4 @@
+import { DocumentReference } from '@firebase/firestore-types';
 import { Media } from './media';
 import { MenuRequestType } from './menu-request-type';
 
@@ -32,4 +33,12 @@ export interface IMenuRequest {
    * @memberof IMenuRequest
    */
   uuid?: string | null;
+
+  /**
+   * référence vers un todo
+   *
+   * @type {(DocumentReference | null)}
+   * @memberof IMenuRequest
+   */
+  ref?: DocumentReference | null;
 }

@@ -26,11 +26,15 @@ export class SpeechParser {
       MenuRequestType.DELETE,
       ['supprimer', 'supprime', 'enlever', 'enlève', 'retirer', 'retire']
     ],
-    [MenuRequestType.VIEW, ['afficher', 'visionner', 'voir', 'affiche']],
+    [
+      MenuRequestType.VIEW,
+      ['afficher', 'visionner', 'voire', 'voir', 'affiche', 'ouvrir', 'ouvre']
+    ],
     [MenuRequestType.SEND, ['envoie', 'envoyer', 'envoi', 'clone']],
     [MenuRequestType.SHARE, ['partage', 'partager', 'lier', 'lie']],
     [MenuRequestType.COPY, ['copier', 'copie']],
-    [MenuRequestType.HELP, ['aide', 'aider', 'help', 'aidez', 'aidé']]
+    [MenuRequestType.HELP, ['aide', 'aider', 'help', 'aidez', 'aidé']],
+    [MenuRequestType.COMPLETE, ['termine', 'complete', 'terminer', 'completer']]
   ]);
 
   /**
@@ -66,7 +70,14 @@ export class SpeechParser {
    */
   private static readonly todoKeywords = ['tâche', 'tâches', 'note', 'notes'];
 
-  private static readonly stopKeywords = ['dans', 'la', 'le', 'avec'];
+  /**
+   * mot clé reservé, généralement indiquant une liaison dans la phrase
+   *
+   * @private
+   * @static
+   * @memberof SpeechParser
+   */
+  private static readonly stopKeywords = ['dans', 'la', 'le', 'avec', 'cette', 'ce'];
 
   /**************************** PRIVATE FIELDS ******************************/
 
@@ -131,6 +142,10 @@ export class SpeechParser {
     private readonly contactCtrl: ContactServiceProvider,
     private readonly evtCtrl: EventServiceProvider
   ) {
+    this.clear();
+  }
+
+  private clear(): void {
     this.currentTodos = [];
     this.currentLists = [];
     this.currentContacts = [];
@@ -193,7 +208,7 @@ export class SpeechParser {
       req.todoFound = this.currentTodo;
       return;
     }
-
+    console.log(this.currentTodos);
     for (const todo of this.currentTodos) {
       if (SpeechParser.strInclude(req.origSentence, todo.name)) {
         req.todoFound = todo;
@@ -291,7 +306,7 @@ export class SpeechParser {
       }
     }
 
-    return res;
+    return SpeechParser.UpFirst(res);
   }
 
   /**
@@ -310,8 +325,9 @@ export class SpeechParser {
       this.currentTodo != null &&
       (req.request.request === MenuRequestType.COPY ||
         req.request.request === MenuRequestType.COMPLETE ||
-        req.request.request === MenuRequestType.DELETE ||
-        req.request.request === MenuRequestType.EDIT)
+        (req.request.request === MenuRequestType.CREATE && req.listFound == null) ||
+        (req.request.request === MenuRequestType.DELETE && req.listFound == null) ||
+        (req.request.request === MenuRequestType.EDIT && req.listFound == null))
     ) {
       req.todoFound = this.currentTodo;
     } else if (
@@ -321,7 +337,9 @@ export class SpeechParser {
         req.request.request === MenuRequestType.EDIT ||
         req.request.request === MenuRequestType.IMPORT ||
         req.request.request === MenuRequestType.OCR ||
+        req.request.request === MenuRequestType.CREATE ||
         req.request.request === MenuRequestType.SEND ||
+        req.request.request === MenuRequestType.VIEW ||
         req.request.request === MenuRequestType.SHARE)
     ) {
       req.listFound = this.currentList;
@@ -425,7 +443,7 @@ export class SpeechParser {
   }
 
   /**
-   * retourne la chaine de caractère normalisée sans accents, majuscule ou caractère spéciaux
+   * retourne la chaine de caractère normalisée sans accents, majuscule ou caractère spéciaux ou pluriel
    *
    * @private
    * @static
@@ -434,11 +452,19 @@ export class SpeechParser {
    * @memberof SpeechParser
    */
   private static normalize(str: string): string {
-    return str
+    let s = str
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .replace(/[^a-z ]/g, '');
+    if (s.endsWith('s')) {
+      s = s.slice(0, -1);
+    }
+    return s;
+  }
+
+  private static UpFirst(s: string) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
   /**************************************************************************/
@@ -448,28 +474,25 @@ export class SpeechParser {
   /**
    * parse la phrase et retourne une requête parsée avec les informations pertinante mise en évidence
    *
+   * @see IParsedRequest
    * @param {string} speech
    * @returns {IParsedRequest}
    * @memberof SpeechParser
    */
   public async parse(speech: string): Promise<IParsedRequest> {
     const parsedRes = SpeechParser.getBlankParsedRequest();
-    parsedRes.sentence = speech.split(' ');
+    parsedRes.sentence = speech.split(' ').map(x => x.trim());
     parsedRes.origSentence = speech;
     this.defMenuRequest(parsedRes);
     this.defContact(parsedRes);
 
     this.defListFind(parsedRes);
-    if (parsedRes.listFound == null) {
-      this.defNewListName(parsedRes);
-    } else {
+    if (parsedRes.listFound != null) {
       this.currentTodos = this.todoCtrl.getAllTodos(parsedRes.listFound.uuid);
     }
-
+    this.defNewListName(parsedRes);
     this.defTodoFind(parsedRes);
-    if (parsedRes.todoFound == null) {
-      this.defNewTodoName(parsedRes);
-    }
+    this.defNewTodoName(parsedRes);
 
     this.specialRules(parsedRes);
     return parsedRes;
@@ -483,6 +506,7 @@ export class SpeechParser {
    * @memberof SpeechParser
    */
   public async init(): Promise<void> {
+    this.clear();
     const CPromise = this.contactCtrl.getContactList(false);
     const listUuid = this.evtCtrl.getCurrentContext(true);
     const todoUuid = this.evtCtrl.getCurrentContext(false);
@@ -491,12 +515,10 @@ export class SpeechParser {
     if (listUuid != null) {
       this.currentList = this.todoCtrl.getAListSnapshot(listUuid);
       this.currentTodos = this.todoCtrl.getAllTodos(listUuid);
-    } else {
-      this.currentTodos = this.todoCtrl.getAllTodos();
     }
 
     if (todoUuid != null) {
-      const res = this.currentTodos.find(t => t.uuid === todoUuid);
+      const res = this.todoCtrl.getAllTodos().find(t => t.uuid === todoUuid);
       if (res != null) {
         this.currentTodo = res;
       }

@@ -223,9 +223,22 @@ export class EventServiceProvider {
    * @param {(null | string)} contextlist
    * @memberof EventServiceProvider
    */
-  public setCurrentContext(todoUuid: null | string, listUuid: null | string): void {
-    this.currentContextList = listUuid;
-    this.currentContextTodo = todoUuid;
+  public setCurrentContext(list: boolean, uuid: null | string): void {
+    if (list) {
+      this.currentContextList = uuid;
+    } else {
+      this.currentContextTodo = uuid;
+    }
+  }
+
+  /**
+   * réinitialise le context
+   *
+   * @memberof EventServiceProvider
+   */
+  public resetContext(): void {
+    this.currentContextList = null;
+    this.currentContextTodo = null;
   }
 
   /**
