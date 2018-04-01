@@ -248,10 +248,9 @@ export class PopoverOptionsPage {
    * @memberof PopoverOptionsPage
    */
   protected basicRequest(type: MenuRequestType): void {
-    if (type == null) {
-      return;
+    if (type != null) {
+      this.viewCtrl.dismiss();
+      this.evtCtrl.getMenuRequestSubject().next({ request: type });
     }
-    this.viewCtrl.dismiss();
-    this.evtCtrl.getMenuRequestSubject().next({ request: type });
   }
 }

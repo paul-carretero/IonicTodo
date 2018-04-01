@@ -312,9 +312,7 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   protected menuEventHandler(req: IMenuRequest): void {
-    if (req == null) {
-      return;
-    }
+    req;
   }
 
   /**

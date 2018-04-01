@@ -185,27 +185,23 @@ export class NotifServiceProvider {
    * @memberof NotifServiceProvider
    */
   private async allCheck(items: ITodoItem[]): Promise<void> {
-    if (
-      !this.evtCtrl.getNetStatus() ||
-      (await this.dbCtrl.getSetting(Settings.DISABLE_NOTIF))
-    ) {
-      return;
-    }
-    const futureItems: ITodoItem[] = [];
-    for (const item of items) {
-      if (item.notif != null && item.notif.getTime() > this.approxNow) {
-        futureItems.push(item);
+    if (this.evtCtrl.getNetStatus() && !await this.dbCtrl.getSetting(Settings.DISABLE_NOTIF)) {
+      const futureItems: ITodoItem[] = [];
+      for (const item of items) {
+        if (item.notif != null && item.notif.getTime() > this.approxNow) {
+          futureItems.push(item);
+        }
       }
-    }
-    await this.dbCtrl.fillNotifBuffer(futureItems);
-    const myId = this.authCtrl.getUserId();
-    const deletedIds = await this.dbCtrl.getAndDeleteNotFoundNotif(myId);
-    for (const id of deletedIds) {
-      this.localNotifCtrl.clear(id);
-      this.localNotifCtrl.cancel(id);
-    }
-    for (const todo of items) {
-      this.onTodoUpdate(todo);
+      await this.dbCtrl.fillNotifBuffer(futureItems);
+      const myId = this.authCtrl.getUserId();
+      const deletedIds = await this.dbCtrl.getAndDeleteNotFoundNotif(myId);
+      for (const id of deletedIds) {
+        this.localNotifCtrl.clear(id);
+        this.localNotifCtrl.cancel(id);
+      }
+      for (const todo of items) {
+        this.onTodoUpdate(todo);
+      }
     }
   }
 
@@ -281,37 +277,32 @@ export class NotifServiceProvider {
    * @memberof NotifServiceProvider
    */
   public async onTodoUpdate(todo: ITodoItem): Promise<void> {
-    if (await this.dbCtrl.getSetting(Settings.DISABLE_NOTIF)) {
-      return;
-    }
+    if (!await this.dbCtrl.getSetting(Settings.DISABLE_NOTIF)) {
+      const now = new Date().getTime();
 
-    const now = new Date().getTime();
-    if (todo.uuid == null) {
-      return;
-    }
+      if (todo.uuid != null) {
+        const notifId = await this.dbCtrl.getAndDeleteNotificationId(todo.uuid);
 
-    const notifId = await this.dbCtrl.getAndDeleteNotificationId(todo.uuid);
-    if (notifId != null) {
-      this.localNotifCtrl.clear(notifId);
-      this.localNotifCtrl.cancel(notifId);
-    }
+        if (notifId != null) {
+          this.localNotifCtrl.clear(notifId);
+          this.localNotifCtrl.cancel(notifId);
+        }
 
-    if (todo.notif == null) {
-      return;
-    }
-    if (
-      todo.notif != null &&
-      todo.complete === false &&
-      todo.name != null &&
-      now < todo.notif.getTime()
-    ) {
-      const newId = await this.createNewNotif(todo);
-      await this.dbCtrl.addNewNotif(
-        todo.uuid,
-        newId,
-        this.roundTime(todo.notif),
-        this.authCtrl.getUserId()
-      );
+        if (
+          todo.notif != null &&
+          todo.complete === false &&
+          todo.name != null &&
+          now < todo.notif.getTime()
+        ) {
+          const newId = await this.createNewNotif(todo);
+          await this.dbCtrl.addNewNotif(
+            todo.uuid,
+            newId,
+            this.roundTime(todo.notif),
+            this.authCtrl.getUserId()
+          );
+        }
+      }
     }
   }
 
@@ -324,14 +315,12 @@ export class NotifServiceProvider {
    * @memberof NotifServiceProvider
    */
   public async onTodoDelete(todo_uuid: string): Promise<void> {
-    if (await this.dbCtrl.getSetting(Settings.DISABLE_NOTIF)) {
-      return;
-    }
-
-    const notifId = await this.dbCtrl.getAndDeleteNotificationId(todo_uuid);
-    if (notifId != null) {
-      this.localNotifCtrl.cancel(notifId);
-      this.localNotifCtrl.clear(notifId);
+    if (!await this.dbCtrl.getSetting(Settings.DISABLE_NOTIF)) {
+      const notifId = await this.dbCtrl.getAndDeleteNotificationId(todo_uuid);
+      if (notifId != null) {
+        this.localNotifCtrl.cancel(notifId);
+        this.localNotifCtrl.clear(notifId);
+      }
     }
   }
 }

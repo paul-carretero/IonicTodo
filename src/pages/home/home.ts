@@ -363,29 +363,27 @@ export class HomePage extends GenericPage {
     tab: ITodoList[],
     closable: ItemSliding
   ): Promise<void> {
-    if (liste == null || tab == null || closable == null) {
-      return;
-    }
+    if (liste != null && tab != null && closable != null) {
+      const unsure_mode: boolean = await this.settingCtrl.getSetting(
+        Settings.ENABLE_UNSURE_MODE
+      );
+      let confirm: boolean = true;
 
-    const unsure_mode: boolean = await this.settingCtrl.getSetting(
-      Settings.ENABLE_UNSURE_MODE
-    );
-    let confirm: boolean = true;
-
-    if (unsure_mode) {
-      const title = 'Suppression de la liste ' + liste.name;
-      const message = 'Voulez vous supprimer la liste ' + liste.name;
-      confirm = await this.uiCtrl.confirm(title, message);
-    }
-
-    if (confirm) {
-      tab.splice(tab.indexOf(liste), 1);
-      if (liste.uuid != null) {
-        this.todoService.deleteList(liste.uuid);
+      if (unsure_mode) {
+        const title = 'Suppression de la liste ' + liste.name;
+        const message = 'Voulez vous supprimer la liste ' + liste.name;
+        confirm = await this.uiCtrl.confirm(title, message);
       }
-    }
 
-    closable.close();
+      if (confirm) {
+        tab.splice(tab.indexOf(liste), 1);
+        if (liste.uuid != null) {
+          this.todoService.deleteList(liste.uuid);
+        }
+      }
+
+      closable.close();
+    }
   }
 
   /**
@@ -401,18 +399,16 @@ export class HomePage extends GenericPage {
     indexes: { from: number; to: number },
     tab: ITodoList[]
   ): Promise<void> {
-    if (!this.orderableReady) {
-      return;
+    if (this.orderableReady) {
+      this.orderableReady = false;
+      const promises: Promise<void>[] = [];
+      tab = reorderArray(tab, indexes);
+      for (let i = 0; i < tab.length; i++) {
+        promises.push(this.todoService.updateOrder(tab[i].uuid, i));
+      }
+      await Promise.all(promises);
+      this.orderableReady = true;
     }
-
-    this.orderableReady = false;
-    const promises: Promise<void>[] = [];
-    tab = reorderArray(tab, indexes);
-    for (let i = 0; i < tab.length; i++) {
-      promises.push(this.todoService.updateOrder(tab[i].uuid, i));
-    }
-    await Promise.all(promises);
-    this.orderableReady = true;
   }
 
   /**

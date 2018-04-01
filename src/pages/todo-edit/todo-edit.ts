@@ -67,15 +67,6 @@ export class TodoEditPage extends GenericPage {
   protected todoForm: FormGroup;
 
   /**
-   * true si la page est dans le moddal de contact pour les evt
-   *
-   * @protected
-   * @type {boolean}
-   * @memberof TodoEditPage
-   */
-  protected isInModdal: boolean = false;
-
-  /**
    * true si l'on est en train d'envoyer un fichier
    *
    * @protected
@@ -269,9 +260,6 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   protected menuEventHandler(req: IMenuRequest): void {
-    if (this.isInModdal) {
-      return;
-    }
     switch (req.request) {
       case MenuRequestType.VALIDATE:
         this.validate();
@@ -293,29 +281,28 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   private async initPageForEdit(header: IPageData): Promise<void> {
-    if (this.todoRef == null) {
-      return;
-    }
-    const sub = this.todoService.getTodo(this.todoRef).subscribe(todo => {
-      this.todo = todo;
-      if (this.todo.name != null) {
-        header.title = this.todo.name;
-      }
-      this.evtCtrl.setHeader(header);
+    if (this.todoRef != null) {
+      const sub = this.todoService.getTodo(this.todoRef).subscribe(todo => {
+        this.todo = todo;
+        if (this.todo.name != null) {
+          header.title = this.todo.name;
+        }
+        this.evtCtrl.setHeader(header);
 
-      const name = this.todoForm.get('name');
-      const desc = this.todoForm.get('desc');
-      const address = this.todoForm.get('address');
-      const sendSMS = this.todoForm.get('sendSMS');
-      if (name != null && desc != null && address != null && sendSMS != null) {
-        name.setValue(this.todo.name);
-        desc.setValue(this.todo.desc);
-        address.setValue(this.todo.address);
-        sendSMS.setValue(this.todo.sendSMS);
-      }
-      this.storageCtrl.refreshDownloadLink(this.todo);
-      sub.unsubscribe();
-    });
+        const name = this.todoForm.get('name');
+        const desc = this.todoForm.get('desc');
+        const address = this.todoForm.get('address');
+        const sendSMS = this.todoForm.get('sendSMS');
+        if (name != null && desc != null && address != null && sendSMS != null) {
+          name.setValue(this.todo.name);
+          desc.setValue(this.todo.desc);
+          address.setValue(this.todo.address);
+          sendSMS.setValue(this.todo.sendSMS);
+        }
+        this.storageCtrl.refreshDownloadLink(this.todo);
+        sub.unsubscribe();
+      });
+    }
   }
 
   /**
@@ -327,18 +314,16 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   private async defNewTodo(): Promise<void> {
-    if (this.listUuid == null) {
-      return;
-    }
-
-    this.uiCtrl.showLoading('Création de la tâche...');
-    const newTodoRef = await this.todoService.addTodo(this.listUuid, this.todo, true);
-    if (newTodoRef == null) {
-      this.uiCtrl.displayToast('unexpected error is unexpected');
-      this.navCtrl.popToRoot();
-    } else {
-      this.navCtrl.pop();
-      this.navCtrl.push('TodoPage', { todoRef: newTodoRef });
+    if (this.listUuid != null) {
+      this.uiCtrl.showLoading('Création de la tâche...');
+      const newTodoRef = await this.todoService.addTodo(this.listUuid, this.todo, true);
+      if (newTodoRef == null) {
+        this.uiCtrl.displayToast('unexpected error is unexpected');
+        this.navCtrl.popToRoot();
+      } else {
+        this.navCtrl.pop();
+        this.navCtrl.push('TodoPage', { todoRef: newTodoRef });
+      }
     }
   }
 
@@ -350,13 +335,11 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   private async editTodo(): Promise<void> {
-    if (this.todoRef == null) {
-      return;
+    if (this.todoRef != null) {
+      this.uiCtrl.showLoading('Mise à jour de la tâche...');
+      await this.todoService.editTodo(this.todo);
+      this.navCtrl.pop();
     }
-
-    this.uiCtrl.showLoading('Mise à jour de la tâche...');
-    await this.todoService.editTodo(this.todo);
-    this.navCtrl.pop();
   }
 
   /**
@@ -375,34 +358,39 @@ export class TodoEditPage extends GenericPage {
     uuidPic: string,
     content: 'image/jpg' | 'image/png'
   ): void {
-    if (this.todo.uuid == null) {
-      return;
+    if (this.todo.uuid != null) {
+      const upload = this.storageCtrl.uploadMedia(this.todo.uuid, uuidPic, base64Pic, content);
+
+      upload.percentageChanges().subscribe((n: number) => {
+        const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
+        if (entry == null) {
+          this.todo.pictures.push({
+            uuid: uuidPic,
+            dl: n,
+            url: null,
+            name: null,
+            author: null
+          });
+        } else {
+          entry.dl = n;
+        }
+      });
+
+      upload.then().then((res: { downloadURL: string }) => {
+        const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
+        if (entry == null) {
+          this.todo.pictures.push({
+            uuid: uuidPic,
+            url: res.downloadURL,
+            dl: 100,
+            name: null,
+            author: null
+          });
+        } else {
+          entry.url = res.downloadURL;
+        }
+      });
     }
-    const upload = this.storageCtrl.uploadMedia(this.todo.uuid, uuidPic, base64Pic, content);
-
-    upload.percentageChanges().subscribe((n: number) => {
-      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
-      if (entry == null) {
-        this.todo.pictures.push({ uuid: uuidPic, dl: n, url: null, name: null, author: null });
-      } else {
-        entry.dl = n;
-      }
-    });
-
-    upload.then().then((res: { downloadURL: string }) => {
-      const entry = this.todo.pictures.find(pic => pic.uuid === uuidPic);
-      if (entry == null) {
-        this.todo.pictures.push({
-          uuid: uuidPic,
-          url: res.downloadURL,
-          dl: 100,
-          name: null,
-          author: null
-        });
-      } else {
-        entry.url = res.downloadURL;
-      }
-    });
   }
 
   /**
@@ -431,21 +419,20 @@ export class TodoEditPage extends GenericPage {
 
     for (const uri of URIs) {
       const entry = prepareUploadedPics.pop();
-      if (entry == null) {
-        return;
-      }
-      let content: 'image/png' | 'image/jpg' = 'image/jpg';
-      if (uri.toUpperCase().includes('.PNG')) {
-        content = 'image/png';
-      }
+      if (entry != null) {
+        let content: 'image/png' | 'image/jpg' = 'image/jpg';
+        if (uri.toUpperCase().includes('.PNG')) {
+          content = 'image/png';
+        }
 
-      const base64_full = await this.base64Ctrl.encodeFile(uri);
-      const base64_split = base64_full.split(',');
-      const base64 = base64_split[base64_split.length - 1];
-      this.uploadImage(base64, entry.uuid, content);
-      this.fileCtrl
-        .resolveLocalFilesystemUrl(uri)
-        .then(f => f.remove(() => {}, () => console.log('suppression PAS OK :/')));
+        const base64_full = await this.base64Ctrl.encodeFile(uri);
+        const base64_split = base64_full.split(',');
+        const base64 = base64_split[base64_split.length - 1];
+        this.uploadImage(base64, entry.uuid, content);
+        this.fileCtrl
+          .resolveLocalFilesystemUrl(uri)
+          .then(f => f.remove(() => {}, () => console.log('suppression PAS OK :/')));
+      }
     }
 
     this.uploading = false;
@@ -484,26 +471,25 @@ export class TodoEditPage extends GenericPage {
   protected validate(): void {
     if (!this.todoForm.valid || this.uploading) {
       this.uiCtrl.displayToast('Opération impossible, veuillez vérifier le formulaire');
-      return;
-    }
-    this.imgCacheClean = true;
-    const name = this.todoForm.get('name');
-    const desc = this.todoForm.get('desc');
-    const address = this.todoForm.get('address');
-    const sendSMS = this.todoForm.get('sendSMS');
-
-    if (name == null || desc == null || address == null || sendSMS == null) {
-      return;
-    }
-    this.todo.name = name.value;
-    this.todo.desc = desc.value;
-    this.todo.address = address.value;
-    this.todo.sendSMS = sendSMS.value;
-
-    if (this.isInCreation) {
-      this.defNewTodo();
     } else {
-      this.editTodo();
+      this.imgCacheClean = true;
+      const name = this.todoForm.get('name');
+      const desc = this.todoForm.get('desc');
+      const address = this.todoForm.get('address');
+      const sendSMS = this.todoForm.get('sendSMS');
+
+      if (name != null && desc != null && address != null && sendSMS != null) {
+        this.todo.name = name.value;
+        this.todo.desc = desc.value;
+        this.todo.address = address.value;
+        this.todo.sendSMS = sendSMS.value;
+
+        if (this.isInCreation) {
+          this.defNewTodo();
+        } else {
+          this.editTodo();
+        }
+      }
     }
   }
 
@@ -693,14 +679,13 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   protected deleteUploadedPic(uuidPic: string): void {
-    if (this.todo.uuid === null) {
-      return;
-    }
-    this.imgCacheClean = false;
-    this.storageCtrl.deleteMedia(this.todo.uuid, uuidPic);
-    const i = this.todo.pictures.findIndex(u => u.uuid === uuidPic);
-    if (i !== -1) {
-      this.todo.pictures.splice(i, 1);
+    if (this.todo.uuid != null) {
+      this.imgCacheClean = false;
+      this.storageCtrl.deleteMedia(this.todo.uuid, uuidPic);
+      const i = this.todo.pictures.findIndex(u => u.uuid === uuidPic);
+      if (i !== -1) {
+        this.todo.pictures.splice(i, 1);
+      }
     }
   }
 

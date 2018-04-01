@@ -56,7 +56,8 @@ export class ContactServiceProvider {
     private readonly uiCtrl: UiServiceProvider,
     private readonly contactsCtrl: Contacts,
     private readonly callCtrl: CallNumber,
-    private readonly emailCtrl: EmailComposer
+    private readonly emailCtrl: EmailComposer,
+    private readonly androidPermsCtrl: AndroidPermissions
   ) {}
 
   /**************************************************************************/
@@ -91,26 +92,22 @@ export class ContactServiceProvider {
           "Impossible d'envoyer un message à " + contact.displayName + ', aucun mobile connu'
         );
       }
-      return;
-    }
+    } else {
+      const permsOKP = this.smsCtrl.hasPermission();
 
-    const permsOKP = this.smsCtrl.hasPermission();
-    const cancel = await this.dbCtrl.getSetting(Settings.DISABLE_SMS);
-    if (cancel) {
-      console.log('SMS désactivés');
-      return;
-    }
-
-    const permsOK = await permsOKP;
-    if (!permsOK) {
-      try {
-        this.permsCtrl.requestPermission(this.permsCtrl.PERMISSION.SEND_SMS);
-      } catch (error) {
-        console.log('pas de permission pour envoyer un sms :/');
-        return;
+      if (!await this.dbCtrl.getSetting(Settings.DISABLE_SMS)) {
+        const permsOK = await permsOKP;
+        if (!permsOK) {
+          try {
+            this.permsCtrl.requestPermission(this.permsCtrl.PERMISSION.SEND_SMS);
+          } catch (error) {
+            console.log('pas de permission pour envoyer un sms :/');
+            return;
+          }
+        }
+        this.smsCtrl.send(contact.mobile, message, ContactServiceProvider.smsOpts);
       }
     }
-    this.smsCtrl.send(contact.mobile, message, ContactServiceProvider.smsOpts);
   }
 
   /**
@@ -121,25 +118,24 @@ export class ContactServiceProvider {
    * @memberof ContactServiceProvider
    */
   public sendInviteSms(contacts: ISimpleContact[]): void {
-    if (!this.authCtrl.isConnected() || this.authCtrl.getDisplayName() == null) {
-      return;
-    }
-    const MyName = this.authCtrl.getDisplayName();
-    for (const contact of contacts) {
-      let message = 'Bonjour ' + contact.displayName + '\n';
-      message += '\n';
-      message += 'Je souhaite partager une liste de tâches avec vous. \n';
-      message += '\n';
-      message +=
-        "Si ce n'est pas déjà fait, installez l'application OhMyTask et connectez vous avec votre adresse mail (" +
-        contact.email +
-        ') \n';
-      message += '\n';
-      message += 'Le partage restera disponible 24h';
-      message += '\n';
-      message += '--\n';
-      message += MyName;
-      this.sendSMS(contact, message, false);
+    if (this.authCtrl.isConnected() && this.authCtrl.getDisplayName() != null) {
+      const MyName = this.authCtrl.getDisplayName();
+      for (const contact of contacts) {
+        let message = 'Bonjour ' + contact.displayName + '\n';
+        message += '\n';
+        message += 'Je souhaite partager une liste de tâches avec vous. \n';
+        message += '\n';
+        message +=
+          "Si ce n'est pas déjà fait, installez l'application OhMyTask et connectez vous avec votre adresse mail (" +
+          contact.email +
+          ') \n';
+        message += '\n';
+        message += 'Le partage restera disponible 24h';
+        message += '\n';
+        message += '--\n';
+        message += MyName;
+        this.sendSMS(contact, message, false);
+      }
     }
   }
 
@@ -175,21 +171,19 @@ export class ContactServiceProvider {
    */
   public publishCompleteSms(todo: ITodoItem): void {
     if (
-      !this.authCtrl.isConnected() ||
-      this.authCtrl.getDisplayName() == null ||
-      todo == null ||
-      todo.name == null ||
-      todo.contacts == null
+      this.authCtrl.isConnected() &&
+      this.authCtrl.getDisplayName() != null &&
+      todo != null &&
+      todo.name != null &&
+      todo.contacts != null
     ) {
-      return;
-    }
-
-    for (const contact of todo.contacts) {
-      let desc = '';
-      if (todo.desc != null) {
-        desc = todo.desc;
+      for (const contact of todo.contacts) {
+        let desc = '';
+        if (todo.desc != null) {
+          desc = todo.desc;
+        }
+        this.sendCompleteSms(contact, todo.name, desc);
       }
-      this.sendCompleteSms(contact, todo.name, desc);
     }
   }
 
@@ -201,6 +195,24 @@ export class ContactServiceProvider {
    * @memberof ContactServiceProvider
    */
   public async getContactList(emailRequired: boolean): Promise<ISimpleContact[]> {
+    let permsOk: boolean = false;
+    try {
+      permsOk = (await this.androidPermsCtrl.checkPermission(
+        this.androidPermsCtrl.PERMISSION.READ_CONTACTS
+      )).hasPermission;
+      if (!permsOk) {
+        permsOk = (await this.androidPermsCtrl.requestPermission(
+          this.androidPermsCtrl.PERMISSION.READ_CONTACTS
+        )).hasPermission;
+      }
+    } catch (error) {
+      permsOk = false;
+    }
+
+    if (!permsOk) {
+      return [];
+    }
+
     const nativesContact = await this.contactsCtrl.find(
       ['displayName', 'emails', 'phoneNumbers'],
       {
@@ -245,24 +257,22 @@ export class ContactServiceProvider {
    * @memberof ContactServiceProvider
    */
   public async openNativeSMS(contact: ISimpleContact): Promise<void> {
-    if (contact.mobile == null) {
-      return;
-    }
-
-    const permsOK = await this.smsCtrl.hasPermission();
-    if (!permsOK) {
-      try {
-        this.permsCtrl.requestPermission(this.permsCtrl.PERMISSION.SEND_SMS);
-      } catch (error) {
-        console.log('pas de permission pour envoyer un sms :/');
-        return;
+    if (contact.mobile != null) {
+      const permsOK = await this.smsCtrl.hasPermission();
+      if (!permsOK) {
+        try {
+          this.permsCtrl.requestPermission(this.permsCtrl.PERMISSION.SEND_SMS);
+        } catch (error) {
+          console.log('pas de permission pour envoyer un sms :/');
+          return;
+        }
       }
-    }
 
-    this.smsCtrl.send(contact.mobile, '', {
-      replaceLineBreaks: true,
-      android: { intent: 'INTENT' }
-    });
+      this.smsCtrl.send(contact.mobile, '', {
+        replaceLineBreaks: true,
+        android: { intent: 'INTENT' }
+      });
+    }
   }
 
   /**
@@ -273,13 +283,12 @@ export class ContactServiceProvider {
    * @memberof ContactServiceProvider
    */
   public async call(contact: ISimpleContact): Promise<void> {
-    if (contact.mobile == null) {
-      return;
-    }
-    if (await this.callCtrl.isCallSupported()) {
-      this.callCtrl.callNumber(contact.mobile, true);
-    } else {
-      this.uiCtrl.alert('Echec', 'Votre appareil ne supporte pas la gestion des appels');
+    if (contact.mobile != null) {
+      if (await this.callCtrl.isCallSupported()) {
+        this.callCtrl.callNumber(contact.mobile, true);
+      } else {
+        this.uiCtrl.alert('Echec', 'Votre appareil ne supporte pas la gestion des appels');
+      }
     }
   }
 
@@ -291,32 +300,30 @@ export class ContactServiceProvider {
    * @memberof ContactServiceProvider
    */
   public async prepareEmail(contact: ISimpleContact): Promise<void> {
-    if (contact.email == null) {
-      return;
-    }
-
-    let perm = await this.emailCtrl.hasPermission();
-    if (!perm) {
-      perm = await this.emailCtrl.requestPermission();
+    if (contact.email != null) {
+      let perm = await this.emailCtrl.hasPermission();
       if (!perm) {
-        this.uiCtrl.displayToast(
-          "Vous devez authoriser l'application à utiliser votre boîte mail pour pouvoir utiliser ce service"
-        );
-        return;
+        perm = await this.emailCtrl.requestPermission();
+        if (!perm) {
+          this.uiCtrl.displayToast(
+            "Vous devez authoriser l'application à utiliser votre boîte mail pour pouvoir utiliser ce service"
+          );
+          return;
+        }
       }
-    }
 
-    const email = {
-      to: contact.email,
-      subject: "message d'OhMyTask",
-      body: 'Bonjour ' + contact.displayName + ',',
-      isHtml: true
-    };
+      const email = {
+        to: contact.email,
+        subject: "message d'OhMyTask",
+        body: 'Bonjour ' + contact.displayName + ',',
+        isHtml: true
+      };
 
-    try {
-      this.emailCtrl.open(email);
-    } catch (error) {
-      console.log(error);
+      try {
+        this.emailCtrl.open(email);
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 

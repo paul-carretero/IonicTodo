@@ -1,3 +1,4 @@
+import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { ILatLng } from '@ionic-native/google-maps';
 import { Injectable } from '@angular/core';
 import { Geolocation } from '@ionic-native/geolocation';
@@ -12,6 +13,8 @@ import { UiServiceProvider } from '../ui-service/ui-service';
  */
 @Injectable()
 export class MapServiceProvider {
+  private static readonly TIMEOUT: number = 8000;
+
   /**
    * dernière position connue dans le cache
    *
@@ -52,7 +55,8 @@ export class MapServiceProvider {
    */
   constructor(
     private readonly nativeGeocoder: NativeGeocoder,
-    private readonly geolocCtrl: Geolocation
+    private readonly geolocCtrl: Geolocation,
+    private readonly androidPermsCtrl: AndroidPermissions
   ) {}
 
   /**************************************************************************/
@@ -135,9 +139,22 @@ export class MapServiceProvider {
     if (this.myPosition != null) {
       return this.myPosition;
     }
+
+    try {
+      const permOK = await this.androidPermsCtrl.checkPermission(
+        this.androidPermsCtrl.PERMISSION.ACCESS_FINE_LOCATION
+      );
+      if (!permOK.hasPermission) {
+        await this.androidPermsCtrl.requestPermissions([
+          this.androidPermsCtrl.PERMISSION.ACCESS_COARSE_LOCATION,
+          this.androidPermsCtrl.PERMISSION.ACCESS_FINE_LOCATION
+        ]);
+      }
+    } catch (error) {}
+
     try {
       const geoPos = await this.geolocCtrl.getCurrentPosition({
-        timeout: 10000,
+        timeout: MapServiceProvider.TIMEOUT,
         enableHighAccuracy: true
       });
       this.myPosition = { lat: geoPos.coords.latitude, lng: geoPos.coords.longitude };
@@ -184,6 +201,6 @@ export class MapServiceProvider {
     }
     this.timeoutPos = setTimeout(() => {
       this.myPosition = null;
-    }, 100000);
+    }, MapServiceProvider.TIMEOUT);
   }
 }

@@ -26,8 +26,8 @@ export class MyApp {
   /**
    * page de base de l'application
    *
+   * @readonly
    * @protected
-   * @type {*}
    * @memberof MyApp
    */
   protected readonly rootPage = 'TabsPage';

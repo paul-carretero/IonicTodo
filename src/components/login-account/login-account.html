@@ -1,11 +1,11 @@
 <form [formGroup]="authForm">
   <ion-item class="margin-input">
     <ion-icon name="ios-at-outline" item-left></ion-icon>
-    <ion-input formControlName="email" type="email" placeholder="Votre addresse e-mail"></ion-input>
+    <ion-input formControlName="email" type="email" required placeholder="Votre addresse e-mail"></ion-input>
   </ion-item>
   <ion-item class="margin-input">
     <ion-icon name="ios-key-outline" item-left></ion-icon>
-    <ion-input formControlName="password" type="password" placeholder="Votre mot de passe"></ion-input>
+    <ion-input formControlName="password" type="password" required placeholder="Votre mot de passe"></ion-input>
   </ion-item>
 
   <button ion-button (click)="firebaseLogin()" block [disabled]="!authForm.valid || !netStatus" class="margin-button">

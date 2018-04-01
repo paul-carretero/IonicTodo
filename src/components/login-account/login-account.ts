@@ -201,26 +201,29 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
   protected async firebaseLogin(): Promise<void> {
     const emailForm = this.authForm.get('email');
     const passForm = this.authForm.get('password');
-    if (emailForm == null || passForm == null) {
-      return;
-    }
-    const email: string = emailForm.value;
-    const password: string = passForm.value;
 
-    this.settingCtrl.setSetting(Settings.LAST_FIRE_EMAIL_LOGIN, email);
+    if (emailForm != null && passForm != null) {
+      const email: string = emailForm.value;
+      const password: string = passForm.value;
 
-    try {
-      this.uiCtrl.showLoading('tentative de login...');
-      const result = await this.fireAuthCtrl.auth.signInWithEmailAndPassword(email, password);
-      if (result) {
-        this.uiCtrl.displayToast('Connexion avec votre compte effectuée avec succès!');
+      this.settingCtrl.setSetting(Settings.LAST_FIRE_EMAIL_LOGIN, email);
+
+      try {
+        this.uiCtrl.showLoading('tentative de login...');
+        const result = await this.fireAuthCtrl.auth.signInWithEmailAndPassword(
+          email,
+          password
+        );
+        if (result) {
+          this.uiCtrl.displayToast('Connexion avec votre compte effectuée avec succès!');
+        }
+      } catch (err) {
+        this.uiCtrl.alert(
+          'Erreur de connexion',
+          'Connexion à votre compte impossible' + 'Message : <br/>' + err
+        );
+        this.uiCtrl.dismissLoading();
       }
-    } catch (err) {
-      this.uiCtrl.alert(
-        'Erreur de connexion',
-        'Connexion à votre compte impossible' + 'Message : <br/>' + err
-      );
-      this.uiCtrl.dismissLoading();
     }
   }
 

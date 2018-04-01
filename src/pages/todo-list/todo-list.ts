@@ -342,12 +342,11 @@ export class TodoListPage extends GenericPage {
 
     if (list == null) {
       this.uiCtrl.displayToast("impossible d'importer la liste");
-      return;
+    } else {
+      await this.todoService.addList(list, ListType.PRIVATE);
+      this.todoService.removeListLink(this.listUUID);
+      this.navCtrl.popToRoot();
     }
-
-    await this.todoService.addList(list, ListType.PRIVATE);
-    this.todoService.removeListLink(this.listUUID);
-    this.navCtrl.popToRoot();
   }
 
   /**
@@ -384,24 +383,22 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   private async deleteList(): Promise<void> {
-    if (this.todoList == null || this.todoList.uuid == null) {
-      return;
-    }
+    if (this.todoList != null && this.todoList.uuid != null) {
+      const unsure_mode: boolean = await this.settingCtrl.getSetting(
+        Settings.ENABLE_UNSURE_MODE
+      );
+      let confirm: boolean = true;
 
-    const unsure_mode: boolean = await this.settingCtrl.getSetting(
-      Settings.ENABLE_UNSURE_MODE
-    );
-    let confirm: boolean = true;
+      if (unsure_mode) {
+        const title = 'Suppression de la liste ' + this.todoList.name;
+        const message = 'Voulez vous supprimer la liste ' + this.todoList.name;
+        confirm = await this.uiCtrl.confirm(title, message);
+      }
 
-    if (unsure_mode) {
-      const title = 'Suppression de la liste ' + this.todoList.name;
-      const message = 'Voulez vous supprimer la liste ' + this.todoList.name;
-      confirm = await this.uiCtrl.confirm(title, message);
-    }
-
-    if (confirm) {
-      this.todoService.deleteList(this.listUUID);
-      this.navCtrl.popToRoot();
+      if (confirm) {
+        this.todoService.deleteList(this.listUUID);
+        this.navCtrl.popToRoot();
+      }
     }
   }
 
@@ -440,10 +437,9 @@ export class TodoListPage extends GenericPage {
       case MenuRequestType.PASTE:
         {
           const todoRef = this.evtCtrl.getCopiedTodoRef();
-          if (todoRef == null) {
-            return;
+          if (todoRef != null) {
+            this.todoService.addTodoLink(this.listUUID, todoRef);
           }
-          this.todoService.addTodoLink(this.listUUID, todoRef);
         }
         break;
       case MenuRequestType.SHAKE:
@@ -520,29 +516,28 @@ export class TodoListPage extends GenericPage {
     tableau: ITodoItem[],
     closable: ItemSliding
   ): Promise<void> {
-    if (todo == null || todo.ref == null || todo.uuid == null) {
-      return;
-    }
-    const unsure_mode: boolean = await this.settingCtrl.getSetting(
-      Settings.ENABLE_UNSURE_MODE
-    );
-    let confirm: boolean = true;
+    if (todo != null && todo.ref != null && todo.uuid != null) {
+      const unsure_mode: boolean = await this.settingCtrl.getSetting(
+        Settings.ENABLE_UNSURE_MODE
+      );
+      let confirm: boolean = true;
 
-    if (unsure_mode) {
-      const title = 'Suppression de la tâche ' + todo.name;
-      const message = 'Voulez vous supprimer la tâche ' + todo.name;
-      confirm = await this.uiCtrl.confirm(title, message);
-    }
-
-    if (confirm) {
-      tableau.splice(tableau.indexOf(todo), 1);
-      if (ext) {
-        this.todoService.removeTodoRef(this.listUUID, todo.ref);
-      } else {
-        this.todoService.deleteTodo(todo.ref, todo.uuid);
+      if (unsure_mode) {
+        const title = 'Suppression de la tâche ' + todo.name;
+        const message = 'Voulez vous supprimer la tâche ' + todo.name;
+        confirm = await this.uiCtrl.confirm(title, message);
       }
+
+      if (confirm) {
+        tableau.splice(tableau.indexOf(todo), 1);
+        if (ext) {
+          this.todoService.removeTodoRef(this.listUUID, todo.ref);
+        } else {
+          this.todoService.deleteTodo(todo.ref, todo.uuid);
+        }
+      }
+      closable.close();
     }
-    closable.close();
   }
 
   /**
@@ -555,14 +550,13 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   protected async selectTodo(todoRef: DocumentReference, ext: boolean): Promise<void> {
-    if (todoRef == null || ext == null) {
-      return;
+    if (todoRef != null && ext != null) {
+      this.navCtrl.push('TodoPage', {
+        todoRef: todoRef,
+        listUuid: this.listUUID,
+        isExternal: ext
+      });
     }
-    this.navCtrl.push('TodoPage', {
-      todoRef: todoRef,
-      listUuid: this.listUUID,
-      isExternal: ext
-    });
   }
 
   /**
@@ -576,10 +570,10 @@ export class TodoListPage extends GenericPage {
   protected completeCheck(todo: ITodoItem): void {
     if (todo == null || todo.ref == null) {
       this.uiCtrl.displayToast('Unexpected error is unexpected');
-      return;
+    } else {
+      todo.complete = !todo.complete;
+      this.todoService.complete(todo);
     }
-    todo.complete = !todo.complete;
-    this.todoService.complete(todo);
   }
 
   /**
@@ -633,18 +627,16 @@ export class TodoListPage extends GenericPage {
     indexes: { from: number; to: number },
     tab: ITodoItem[]
   ): Promise<void> {
-    if (!this.orderableReady) {
-      return;
+    if (this.orderableReady) {
+      this.orderableReady = false;
+      const promises: Promise<void>[] = [];
+      tab = reorderArray(tab, indexes);
+      for (let i = 0; i < tab.length; i++) {
+        promises.push(this.todoService.updateTodoOrder(tab[i].ref, i));
+      }
+      await Promise.all(promises);
+      this.orderableReady = true;
     }
-
-    this.orderableReady = false;
-    const promises: Promise<void>[] = [];
-    tab = reorderArray(tab, indexes);
-    for (let i = 0; i < tab.length; i++) {
-      promises.push(this.todoService.updateTodoOrder(tab[i].ref, i));
-    }
-    await Promise.all(promises);
-    this.orderableReady = true;
   }
 
   /**

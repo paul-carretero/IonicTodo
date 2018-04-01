@@ -78,17 +78,15 @@ export class StorageServiceProvider {
    * @memberof StorageServiceProvider
    */
   public refreshDownloadLink(todo: ITodoItem): void {
-    if (todo == null || todo.uuid == null || todo.pictures.length === 0) {
-      return;
-    }
-
-    for (const picture of todo.pictures) {
-      const path = '/' + todo.uuid + '/' + picture.uuid;
-      const ref = this.storageCtrl.ref(path);
-      const sub = ref.getDownloadURL().subscribe(res => {
-        picture.url = res;
-        sub.unsubscribe();
-      });
+    if (todo != null && todo.uuid != null && todo.pictures.length > 0) {
+      for (const picture of todo.pictures) {
+        const path = '/' + todo.uuid + '/' + picture.uuid;
+        const ref = this.storageCtrl.ref(path);
+        const sub = ref.getDownloadURL().subscribe(res => {
+          picture.url = res;
+          sub.unsubscribe();
+        });
+      }
     }
   }
 }
