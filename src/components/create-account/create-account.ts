@@ -143,13 +143,12 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
    * @memberof CreateAccountComponent
    */
   protected validate(): void {
-    if (!this.authForm.valid) {
-      return;
-    }
-    if (this.account == null) {
-      this.createCount();
-    } else {
-      this.editCount();
+    if (this.authForm.valid) {
+      if (this.account == null) {
+        this.createCount();
+      } else {
+        this.editCount();
+      }
     }
   }
 
@@ -165,24 +164,21 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
    * @memberof CreateAccountComponent
    */
   private prepareForEdit(): void {
-    if (this.account == null) {
-      return;
+    if (this.account != null) {
+      this.validText = 'Mettre à jour mon compte';
+      const emailForm = this.authForm.get('email');
+      const passForm = this.authForm.get('password');
+      const nameForm = this.authForm.get('name');
+      const photoForm = this.authForm.get('photo');
+      if (emailForm != null && passForm != null && nameForm != null && photoForm != null) {
+        passForm.setValue('');
+        nameForm.setValue(this.account.displayName);
+        photoForm.setValue(this.account.photoURL);
+        passForm.setValidators(null);
+        emailForm.disable();
+        passForm.disable();
+      }
     }
-
-    this.validText = 'Mettre à jour mon compte';
-    const emailForm = this.authForm.get('email');
-    const passForm = this.authForm.get('password');
-    const nameForm = this.authForm.get('name');
-    const photoForm = this.authForm.get('photo');
-    if (emailForm == null || passForm == null || nameForm == null || photoForm == null) {
-      return;
-    }
-    passForm.setValue('');
-    nameForm.setValue(this.account.displayName);
-    photoForm.setValue(this.account.photoURL);
-    passForm.setValidators(null);
-    emailForm.disable();
-    passForm.disable();
   }
 
   /**
@@ -197,41 +193,41 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
     const passForm = this.authForm.get('password');
     const nameForm = this.authForm.get('name');
     const photoForm = this.authForm.get('name');
-    if (emailForm == null || passForm == null || nameForm == null || photoForm == null) {
-      return;
-    }
-    const email: string = emailForm.value;
-    const password: string = passForm.value;
-    const name: string = nameForm.value;
-    let photo: string | null = photoForm.value;
-    if (photo === '') {
-      photo = null;
-    }
 
-    try {
-      this.uiCtrl.showLoading('création du compte...');
-      const result = await this.fireAuthCtrl.auth.createUserWithEmailAndPassword(
-        email,
-        password
-      );
-
-      if (result) {
-        this.uiCtrl.displayToast('Création de votre compte effectuée avec succès!', 1000);
-        this.uiCtrl.dismissLoading();
-        await this.firebaseLogin();
-        const u = this.fireAuthCtrl.auth.currentUser;
-        if (u != null) {
-          try {
-            u.updateProfile({ displayName: name, photoURL: photo });
-          } catch (error) {}
-        }
+    if (emailForm != null && passForm != null && nameForm != null && photoForm != null) {
+      const email: string = emailForm.value;
+      const password: string = passForm.value;
+      const name: string = nameForm.value;
+      let photo: string | null = photoForm.value;
+      if (photo === '') {
+        photo = null;
       }
-    } catch (err) {
-      this.uiCtrl.alert(
-        'Erreur de connection',
-        'Création de votre compte impossible' + 'Message : <br/>' + err
-      );
-      this.uiCtrl.dismissLoading();
+
+      try {
+        this.uiCtrl.showLoading('création du compte...');
+        const result = await this.fireAuthCtrl.auth.createUserWithEmailAndPassword(
+          email,
+          password
+        );
+
+        if (result) {
+          this.uiCtrl.displayToast('Création de votre compte effectuée avec succès!', 1000);
+          this.uiCtrl.dismissLoading();
+          await this.firebaseLogin();
+          const u = this.fireAuthCtrl.auth.currentUser;
+          if (u != null) {
+            try {
+              u.updateProfile({ displayName: name, photoURL: photo });
+            } catch (error) {}
+          }
+        }
+      } catch (err) {
+        this.uiCtrl.alert(
+          'Erreur de connection',
+          'Création de votre compte impossible' + 'Message : <br/>' + err
+        );
+        this.uiCtrl.dismissLoading();
+      }
     }
   }
 
@@ -245,25 +241,24 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
   private async editCount(): Promise<void> {
     const nameForm = this.authForm.get('name');
     const photoForm = this.authForm.get('photo');
-    if (nameForm == null || photoForm == null || this.account == null) {
-      return;
+
+    if (nameForm != null && photoForm != null && this.account != null) {
+      this.uiCtrl.showLoading('Mise à jour des informations de votre compte');
+
+      let photo = photoForm.value;
+      const name = nameForm.value;
+
+      if (photo === '') {
+        photo = null;
+      }
+
+      try {
+        await this.account.updateProfile({ displayName: name, photoURL: photo });
+      } catch (error) {
+        this.uiCtrl.alert('Echec', 'Impossible de mettre à jour votre compte');
+        console.log(error);
+      }
+      this.uiCtrl.dismissLoading();
     }
-
-    this.uiCtrl.showLoading('Mise à jour des informations de votre compte');
-
-    let photo = photoForm.value;
-    const name = nameForm.value;
-
-    if (photo === '') {
-      photo = null;
-    }
-
-    try {
-      await this.account.updateProfile({ displayName: name, photoURL: photo });
-    } catch (error) {
-      this.uiCtrl.alert('Echec', 'Impossible de mettre à jour votre compte');
-      console.log(error);
-    }
-    this.uiCtrl.dismissLoading();
   }
 }

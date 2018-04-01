@@ -98,24 +98,22 @@ export class NfcProvider {
    * @memberof NfcProvider
    */
   private async publishJson(json: ITodoListPath): Promise<void> {
-    if (json == null) {
-      return;
-    }
+    if (json != null) {
+      const canImport: boolean = await this.uiCtrl.confirm(
+        'Import',
+        "Une liste est disponible pour import NFC, voulez vous l'importer?"
+      );
 
-    const canImport: boolean = await this.uiCtrl.confirm(
-      'Import',
-      "Une liste est disponible pour import NFC, voulez vous l'importer?"
-    );
-
-    if (canImport) {
-      this.uiCtrl.showLoading('Import de la liste sur votre compte en cours');
-      if (json.shareByReference === true) {
-        await this.todoCtrl.addListLink(json);
-      } else {
-        await this.todoCtrl.importList(json);
+      if (canImport) {
+        this.uiCtrl.showLoading('Import de la liste sur votre compte en cours');
+        if (json.shareByReference === true) {
+          await this.todoCtrl.addListLink(json);
+        } else {
+          await this.todoCtrl.importList(json);
+        }
+        this.uiCtrl.dismissLoading();
+        this.uiCtrl.displayToast('La liste a été importer avec succès');
       }
-      this.uiCtrl.dismissLoading();
-      this.uiCtrl.displayToast('La liste a été importer avec succès');
     }
   }
 }

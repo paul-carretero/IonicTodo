@@ -535,41 +535,40 @@ export class SpeechRecServiceProvider {
    * @memberof SpeechRecServiceProvider
    */
   private sendOrShareHandler(sentence: IParsedRequest): void {
-    if (sentence.listFound == null || sentence.request == null) {
-      return;
-    }
-    sentence.request.uuid = sentence.listFound.uuid;
-    switch (sentence.request.media) {
-      case Media.NFC:
-        this.evtCtrl
-          .getNavRequestSubject()
-          .next({ page: 'NfcSenderPage', data: { request: sentence.request } });
-        this.speechSynthService.synthText(
-          'Vous pouvez maintenant partager la liste ' + sentence.listFound.name + ' par NFC '
-        );
-        break;
+    if (sentence.listFound != null && sentence.request != null) {
+      sentence.request.uuid = sentence.listFound.uuid;
+      switch (sentence.request.media) {
+        case Media.NFC:
+          this.evtCtrl
+            .getNavRequestSubject()
+            .next({ page: 'NfcSenderPage', data: { request: sentence.request } });
+          this.speechSynthService.synthText(
+            'Vous pouvez maintenant partager la liste ' + sentence.listFound.name + ' par NFC '
+          );
+          break;
 
-      case Media.QR_CODE:
-        this.evtCtrl
-          .getNavRequestSubject()
-          .next({ page: 'QrcodeGeneratePage', data: { request: sentence.request } });
-        this.speechSynthService.synthText(
-          'Vous pouvez maintenant partager la liste ' +
-            sentence.listFound.name +
-            ' par QR Code '
-        );
-        break;
+        case Media.QR_CODE:
+          this.evtCtrl
+            .getNavRequestSubject()
+            .next({ page: 'QrcodeGeneratePage', data: { request: sentence.request } });
+          this.speechSynthService.synthText(
+            'Vous pouvez maintenant partager la liste ' +
+              sentence.listFound.name +
+              ' par QR Code '
+          );
+          break;
 
-      default:
-        this.evtCtrl
-          .getNavRequestSubject()
-          .next({ page: 'CloudSenderPage', data: { request: sentence.request } });
-        this.speechSynthService.synthText(
-          'Vous pouvez maintenant partager la liste ' +
-            sentence.listFound.name +
-            ' sur le cloud OhMyTask '
-        );
-        break;
+        default:
+          this.evtCtrl
+            .getNavRequestSubject()
+            .next({ page: 'CloudSenderPage', data: { request: sentence.request } });
+          this.speechSynthService.synthText(
+            'Vous pouvez maintenant partager la liste ' +
+              sentence.listFound.name +
+              ' sur le cloud OhMyTask '
+          );
+          break;
+      }
     }
   }
 
@@ -583,38 +582,36 @@ export class SpeechRecServiceProvider {
    */
   private async sendOrShareToContact(sentence: IParsedRequest): Promise<void> {
     if (
-      sentence.contact == null ||
-      sentence.listFound == null ||
-      sentence.listFound.uuid == null ||
-      sentence.request == null
+      sentence.contact != null &&
+      sentence.listFound != null &&
+      sentence.listFound.uuid != null &&
+      sentence.request != null
     ) {
-      return;
-    }
-
-    const author = await this.authCtrl.getAuthor(false);
-    const data: ICloudSharedList = Global.getDefaultCloudShareData();
-    data.author = author;
-    data.email = sentence.contact.email;
-    data.list = this.todoService.getListLink(sentence.listFound.uuid);
-    data.name = sentence.listFound.name;
-    if (sentence.request.request === MenuRequestType.SHARE) {
-      data.list.shareByReference = true;
-      await this.cloudCtrl.postNewShareRequest(data);
-      this.speechSynthService.synthText(
-        'La liste ' +
-          sentence.listFound.name +
-          ' a été partagé avec ' +
-          sentence.contact.displayName
-      );
-    } else if (sentence.request.request === MenuRequestType.SEND) {
-      data.list.shareByReference = false;
-      await this.cloudCtrl.postNewShareRequest(data);
-      this.speechSynthService.synthText(
-        'La liste ' +
-          sentence.listFound.name +
-          ' a été envoyée a ' +
-          sentence.contact.displayName
-      );
+      const author = await this.authCtrl.getAuthor(false);
+      const data: ICloudSharedList = Global.getDefaultCloudShareData();
+      data.author = author;
+      data.email = sentence.contact.email;
+      data.list = this.todoService.getListLink(sentence.listFound.uuid);
+      data.name = sentence.listFound.name;
+      if (sentence.request.request === MenuRequestType.SHARE) {
+        data.list.shareByReference = true;
+        await this.cloudCtrl.postNewShareRequest(data);
+        this.speechSynthService.synthText(
+          'La liste ' +
+            sentence.listFound.name +
+            ' a été partagé avec ' +
+            sentence.contact.displayName
+        );
+      } else if (sentence.request.request === MenuRequestType.SEND) {
+        data.list.shareByReference = false;
+        await this.cloudCtrl.postNewShareRequest(data);
+        this.speechSynthService.synthText(
+          'La liste ' +
+            sentence.listFound.name +
+            ' a été envoyée a ' +
+            sentence.contact.displayName
+        );
+      }
     }
   }
 

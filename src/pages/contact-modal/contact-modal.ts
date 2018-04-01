@@ -62,13 +62,13 @@ export class ContactModalPage extends GenericPage {
 
   /**
    * Creates an instance of ContactModalPage.
-   * @param {NavParams} navParams
    * @param {NavController} navCtrl
    * @param {EventServiceProvider} evtCtrl
    * @param {SpeechSynthServiceProvider} ttsCtrl
    * @param {AuthServiceProvider} authCtrl
    * @param {UiServiceProvider} uiCtrl
-   * @param {Contacts} contactsCtrl
+   * @param {NavParams} navParams
+   * @param {ContactServiceProvider} contactsCtrl
    * @memberof ContactModalPage
    */
   constructor(
@@ -172,25 +172,24 @@ export class ContactModalPage extends GenericPage {
    * @memberof ContactModalPage
    */
   private headerize(): void {
-    if (this.fullContactList.length === 0) {
-      return;
-    }
-    this.fullContactList.sort(compare);
+    if (this.fullContactList.length > 0) {
+      this.fullContactList.sort(compare);
 
-    const listWithHeaders: ISimpleContact[] = [];
-    let lastFirstChar: string = '';
-    for (const contact of this.fullContactList) {
-      if (normalize(contact.displayName).charAt(0) !== lastFirstChar) {
-        lastFirstChar = normalize(contact.displayName).charAt(0);
-        const header: ISelectableSimpleContact = Global.getBlankContact();
-        header.displayName = lastFirstChar;
-        header.isSelected = false;
-        header.isHeader = true;
-        listWithHeaders.push(header);
+      const listWithHeaders: ISimpleContact[] = [];
+      let lastFirstChar: string = '';
+      for (const contact of this.fullContactList) {
+        if (normalize(contact.displayName).charAt(0) !== lastFirstChar) {
+          lastFirstChar = normalize(contact.displayName).charAt(0);
+          const header: ISelectableSimpleContact = Global.getBlankContact();
+          header.displayName = lastFirstChar;
+          header.isSelected = false;
+          header.isHeader = true;
+          listWithHeaders.push(header);
+        }
+        listWithHeaders.push(contact);
       }
-      listWithHeaders.push(contact);
+      this.fullContactList = listWithHeaders;
     }
-    this.fullContactList = listWithHeaders;
   }
 
   /**

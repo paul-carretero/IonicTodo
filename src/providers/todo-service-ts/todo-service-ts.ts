@@ -686,15 +686,13 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public async importList(path: ITodoListPath): Promise<void> {
-    if (path.userUUID == null || path.listUUID == null) {
-      return;
+    if (path.userUUID != null && path.listUUID != null) {
+      const listData = await this.getAListSnapshotFromPath(path);
+      listData.uuid = null;
+      listData.order = 0;
+      const listUuid = await this.addList(listData);
+      await this.cloneTodo(path.listUUID, path.userUUID, listUuid);
     }
-
-    const listData = await this.getAListSnapshotFromPath(path);
-    listData.uuid = null;
-    listData.order = 0;
-    const listUuid = await this.addList(listData);
-    await this.cloneTodo(path.listUUID, path.userUUID, listUuid);
   }
 
   /**

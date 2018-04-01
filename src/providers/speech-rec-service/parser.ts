@@ -219,14 +219,12 @@ export class SpeechParser {
    */
   private defMenuRequest(req: IParsedRequest): void {
     const menuReq = this.getMenuRequest(req);
-    if (menuReq == null) {
-      return;
+    if (menuReq != null) {
+      req.request = {
+        media: this.getMediaType(req),
+        request: menuReq
+      };
     }
-
-    req.request = {
-      media: this.getMediaType(req),
-      request: menuReq
-    };
   }
 
   /**
@@ -241,7 +239,7 @@ export class SpeechParser {
     for (const contact of this.currentContacts) {
       if (SpeechParser.strInclude(req.origSentence, contact.displayName)) {
         req.contact = contact;
-        return;
+        break;
       }
     }
   }
@@ -260,12 +258,12 @@ export class SpeechParser {
       SpeechParser.strInclude(req.origSentence, this.currentTodo.name)
     ) {
       req.todoFound = this.currentTodo;
-      return;
-    }
-    for (const todo of this.currentTodos) {
-      if (SpeechParser.strInclude(req.origSentence, todo.name)) {
-        req.todoFound = todo;
-        return;
+    } else {
+      for (const todo of this.currentTodos) {
+        if (SpeechParser.strInclude(req.origSentence, todo.name)) {
+          req.todoFound = todo;
+          break;
+        }
       }
     }
   }
@@ -284,13 +282,12 @@ export class SpeechParser {
       SpeechParser.strInclude(req.origSentence, this.currentList.name)
     ) {
       req.listFound = this.currentList;
-      return;
-    }
-
-    for (const list of this.currentLists) {
-      if (SpeechParser.strInclude(req.origSentence, list.name)) {
-        req.listFound = list;
-        return;
+    } else {
+      for (const list of this.currentLists) {
+        if (SpeechParser.strInclude(req.origSentence, list.name)) {
+          req.listFound = list;
+          break;
+        }
       }
     }
   }
@@ -315,16 +312,12 @@ export class SpeechParser {
       }
     }
 
-    if (listKeyIndex === -1) {
-      return;
+    if (listKeyIndex > -1) {
+      const remainingWords: string[] = req.sentence.slice(listKeyIndex);
+      if (remainingWords.length >= 2) {
+        req.newListName = this.buildName(remainingWords, 'liste ');
+      }
     }
-
-    const remainingWords: string[] = req.sentence.slice(listKeyIndex);
-    if (remainingWords.length < 2) {
-      return;
-    }
-
-    req.newListName = this.buildName(remainingWords, 'liste ');
   }
 
   /**
@@ -347,16 +340,12 @@ export class SpeechParser {
       }
     }
 
-    if (todoKeyIndex === -1) {
-      return;
+    if (todoKeyIndex > -1) {
+      const remainingWords: string[] = req.sentence.slice(todoKeyIndex);
+      if (remainingWords.length >= 2) {
+        req.newTodoName = this.buildName(remainingWords, 'tâche ');
+      }
     }
-
-    const remainingWords: string[] = req.sentence.slice(todoKeyIndex);
-    if (remainingWords.length < 2) {
-      return;
-    }
-
-    req.newTodoName = this.buildName(remainingWords, 'tâche ');
   }
 
   /**
@@ -403,31 +392,31 @@ export class SpeechParser {
    * @memberof SpeechParser
    */
   private specialRules(req: IParsedRequest): void {
-    if (req.request == null) {
-      return;
-    } else if (
-      req.todoFound == null &&
-      this.currentTodo != null &&
-      (req.request.request === MenuRequestType.COMPLETE ||
-        (req.request.request === MenuRequestType.CREATE && req.listFound == null) ||
-        (req.request.request === MenuRequestType.DELETE && req.listFound == null) ||
-        (req.request.request === MenuRequestType.EDIT && req.listFound == null))
-    ) {
-      req.todoFound = this.currentTodo;
-    } else if (
-      req.listFound == null &&
-      this.currentList != null &&
-      (req.request.request === MenuRequestType.DELETE ||
-        req.request.request === MenuRequestType.EDIT ||
-        req.request.request === MenuRequestType.IMPORT ||
-        req.request.request === MenuRequestType.OCR ||
-        req.request.request === MenuRequestType.CREATE ||
-        req.request.request === MenuRequestType.SEND ||
-        req.request.request === MenuRequestType.VIEW ||
-        req.request.request === MenuRequestType.COMPLETE ||
-        req.request.request === MenuRequestType.SHARE)
-    ) {
-      req.listFound = this.currentList;
+    if (req.request != null) {
+      if (
+        req.todoFound == null &&
+        this.currentTodo != null &&
+        (req.request.request === MenuRequestType.COMPLETE ||
+          (req.request.request === MenuRequestType.CREATE && req.listFound == null) ||
+          (req.request.request === MenuRequestType.DELETE && req.listFound == null) ||
+          (req.request.request === MenuRequestType.EDIT && req.listFound == null))
+      ) {
+        req.todoFound = this.currentTodo;
+      } else if (
+        req.listFound == null &&
+        this.currentList != null &&
+        (req.request.request === MenuRequestType.DELETE ||
+          req.request.request === MenuRequestType.EDIT ||
+          req.request.request === MenuRequestType.IMPORT ||
+          req.request.request === MenuRequestType.OCR ||
+          req.request.request === MenuRequestType.CREATE ||
+          req.request.request === MenuRequestType.SEND ||
+          req.request.request === MenuRequestType.VIEW ||
+          req.request.request === MenuRequestType.COMPLETE ||
+          req.request.request === MenuRequestType.SHARE)
+      ) {
+        req.listFound = this.currentList;
+      }
     }
   }
 

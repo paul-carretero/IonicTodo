@@ -23,6 +23,7 @@ import { DBServiceProvider } from './../db/db-service';
 import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../ui-service/ui-service';
 import { ILatLng } from '@ionic-native/google-maps';
+import { sha256 } from 'js-sha256';
 
 /**
  * fournit des méthodes pour importer automatiquement des liste partagé avec l'utilisateur courrant
@@ -33,6 +34,7 @@ import { ILatLng } from '@ionic-native/google-maps';
  */
 @Injectable()
 export class CloudServiceProvider {
+  private static readonly SALT: string = 'OhMyTask';
   /**
    * durée en seconde durant laquelle un partage sts est disponible
    *
@@ -93,7 +95,8 @@ export class CloudServiceProvider {
     private readonly mapCtrl: MapServiceProvider,
     private readonly todoCtrl: TodoServiceProvider,
     private readonly evtCtrl: EventServiceProvider,
-    private readonly uiCtrl: UiServiceProvider
+    private readonly uiCtrl: UiServiceProvider,
+    private readonly dbCtrl: DBServiceProvider
   ) {
     this.cloudListCollection = this.firestoreCtrl.collection<ICloudSharedList>('cloud/');
     this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
@@ -138,50 +141,59 @@ export class CloudServiceProvider {
 
   /**
    * créer une nouvelle offre de partage par référence d'une liste sur le cloud
-   * Initialise l'offre comme shake to share et la signe avec le compte courrant
+   * Initialise l'offre comme shake to share et la signe avec le compte courrant.
+   * Vérifie si sts est activé
    *
    * @param {string} listUuid
    * @returns {Promise<void>}
    * @memberof CloudServiceProvider
    */
   public async stsExport(listUuid: string): Promise<void> {
-    const path = this.todoCtrl.getListLink(listUuid);
-    const cloudData = Global.getDefaultCloudShareData();
+    if (await this.settingsCtrl.getSetting(Settings.ENABLE_STS)) {
+      const path = this.todoCtrl.getListLink(listUuid);
+      const cloudData = Global.getDefaultCloudShareData();
 
-    const author = await this.authCtrl.getAuthor(true);
+      const author = await this.authCtrl.getAuthor(true);
 
-    if (author == null || author.coord == null) {
-      this.uiCtrl.displayToast(
-        'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
-      );
-      return;
+      if (author == null || author.coord == null) {
+        this.uiCtrl.displayToast(
+          'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
+        );
+      } else {
+        cloudData.author = author;
+        cloudData.email = null;
+        cloudData.list = path;
+        cloudData.password = null;
+        cloudData.shakeToShare = true;
+        cloudData.name = await this.getListName(path);
+
+        this.postNewShareRequest(cloudData);
+
+        this.uiCtrl.displayToast(
+          'la liste ' +
+            cloudData.name +
+            ' a été distribuée à toutes les personnes à proximité ayant activé ShakeToShare et ayant agitée leur téléphone'
+        );
+      }
     }
-
-    cloudData.author = author;
-    cloudData.email = null;
-    cloudData.list = path;
-    cloudData.password = null;
-    cloudData.shakeToShare = true;
-    cloudData.name = await this.getListName(path);
-
-    this.postNewShareRequest(cloudData);
-
-    this.uiCtrl.displayToast(
-      'la liste ' +
-        cloudData.name +
-        ' a été distribuée à toutes les personnes à proximité ayant activé ShakeToShare et ayant agitée leur téléphone'
-    );
   }
 
   /**
    * permet d'envoyer sur la collection cloud une nouvelle proposition de partage de liste
-   * Si la le partage et de type sts alors il sera supprimé après quelques secondes
+   * Si la le partage et de type sts alors il sera supprimé après quelques secondes.
+   *
+   * Crypte et salt le mot de passe (la prudence s'impose contre les voleur de listes)
    *
    * @param {ICloudSharedList} data
    * @returns {Promise<void>}
    * @memberof CloudServiceProvider
    */
   public async postNewShareRequest(data: ICloudSharedList): Promise<void> {
+    if (data.password === '') {
+      data.password = null;
+    } else if (data.password != null) {
+      data.password = sha256(CloudServiceProvider.SALT + data.password);
+    }
     const doc = this.cloudListCollection.doc<ICloudSharedList>(uuid());
     await doc.set(data);
     if (data.shakeToShare) {
@@ -200,17 +212,15 @@ export class CloudServiceProvider {
    */
   public async importCloudList(data: ICloudSharedList): Promise<void> {
     if (
-      data == null ||
-      data.list == null ||
-      data.list.userUUID === this.authCtrl.getUserId()
+      data != null &&
+      data.list != null &&
+      data.list.userUUID !== this.authCtrl.getUserId()
     ) {
-      return;
-    }
-
-    if (data.password != null && data.password !== '') {
-      await this.importByPassword(data);
-    } else {
-      await this.importSharedList(data.list);
+      if (data.password != null && data.password !== '') {
+        await this.importByPassword(data);
+      } else {
+        await this.importSharedList(data.list);
+      }
     }
   }
 
@@ -321,28 +331,41 @@ export class CloudServiceProvider {
    * @returns {void}
    * @memberof CloudServiceProvider
    */
-  private watchForSTSAvailableList(): void {
-    if (!this.authCtrl.isConnected()) {
-      return;
-    }
-    this.tryUnsub(this.availableSTSListsSub);
-
-    const forSTSImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
-      'cloud',
-      ref => ref.where('shakeToShare', '==', true)
-    );
-
-    this.uiCtrl.showLoading('Analyse STS en cours', CloudServiceProvider.MAX_SECONDS * 500);
-
-    this.availableSTSListsSub = forSTSImportCollection
-      .snapshotChanges()
-      .subscribe((docChanges: DocumentChangeAction[]) => {
-        this.importSharedListsWrapper(docChanges);
-      });
-
-    setTimeout(() => {
+  private async watchForSTSAvailableList(): Promise<void> {
+    if (this.authCtrl.isConnected()) {
       this.tryUnsub(this.availableSTSListsSub);
-    }, CloudServiceProvider.MAX_SECONDS * 1000);
+
+      if (await this.settingsCtrl.getSetting(Settings.ENABLE_STS)) {
+        const myPos: ILatLng | null = await this.mapCtrl.getMyPosition();
+
+        if (myPos == null) {
+          this.uiCtrl.displayToast(
+            'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
+          );
+        } else {
+          const myGeoPos = Global.getGeoPoint(Global.roundILatLng(myPos));
+          const forSTSImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
+            'cloud',
+            ref => ref.where('shakeToShare', '==', true).where('author.coord', '==', myGeoPos)
+          );
+
+          this.uiCtrl.showLoading(
+            'Analyse STS en cours',
+            CloudServiceProvider.MAX_SECONDS * 500
+          );
+
+          this.availableSTSListsSub = forSTSImportCollection
+            .snapshotChanges()
+            .subscribe((docChanges: DocumentChangeAction[]) => {
+              this.importSharedListsWrapper(docChanges);
+            });
+
+          setTimeout(() => {
+            this.tryUnsub(this.availableSTSListsSub);
+          }, CloudServiceProvider.MAX_SECONDS * 1000);
+        }
+      }
+    }
   }
 
   /**
@@ -356,20 +379,20 @@ export class CloudServiceProvider {
   private watchForAvailableList(user: User): void {
     this.tryUnsub(this.availableListsSub);
 
-    if (user == null) {
-      return;
+    if (user != null) {
+      this.cleanUp();
+
+      const forImportCollection = this.firestoreCtrl.collection<ICloudSharedList>(
+        'cloud',
+        ref => ref.where('email', '==', this.authCtrl.getEmail())
+      );
+
+      this.availableListsSub = forImportCollection
+        .snapshotChanges()
+        .subscribe((docChanges: DocumentChangeAction[]) => {
+          this.importSharedListsWrapper(docChanges);
+        });
     }
-    this.cleanUp();
-
-    const forImportCollection = this.firestoreCtrl.collection<ICloudSharedList>('cloud', ref =>
-      ref.where('email', '==', this.authCtrl.getEmail())
-    );
-
-    this.availableListsSub = forImportCollection
-      .snapshotChanges()
-      .subscribe((docChanges: DocumentChangeAction[]) => {
-        this.importSharedListsWrapper(docChanges);
-      });
   }
 
   /**
@@ -412,40 +435,22 @@ export class CloudServiceProvider {
    */
   private async importBySTS(data: ICloudSharedList): Promise<void> {
     if (
-      data == null ||
-      data.list == null ||
-      data.author == null ||
-      data.author.coord == null ||
-      data.author.timestamp == null
+      data != null &&
+      data.list != null &&
+      data.author != null &&
+      data.author.coord != null &&
+      data.author.timestamp != null
     ) {
-      return;
-    }
+      const existList = this.todoCtrl.getAllList();
+      if (existList.find(l => l.uuid === data.list.listUUID) == null) {
+        const stsEnabled: boolean = await this.settingsCtrl.getSetting(Settings.ENABLE_STS);
 
-    const existList = this.todoCtrl.getAllList();
-    if (existList.find(l => l.uuid === data.list.listUUID) != null) {
-      return;
-    }
-
-    const stsEnabled: boolean = await this.settingsCtrl.getSetting(Settings.ENABLE_STS);
-
-    if (stsEnabled) {
-      let myPos: ILatLng | null = await this.mapCtrl.getMyPosition();
-
-      if (myPos == null) {
-        this.uiCtrl.displayToast(
-          'Vous devez activer votre geolocalisation pour pouvoir utiliser la fonctionalité ShakeToShare'
-        );
-        return;
-      }
-
-      myPos = Global.roundILatLng(myPos);
-      const myGeoPos = Global.getGeoPoint(myPos);
-
-      if (myGeoPos.isEqual(data.author.coord)) {
-        const now = await this.timestampAreCloseToNow(data.author.timestamp);
-        if (now) {
-          this.todoCtrl.addListLink(data.list);
-          this.uiCtrl.dismissLoading();
+        if (stsEnabled) {
+          const now = await this.timestampAreCloseToNow(data.author.timestamp);
+          if (now) {
+            this.todoCtrl.addListLink(data.list);
+            this.uiCtrl.dismissLoading();
+          }
         }
       }
     }
@@ -463,22 +468,43 @@ export class CloudServiceProvider {
     const myEmail = this.authCtrl.getEmail();
     const data: ICloudSharedList = importdoc.data() as ICloudSharedList;
     if (
-      data == null ||
-      data.list == null ||
-      data.author == null ||
-      data.author.uuid === this.authCtrl.getUserId()
+      data != null &&
+      data.list != null &&
+      data.author != null &&
+      data.author.uuid !== this.authCtrl.getUserId()
     ) {
-      return;
+      if (data.email != null && data.email === myEmail && data.email !== '') {
+        const canImport =
+          (await this.dbCtrl.getSetting(Settings.AUTO_IMPORT)) ||
+          (await this.askForImport(data));
+        if (canImport) {
+          this.importSharedList(data.list);
+        }
+
+        importdoc.ref.delete();
+      } else if (data.shakeToShare != null && data.shakeToShare) {
+        this.importBySTS(data);
+      }
     }
-    if (data.email != null && data.email === myEmail && data.email !== '') {
-      this.importSharedList(data.list);
-      importdoc.ref.delete();
-      return;
+  }
+
+  /**
+   * demande l'authorisation à l'utilisateur de recevoir une liste qui lui est destiné
+   *
+   * @private
+   * @param {ICloudSharedList} data
+   * @returns {Promise<boolean>}
+   * @memberof CloudServiceProvider
+   */
+  private async askForImport(data: ICloudSharedList): Promise<boolean> {
+    if (data.author == null || data.author.displayName == null) {
+      return false;
     }
-    if (data.shakeToShare != null && data.shakeToShare) {
-      this.importBySTS(data);
-      return;
-    }
+
+    return this.uiCtrl.confirm(
+      'Un partage de liste est disponible',
+      data.author.displayName + ' voudrait partager la liste ' + data.name + ' avec vous.'
+    );
   }
 
   /**
@@ -506,12 +532,10 @@ export class CloudServiceProvider {
    * @memberof CloudServiceProvider
    */
   private importSharedListsWrapper(docChangeAction: DocumentChangeAction[]): void {
-    if (docChangeAction == null || !this.authCtrl.isConnected()) {
-      return;
-    }
-
-    for (const doc of docChangeAction) {
-      this.DocumentImportHandler(doc.payload.doc as DocumentSnapshot);
+    if (docChangeAction != null && this.authCtrl.isConnected()) {
+      for (const doc of docChangeAction) {
+        this.DocumentImportHandler(doc.payload.doc as DocumentSnapshot);
+      }
     }
   }
 
@@ -550,6 +574,6 @@ export class CloudServiceProvider {
         type: 'password'
       }
     ]);
-    return res.password;
+    return sha256(CloudServiceProvider.SALT + res.password);
   }
 }
