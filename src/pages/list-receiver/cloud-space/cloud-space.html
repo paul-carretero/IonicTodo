@@ -3,7 +3,7 @@
 </ion-header>
 
 <ion-content padding>
-  <ng-container *ngFor="let list of cloudList$ | async">
+  <ng-container *ngFor="let list of cloudList">
     <ng-container *ngIf="search$ | async as search">
       <ion-card *ngIf="areMatching(list,search)">
         <ion-toolbar>

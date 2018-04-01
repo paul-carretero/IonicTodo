@@ -1,3 +1,4 @@
+import { Subscription } from 'rxjs/Rx';
 import { Component } from '@angular/core';
 import { IonicPage, NavController } from 'ionic-angular';
 import { Observable } from 'rxjs';
@@ -25,13 +26,14 @@ import { CloudServiceProvider } from './../../../providers/cloud-service/cloud-s
 })
 export class CloudSpacePage extends GenericPage {
   /***************************** PUBLIC FIELDS ******************************/
+
   /**
-   * flux des liste disponibles sur le cloud
+   * Liste disponibles sur le cloud
    *
-   * @type {Observable<ICloudSharedList[]>}
+   * @type {ICloudSharedList[]}
    * @memberof CloudSpacePage
    */
-  protected readonly cloudList$: Observable<ICloudSharedList[]>;
+  protected cloudList: ICloudSharedList[];
 
   /**
    * Flux de recherche utilisateur
@@ -40,6 +42,17 @@ export class CloudSpacePage extends GenericPage {
    * @memberof CloudSpacePage
    */
   protected readonly search$: Observable<string>;
+
+  /***************************** PRIVATE FIELDS *****************************/
+
+  /**
+   * Subscription au flux de liste partagée dans le cloud
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof CloudSpacePage
+   */
+  private cloudListSub: Subscription;
 
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
@@ -65,7 +78,7 @@ export class CloudSpacePage extends GenericPage {
     private readonly cloudCtrl: CloudServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
-    this.cloudList$ = this.cloudCtrl.getCloudLists();
+    this.cloudList = [];
     this.search$ = this.evtCtrl.getSearchSubject();
   }
 
@@ -86,6 +99,19 @@ export class CloudSpacePage extends GenericPage {
     pageData.searchable = true;
     pageData.searchPlaceholders = 'chercher par liste ou auteur';
     this.evtCtrl.setHeader(pageData);
+
+    this.cloudListSub = this.cloudCtrl.getCloudLists().subscribe(lists => {
+      this.cloudList = lists;
+    });
+  }
+
+  /**
+   * termine la subscription au flux des lists du cloud ohmytask
+   *
+   * @memberof CloudSpacePage
+   */
+  ionViewWillLeave(): void {
+    this.tryUnSub(this.cloudListSub);
   }
 
   /**************************************************************************/
@@ -138,5 +164,37 @@ export class CloudSpacePage extends GenericPage {
    */
   protected networkRequired(): boolean {
     return true;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {string}
+   * @memberof CloudSpacePage
+   */
+  protected generateDescription(): string {
+    if (this.cloudList.length === 0) {
+      return "Aucune listes n'est actuellement disponible sur le cloud OhMyTask";
+    }
+
+    let res = 'Les listes disponibles sur le cloud OhMyTask sont:';
+
+    if (this.cloudList.length === 1) {
+      res = 'La liste disponible sur le cloud OhMyTask est:';
+    }
+
+    for (const list of this.cloudList) {
+      res += list.name;
+      if (
+        list.author != null &&
+        list.author.displayName != null &&
+        list.author.displayName !== ''
+      ) {
+        res += ' de ' + list.author.displayName;
+      }
+      res += ';';
+    }
+
+    return res;
   }
 }

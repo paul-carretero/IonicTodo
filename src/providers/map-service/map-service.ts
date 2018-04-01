@@ -53,9 +53,7 @@ export class MapServiceProvider {
   constructor(
     private readonly nativeGeocoder: NativeGeocoder,
     private readonly geolocCtrl: Geolocation
-  ) {
-    this.getMyPosition();
-  }
+  ) {}
 
   /**************************************************************************/
   /********************** METHODES PUBLIQUES/INTERFACE **********************/
@@ -177,19 +175,15 @@ export class MapServiceProvider {
    * reset la position courrante au bout d'une certaine durée, (100s par défault)
    *
    * @private
-   * @param {number} [timeout]
    * @memberof MapServiceProvider
    */
-  private resetMyPosition(timeout?: number): void {
-    if (timeout == null) {
-      timeout = 100000;
-    }
+  private resetMyPosition(): void {
     if (this.timeoutPos != null) {
       clearTimeout(this.timeoutPos);
       this.timeoutPos = null;
     }
     this.timeoutPos = setTimeout(() => {
       this.myPosition = null;
-    }, timeout);
+    }, 100000);
   }
 }

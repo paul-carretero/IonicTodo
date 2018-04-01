@@ -1,3 +1,4 @@
+import { MapServiceProvider } from './../providers/map-service/map-service';
 import { AuthServiceProvider } from './../providers/auth-service/auth-service';
 import { AdsServiceProvider } from './../providers/ads-service/ads-service';
 import { SpeechRecServiceProvider } from './../providers/speech-rec-service/speech-rec-service';
@@ -57,7 +58,8 @@ export class MyApp {
     private readonly notifCtrl: NotifServiceProvider,
     private readonly speechCtrl: SpeechRecServiceProvider,
     private readonly adsCtrl: AdsServiceProvider,
-    private readonly authCtrl: AuthServiceProvider
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly mapCtrl: MapServiceProvider
   ) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
@@ -75,7 +77,8 @@ export class MyApp {
   /**************************************************************************/
 
   /**
-   * démarre les listener des service démarrant au démarrage de l'application
+   * démarre les listener des service démarrant au démarrage de l'application.
+   * Demande également la position pour en avoir une dans le cache
    *
    * @private
    * @memberof MyApp
@@ -87,5 +90,6 @@ export class MyApp {
     this.speechCtrl.listenForSpeechRequest();
     this.adsCtrl.refreshBanner();
     this.authCtrl.applyAutoLoginSetting();
+    this.mapCtrl.getMyPosition();
   }
 }

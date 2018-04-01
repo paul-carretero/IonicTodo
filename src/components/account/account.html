@@ -12,10 +12,13 @@
 <ion-card *ngIf="userProfile" class="margin-button">
   <ion-item>
     <p>
-      <ion-icon name="ribbon" class="align-icon"></ion-icon>Création du compte : {{createDate}}
+      <ion-icon name="information-circle" class="align-icon"></ion-icon>Création du compte : {{createDate}}
     </p>
     <p>
       <ion-icon name="information-circle" class="align-icon"></ion-icon>Dernière connexion : {{lastLogin}}
+    </p>
+    <p>
+      <ion-icon name="ribbon" class="align-icon"></ion-icon>Tâche complétées : {{completeTask}}
     </p>
   </ion-item>
 </ion-card>

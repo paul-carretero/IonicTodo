@@ -314,13 +314,23 @@ export class TodoServiceProvider {
   }
 
   /**
+   * retourne un observable sur les données utilisateur
+   *
+   * @returns {Observable<IAppUser>}
+   * @memberof TodoServiceProvider
+   */
+  public getUserData(): Observable<IAppUser> {
+    return this.currentUserData;
+  }
+
+  /**
    * retourne le status de la connexion au réseau
    *
    * @readonly
    * @type {boolean}
    * @memberof TodoServiceProvider
    */
-  get online(): boolean {
+  private get online(): boolean {
     return this.evtCtrl.getNetStatus();
   }
 
@@ -646,7 +656,7 @@ export class TodoServiceProvider {
     this.deleteListTodoSnap(listUuid);
 
     if (toDelete !== -1) {
-      listsPathTab.splice(toDelete);
+      listsPathTab.splice(toDelete, 1);
 
       try {
         const p = this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab });
@@ -1350,12 +1360,28 @@ export class TodoServiceProvider {
       if (this.online) {
         await p;
       }
-    } catch (error) {
-      return;
-    }
+    } catch (error) {}
+
     if (todo.complete && todo.sendSMS) {
       this.contactCtrl.publishCompleteSms(todo);
     }
+
+    this.incrTodoCount();
+  }
+
+  /**
+   * incrémente le nombre de todo validé par l'utilisateur
+   *
+   * @private
+   * @memberof TodoServiceProvider
+   */
+  private incrTodoCount(): void {
+    const newTodoValid = this.currentUserData.getValue().todoValide + 1;
+    this.currentUserDataDoc
+      .update({
+        todoValide: newTodoValid
+      })
+      .catch();
   }
 
   /**

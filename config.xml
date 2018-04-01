@@ -16,10 +16,11 @@
     <preference name="android-targetSdkVersion" value="26" />
     <preference name="BackupWebStorage" value="none" />
     <preference name="SplashMaintainAspectRatio" value="true" />
-    <preference name="FadeSplashScreenDuration" value="300" />
+    <preference name="FadeSplashScreenDuration" value="500" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
     <preference name="SplashScreen" value="screen" />
-    <preference name="SplashScreenDelay" value="3000" />
+    <preference name="SplashScreenDelay" value="20000" />
+    <preference name="AutoHideSplashScreen" value="false" />
     <preference name="loadUrlTimeoutValue" value="700000" />
     <platform name="android">
         <allow-intent href="market:*" />
@@ -126,11 +127,11 @@
     <allow-navigation href="http://192.168.1.76:8100" />
     <allow-navigation href="http://192.168.0.6:8101" />
     <engine name="browser" spec="^5.0.3" />
+    <engine name="android" spec="^6.4.0" />
     <plugin name="cordova-plugin-googlemaps" spec="^2.2.9">
         <variable name="API_KEY_FOR_ANDROID" value="AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE" />
         <variable name="API_KEY_FOR_IOS" value="AIzaSyAjMsCSU3kKr0de-ku2nwrsRVLv1NzYnvE" />
         <variable name="PLAY_SERVICES_VERSION" value="12.0.1" />
         <variable name="ANDROID_SUPPORT_V4_VERSION" value="24.1.0" />
     </plugin>
-    <engine name="android" spec="~6.4.0" />
 </widget>

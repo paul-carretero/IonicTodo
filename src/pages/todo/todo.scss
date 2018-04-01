@@ -12,4 +12,12 @@ page-todo {
     border: 1px solid black;
     background-color: color($colors, secondary, base);
   }
+  .todo-title {
+    background-color: color($colors, light, base);
+    border-bottom: 1px solid black;
+    margin-bottom: 10px;
+  }
+  .todo-title ion-item {
+    background-color: color($colors, light, base);
+  }
 }

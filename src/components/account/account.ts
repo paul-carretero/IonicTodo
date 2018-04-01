@@ -1,8 +1,12 @@
+import { Subscription } from 'rxjs/Rx';
+import { IAppUser } from './../../model/user';
+import { TodoServiceProvider } from './../../providers/todo-service-ts/todo-service-ts';
 import { UiServiceProvider } from './../../providers/ui-service/ui-service';
 import { Component, OnInit } from '@angular/core';
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
 import { User } from 'firebase/app';
 import moment from 'moment';
+import { OnDestroy } from '@angular/core/src/metadata/lifecycle_hooks';
 
 /**
  * permet de réprésenter un compte utilisateur et les informations qui y sont associées
@@ -15,7 +19,7 @@ import moment from 'moment';
   selector: 'account',
   templateUrl: 'account.html'
 })
-export class AccountComponent implements OnInit {
+export class AccountComponent implements OnInit, OnDestroy {
   /**
    * profile utilisateur si il est connecté
    *
@@ -43,6 +47,24 @@ export class AccountComponent implements OnInit {
    */
   protected lastLogin: string;
 
+  /**
+   * nombre de todo validé par l'utilisateur
+   *
+   * @protected
+   * @type {number}
+   * @memberof AccountComponent
+   */
+  protected completeTask: number;
+
+  /**
+   * subscription au metadata utilisateur
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof AccountComponent
+   */
+  private userSub: Subscription;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
@@ -55,11 +77,13 @@ export class AccountComponent implements OnInit {
    */
   constructor(
     private readonly authCtrl: AuthServiceProvider,
-    private readonly uiCtrl: UiServiceProvider
+    private readonly uiCtrl: UiServiceProvider,
+    private readonly todoCtrl: TodoServiceProvider
   ) {
     this.userProfile = null;
     this.createDate = '';
     this.lastLogin = '';
+    this.completeTask = 0;
   }
 
   /**************************************************************************/
@@ -84,6 +108,22 @@ export class AccountComponent implements OnInit {
           .locale('fr')
           .format('ddd D MMM, HH:mm');
       }
+      this.userSub = this.todoCtrl.getUserData().subscribe((user: IAppUser) => {
+        if (user != null) {
+          this.completeTask = user.todoValide;
+        }
+      });
+    }
+  }
+
+  /**
+   * termine la subscription aux données utilisateur
+   *
+   * @memberof AccountComponent
+   */
+  ngOnDestroy(): void {
+    if (this.userSub != null) {
+      this.userSub.unsubscribe();
     }
   }
 

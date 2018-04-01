@@ -251,9 +251,6 @@ export class TodoPage extends GenericPage {
     if (this.navParams.get('isExternal') == null) {
       this.isExternal = false;
     } else {
-      if (this.fromListUuid != null) {
-        this.editable = !this.todoCtrl.isReadOnly(this.fromListUuid);
-      }
       this.isExternal = this.navParams.get('isExternal');
     }
     this.construct();
@@ -270,6 +267,9 @@ export class TodoPage extends GenericPage {
     this.completeLoading = false;
     this.isMine = false;
     this.isInCalendar = false;
+    if (this.fromListUuid != null) {
+      this.editable = !this.todoCtrl.isReadOnly(this.fromListUuid);
+    }
   }
 
   /**************************************************************************/
@@ -429,65 +429,41 @@ export class TodoPage extends GenericPage {
   /**
    * retourne, si possible une position de départ pour la carte
    * dans l'ordre de priorité : l'addresse du todo, le position de la personne, la position de création puis de complétion du todo
-   * Si aucune position n'est disponible, alors retourne null
+   * Si aucune position n'est disponible, alors retourne une position par défault
    *
    * @private
    * @returns {(Promise<GoogleMapOptions | null>)}
    * @memberof TodoPage
    */
-  private async getStartOpts(): Promise<GoogleMapOptions | null> {
+  private async getStartOpts(): Promise<GoogleMapOptions> {
     const myPosP: Promise<ILatLng | null> = this.mapCtrl.getMyPosition();
     let todoAddress: null | ILatLng = null;
     if (this.todo.address != null) {
       try {
         todoAddress = await this.mapCtrl.AddressToCoord(this.todo.address);
-      } catch (error) {
-        console.log("impossible de convertir l'adresse en coordonnées");
-      }
+      } catch (error) {}
     }
+
     const myPos = await myPosP;
+    const res = {
+      camera: {
+        target: todoAddress,
+        zoom: 10,
+        tilt: 30
+      }
+    };
 
     if (todoAddress != null) {
-      return {
-        camera: {
-          target: todoAddress,
-          zoom: 40,
-          tilt: 30
-        }
-      };
+      res.camera.target = todoAddress;
+    } else if (myPos != null) {
+      res.camera.target = myPos;
+    } else if (this.todo.author != null && this.todo.author.coord != null) {
+      res.camera.target = Global.getILatLng(this.todo.author.coord);
+    } else if (this.todo.completeAuthor != null && this.todo.completeAuthor.coord != null) {
+      res.camera.target = Global.getILatLng(this.todo.completeAuthor.coord);
     }
 
-    if (myPos != null) {
-      return {
-        camera: {
-          target: myPos,
-          zoom: 40,
-          tilt: 30
-        }
-      };
-    }
-
-    if (this.todo.author != null && this.todo.author.coord != null) {
-      return {
-        camera: {
-          target: Global.getILatLng(this.todo.author.coord),
-          zoom: 40,
-          tilt: 30
-        }
-      };
-    }
-
-    if (this.todo.completeAuthor != null && this.todo.completeAuthor.coord != null) {
-      return {
-        camera: {
-          target: Global.getILatLng(this.todo.completeAuthor.coord),
-          zoom: 40,
-          tilt: 30
-        }
-      };
-    }
-
-    return null;
+    return res;
   }
 
   /**
@@ -500,7 +476,7 @@ export class TodoPage extends GenericPage {
   private async animateCamera(): Promise<void> {
     const myPosP: Promise<ILatLng | null> = this.mapCtrl.getMyPosition();
     let todoAddress: null | ILatLng = null;
-    if (this.todo.address != null) {
+    if (this.todo.address != null && this.todo.address !== '') {
       try {
         todoAddress = await this.mapCtrl.AddressToCoord(this.todo.address);
       } catch (error) {
@@ -523,7 +499,7 @@ export class TodoPage extends GenericPage {
       bounds.push(Global.getILatLng(this.todo.completeAuthor.coord));
     }
 
-    if (bounds.length > 1) {
+    if (bounds.length > 0) {
       const latlngBounds = new LatLngBounds(bounds);
       const opts = {
         target: latlngBounds,
@@ -668,7 +644,8 @@ export class TodoPage extends GenericPage {
         title: 'Complétion de la tâche',
         icon: 'red',
         animation: 'DROP',
-        position: latlnt
+        position: latlnt,
+        preferences: { building: true }
       });
 
       if (this.todoCompleteAuthorMapMarker == null) {
@@ -708,15 +685,8 @@ export class TodoPage extends GenericPage {
     if (this.mapLoaded) {
       return;
     }
-
     const mapOptions = await this.getStartOpts();
-    if (mapOptions == null) {
-      return;
-    }
-    mapOptions.preferences = { building: true };
-
     this.map = GoogleMaps.create('mapwrapper', mapOptions);
-
     try {
       await this.map.one(GoogleMapsEvent.MAP_READY);
       this.map.setMyLocationEnabled(true);
