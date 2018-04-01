@@ -2,21 +2,21 @@
 
 
 Création de l'espace de travail
------------------------------
+-
 > - `git clone https://github.com/paul-carretero/IonicTodo <dir>`
 > - `cd <dir>`
 
 Préparation de l'espace de travail
------------------------------
+-
 > - `./ohmytask.sh rebuild`
 
 Lancement de l'application
------------------------------
+-
 > - `./ohmytask.sh debug` (env debug)
 > - `./ohmytask.sh prod` (env prod : active les optimisation aot etc.)
 
 Lancement du serveur de documentation
------------------------------
+-
 > - `./ohmytask.sh doc` 
 
 # Todolist
