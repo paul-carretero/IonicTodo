@@ -173,11 +173,130 @@ export class UiServiceProvider {
     this.alertCtrl
       .create({
         title: title,
-        subTitle: text,
+        subTitle:text,
         buttons: ['OK']
       })
       .present();
   }
+
+  /**
+   * affiche une fenêtre d'information, pour de grand messages
+   * @param {string} title le titre de la fenêtre d'alerte
+   * @param {string} subtitle le sous-titre de la fenêtre d'alerte
+   * @param {string} text le texte de le fenêtre d'alerte
+   * @memberof UiServiceProvider
+   */
+  public alert_message(title: string, subtitle: string,  text: string, debut : boolean, fin : ConstrainBoolean): Promise<number> {
+    if (this.autoRead) {
+      this.synthCtrl.synthText(title);
+      this.synthCtrl.synthText(subtitle);
+      this.synthCtrl.synthText(text);
+    }
+    let alert : Promise<number>;
+
+    if(debut){
+      alert = this.alert_debut(title, subtitle, text);
+    }
+    else{
+      if(fin){
+        alert = this.alert_fin(title, text);
+      }
+      else {
+        alert = this.alert_milieu(title, text);
+      }
+    }
+    return alert;
+  }
+
+
+  private alert_debut(title: string, subtitle: string,  text: string) : Promise<number> {
+    return new Promise<number>(resolve => {
+      this.alertCtrl
+        .create({
+          title: title,
+          subTitle : subtitle,
+          message: text,
+          buttons: [
+            {
+              text: 'Suivant',
+              handler: () => {
+                resolve(1);
+              }
+            },
+            {
+              text: 'Quitter',
+              role: 'cancel',
+              handler: () => {
+                resolve(0);
+              }
+            }
+          ]
+        })
+        .present();
+    });
+  }
+
+
+  private alert_milieu(title: string,  text: string) : Promise<number> {
+    return new Promise<number>(resolve => {
+      this.alertCtrl
+        .create({
+          title: title,
+          message: text,
+          buttons: [
+            {
+              text: 'Précédent',
+              handler: () => {
+                resolve(-1);
+              }
+            },
+            {
+              text: 'Suivant',
+              handler: () => {
+                resolve(1);
+              }
+            },
+            {
+              text: 'Quitter',
+              role: 'cancel',
+              handler: () => {
+                resolve(0);
+              }
+            }
+          ]
+        })
+        .present();
+    });
+  }
+
+
+  private alert_fin(title: string,  text: string) : Promise<number> {
+    return new Promise<number>(resolve => {
+      this.alertCtrl
+        .create({
+          title: title,
+          message: text,
+          buttons: [
+            {
+              text: 'Précédent',
+              handler: () => {
+                resolve(-1);
+              }
+            },
+            {
+              text: 'Quitter',
+              role: 'cancel',
+              handler: () => {
+                resolve(0);
+              }
+            }
+          ]
+        })
+        .present();
+    });
+  }
+
+
 
   /**
    * Affiche un message 'toast' en bas de l'écran

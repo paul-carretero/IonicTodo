@@ -118,13 +118,33 @@ export abstract class GenericPage {
       .getNavRequestSubject()
       .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page, navReq.data));
 
-    this.menuEvtSub = this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
+    this.menuEvtSub = this.evtCtrl.getMenuRequestSubject().subscribe(async (req: IMenuRequest) => {
       switch (req.request) {
         case MenuRequestType.SPEECH_SYNTH:
           this.ttsCtrl.synthText(this.generateDescription());
           break;
         case MenuRequestType.HELP:
-          this.uiCtrl.alert('Aide sur la page', this.generateHelp());
+          let indice_message = 0;
+          let next : number = 0;
+          while(indice_message < this.generateHelp().messages.length){
+            indice_message += next;
+            switch (indice_message) {
+              case 0 : 
+                next = await this.uiCtrl.alert_message('Aide sur la page', this.generateHelp().subtitle, this.generateHelp().messages[indice_message], true, false);
+                break;
+              case this.generateHelp().messages.length -1 : 
+                next = await this.uiCtrl.alert_message('Aide sur la page', this.generateHelp().subtitle, this.generateHelp().messages[indice_message], false, true);
+                break;
+              default :
+                next = await this.uiCtrl.alert_message('Aide sur la page', this.generateHelp().subtitle, this.generateHelp().messages[indice_message], false, false);
+                break;
+            }
+              
+            if(next === 0){
+              break;
+            }
+          }
+          
           break;
       }
       this.menuEventHandler(req);
@@ -286,8 +306,8 @@ export abstract class GenericPage {
    * @returns {string}
    * @memberof GenericPage
    */
-  protected generateHelp(): string {
-    return 'Aucune aide disponible pour cette page :/';
+  protected generateHelp(): {subtitle : string, messages : string[]} {
+    return {subtitle : "", messages :['Aucune aide disponible pour cette page :/']};
   }
 
   /**
