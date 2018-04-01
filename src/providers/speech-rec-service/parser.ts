@@ -424,6 +424,7 @@ export class SpeechParser {
         req.request.request === MenuRequestType.CREATE ||
         req.request.request === MenuRequestType.SEND ||
         req.request.request === MenuRequestType.VIEW ||
+        req.request.request === MenuRequestType.COMPLETE ||
         req.request.request === MenuRequestType.SHARE)
     ) {
       req.listFound = this.currentList;

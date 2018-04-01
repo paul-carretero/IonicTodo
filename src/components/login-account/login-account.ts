@@ -96,7 +96,7 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
   ) {
     this.authForm = this.formBuilder.group({
       email: ['', Validators.email],
-      password: ['', Validators.required]
+      password: ['', Validators.minLength(6)]
     });
     this.netStatus = false;
   }

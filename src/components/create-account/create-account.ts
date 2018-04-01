@@ -101,13 +101,13 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
    * @memberof CreateAccountComponent
    */
   ngOnInit(): void {
-    super.ngOnInit();
     this.account = this.authCtrl.getUser();
+    super.ngOnInit();
     this.prepareForEdit();
   }
 
   /**************************************************************************/
-  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /******************************* OVERRIDES ********************************/
   /**************************************************************************/
 
   /**
@@ -130,6 +130,10 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
       }
     }
   }
+
+  /**************************************************************************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
+  /**************************************************************************/
 
   /**
    * permet de valider les informations saisies et créer ou mettre à jour le compte

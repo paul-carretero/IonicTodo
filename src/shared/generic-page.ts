@@ -105,8 +105,6 @@ export abstract class GenericPage {
    */
   ionViewWillUnload(): void {
     this.tryUnSub(this.secureAuthSub);
-    this.tryUnSub(this.deleteSub);
-    this.tryUnSub(this.netSub);
   }
 
   /**
@@ -135,12 +133,15 @@ export abstract class GenericPage {
 
   /**
    * Termine les subscription aux évenement de menu et de navigation (par le menu de gauche)
+   * et à la surveillance de suppression de contenus
    *
    * @memberof GenericPage
    */
   ionViewDidLeave() {
     this.tryUnSub(this.navSub);
     this.tryUnSub(this.menuEvtSub);
+    this.tryUnSub(this.deleteSub);
+    this.tryUnSub(this.netSub);
   }
 
   /**************************************************************************/
@@ -256,6 +257,13 @@ export abstract class GenericPage {
     return false;
   }
 
+  /**
+   * handler si une liste ou une tache à été supprimé et n'est plus disponible, par défault poptoroot
+   *
+   * @protected
+   * @param {boolean} isList
+   * @memberof GenericPage
+   */
   protected hasBeenRemoved(isList: boolean): void {
     if (isList) {
       this.uiCtrl.displayToast("La liste a été supprimée et n'est plus disponible");

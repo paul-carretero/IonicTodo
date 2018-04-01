@@ -227,8 +227,6 @@ export class TodoListPage extends GenericPage {
 
   /**
    * Une fois que la vue est initialisé, défini le contexte courrant de la liste.
-   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
-   * pour n'effectuer une detection des changemenents que toutes les 3s.
    *
    * @memberof TodoListPage
    */
@@ -309,6 +307,10 @@ export class TodoListPage extends GenericPage {
       }
     } else {
       pageData.importable = false;
+    }
+
+    if (this.listType === ListType.LOCAL) {
+      pageData.shareable = false;
     }
 
     try {

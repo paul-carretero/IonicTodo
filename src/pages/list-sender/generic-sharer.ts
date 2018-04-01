@@ -182,6 +182,7 @@ export class GenericSharer extends GenericPage {
   /**************************************************************************/
 
   /**
+   * pour partager une liste on doit être connecté
    * @override
    * @protected
    * @returns {boolean}
@@ -192,6 +193,7 @@ export class GenericSharer extends GenericPage {
   }
 
   /**
+   * pour partager une liste on doit être connecté
    * @override
    * @protected
    * @returns {boolean}
@@ -202,6 +204,7 @@ export class GenericSharer extends GenericPage {
   }
 
   /**
+   * pour partager une liste on doit être connecté aux interwebz
    * @override
    * @protected
    * @returns {boolean}

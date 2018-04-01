@@ -29,6 +29,11 @@ import { Observable } from 'rxjs/Observable';
 import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
 
 /**
+ * plugin pour selection d'image natif (wrapper ne fonctionnant que pour le plugin natif buggué :/)
+ */
+declare const imagePicker: any;
+
+/**
  * page d'édition ou de création d'un todo (si aucun uuid n'est passé en paramètre)
  *
  * @export
@@ -420,7 +425,7 @@ export class TodoEditPage extends GenericPage {
       const uriTab = uri.split('/');
       const name = uriTab[uriTab.length - 1].substring(4, 20);
       const entry: IPicture = { uuid: uuid(), dl: 0, url: null, author: author, name: name };
-      prepareUploadedPics.push(entry);
+      prepareUploadedPics.unshift(entry);
       this.todo.pictures.push(entry);
     }
 
@@ -665,7 +670,7 @@ export class TodoEditPage extends GenericPage {
    */
   protected openGalleryWrapper(): void {
     this.requestPerms();
-    (<any>window).imagePicker.getPictures(
+    imagePicker.getPictures(
       (res: string[]) => {
         this.imgResultHandler(res, null);
       },

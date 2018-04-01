@@ -94,8 +94,8 @@ export class CloudSpacePage extends GenericPage {
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
-    pageData.title = 'Listes Publiques';
-    pageData.subtitle = 'Listes disponibles';
+    pageData.title = 'Cloud OhMyTask';
+    pageData.subtitle = 'Listes publiques';
     pageData.searchable = true;
     pageData.searchPlaceholders = 'chercher par liste ou auteur';
     this.evtCtrl.setHeader(pageData);

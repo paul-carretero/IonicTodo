@@ -10,7 +10,11 @@ import { UiServiceProvider } from '../../../providers/ui-service/ui-service';
 import { GenericPage } from '../../../shared/generic-page';
 import { Global } from '../../../shared/global';
 
-declare var OCRAD: any;
+/**
+ * import de la bibliothèque d'OCR OCRAD
+ * @see https://www.gnu.org/software/ocrad/
+ */
+declare const OCRAD: any;
 
 /**
  * Page affichant une preview et la possibilité de photographier un text pour reconnaissance de caractères.

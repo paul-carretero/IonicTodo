@@ -760,7 +760,7 @@ export class SpeechRecServiceProvider {
         message_error = 'La tâche ' + sentence.newTodoName + " n'a pas été trouvée";
       }
     } else {
-      if (sentence.newListName == null || sentence.newListName === '') {
+      if (sentence.newListName != null || sentence.newListName !== '') {
         message_error =
           'Veuillez indiquer dans quelle liste supprimer la tâche ' +
           sentence.newTodoName +
@@ -862,9 +862,9 @@ export class SpeechRecServiceProvider {
         message_error = 'La tâche ' + sentence.newTodoName + " n'a pas été trouvée";
       }
     } else {
-      if (sentence.newListName == null || sentence.newListName === '') {
+      if (sentence.newListName != null && sentence.newListName !== '') {
         message_error =
-          'Veuillez indiquer dans quelle liste supprimer la tâche ' +
+          'Veuillez indiquer dans quelle liste compléter la tâche ' +
           sentence.newTodoName +
           ' .';
       } else {

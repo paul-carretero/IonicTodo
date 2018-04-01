@@ -786,6 +786,7 @@ export class TodoServiceProvider {
     } else if (destType === ListType.PRIVATE || destType === ListType.LOCAL) {
       // on ajoute la liste à la collection de destination et on supprime la liste de la collection source
       const newUuid: string = await this.addList(data, destType);
+      await this.cloneTodo(data.uuid, this.authCtrl.getUserId(), newUuid);
       this.deleteList(data.uuid, curListType);
       return newUuid;
     }
@@ -1160,60 +1161,53 @@ export class TodoServiceProvider {
   }
 
   /**
-   * Permet de cloner les todos d'une liste vers une autre liste
+   * Permet de cloner les todos d'une liste vers une autre liste.
+   * Recherche d'abord si on ne possède pas déjà un lien vers cette liste
    *
    * @private
    * @param {string} listUuidSrc
-   * @param {string} userUuidSrc
+   * @param {(string | null)} userUuidSrc
    * @param {string} listUuidDest
+   * @param {boolean} [keepUuid]
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
   private async cloneTodo(
     listUuidSrc: string,
-    userUuidSrc: string,
-    listUuidDest: string
+    userUuidSrc: string | null,
+    listUuidDest: string,
+    keepUuid?: boolean
   ): Promise<void> {
-    const collection = this.firestoreCtrl.collection<ITodoItem>(
-      '/user/' + userUuidSrc + '/list/' + listUuidSrc + '/todo'
-    );
+    if (userUuidSrc == null) {
+      return;
+    }
+
+    let listDoc: AngularFirestoreDocument<ITodoList> | null = null;
+    let collection: AngularFirestoreCollection<ITodoItem>;
+    try {
+      listDoc = await this.getFirestoreDocument(listUuidSrc);
+    } catch (error) {}
+
+    if (listDoc != null) {
+      collection = listDoc.collection('todo');
+    } else {
+      collection = this.firestoreCtrl.collection<ITodoItem>(
+        '/user/' + userUuidSrc + '/list/' + listUuidSrc + '/todo'
+      );
+    }
+
     const promises: Promise<any>[] = [];
     const docs = (await collection.ref.get()).docs;
+
     for (const doc of docs) {
       const todo: ITodoItem = doc.data() as ITodoItem;
       if (todo.uuid != null) {
-        promises.push(this.addTodo(listUuidDest, this.deepCloneTodo(todo)));
+        promises.push(this.addTodo(listUuidDest, todo, keepUuid));
       }
     }
+
     await Promise.all(promises);
     await this.refreshTodoSnapForList(listUuidDest);
-  }
-
-  /**
-   * retourne une copie par valeur d'un todo
-   *
-   * @private
-   * @param {ITodoItem} todo
-   * @returns {ITodoItem}
-   * @memberof TodoServiceProvider
-   */
-  private deepCloneTodo(todo: ITodoItem): ITodoItem {
-    return {
-      uuid: null,
-      name: String(todo.name),
-      address: String(todo.address),
-      author: todo.author,
-      complete: Boolean(todo.complete),
-      completeAuthor: todo.completeAuthor,
-      contacts: todo.contacts.slice(0),
-      deadline: todo.deadline,
-      notif: todo.notif,
-      desc: String(todo.desc),
-      order: Number(todo.order),
-      pictures: [],
-      ref: todo.ref,
-      sendSMS: Boolean(todo.sendSMS)
-    };
   }
 
   /**************************************************************************/
@@ -1285,7 +1279,9 @@ export class TodoServiceProvider {
     } catch (error) {
       return Observable.of([]);
     }
+
     this.tryUnsub(this.outterExtTodoSub);
+
     this.outterExtTodoSub = listBase.valueChanges().subscribe((list: ITodoList) => {
       const afDocs: Observable<ITodoItem>[] = [];
       const promises: Promise<void>[] = [];
@@ -1313,7 +1309,7 @@ export class TodoServiceProvider {
   }
 
   /**
-   * Permet d'arréter la subscription aux mises à jour des todos partagée d'une liste
+   * Permet d'arréter la subscription aux mises à jour des todos partagés d'une liste
    *
    * @memberof TodoServiceProvider
    */
@@ -1429,15 +1425,19 @@ export class TodoServiceProvider {
    *
    * @param {string} listUuid
    * @param {ITodoItem} newItem
-   * @returns {Promise<void>}
+   * @param {boolean} [keepUuid]
+   * @returns {(Promise<DocumentReference | null>)}
    * @memberof TodoServiceProvider
    */
   public async addTodo(
     listUuid: string,
     newItem: ITodoItem,
     keepUuid?: boolean
-  ): Promise<DocumentReference | null | string> {
+  ): Promise<DocumentReference | null> {
     let listDoc: AngularFirestoreDocument<ITodoList>;
+    if (newItem.uuid == null) {
+      return null;
+    }
     try {
       listDoc = await this.getFirestoreDocument(listUuid);
     } catch (error) {
@@ -1449,11 +1449,10 @@ export class TodoServiceProvider {
       newItem.uuid = todoUuid;
     }
 
-    if (newItem.uuid == null) {
-      return null;
+    if (newItem.author == null) {
+      newItem.author = await this.authCtrl.getAuthor(false);
     }
 
-    newItem.author = await this.authCtrl.getAuthor(false);
     const doc = listDoc.collection('todo').doc<ITodoItem>(newItem.uuid);
     newItem.ref = doc.ref as DocumentReference;
     const p = doc.set(newItem);

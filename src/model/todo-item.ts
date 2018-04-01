@@ -2,6 +2,14 @@ import { IPicture } from './picture';
 import { ISimpleContact } from './simple-contact';
 import { DocumentReference } from '@firebase/firestore-types';
 import { IAuthor } from './author';
+
+/**
+ * Représente un todo et les informations qui lui sont associées.
+ * Certaines informations sont optionelles
+ *
+ * @export
+ * @interface ITodoItem
+ */
 export interface ITodoItem {
   /**
    * Identifieur unique du todo

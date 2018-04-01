@@ -113,7 +113,9 @@ export class CloudSenderPage extends GenericSharer {
     super.ionViewWillEnter();
     const pageData = Global.getDefaultPageData();
     pageData.title = 'Exporter en ligne';
-    pageData.subtitle = this.evtCtrl.getHeader().title;
+    if (this.list.listUUID != null) {
+      pageData.subtitle = 'Liste ' + this.todoCtrl.getAListSnapshot(this.list.listUUID).name;
+    }
     this.evtCtrl.setHeader(pageData);
   }
 

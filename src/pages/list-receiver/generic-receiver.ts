@@ -126,6 +126,7 @@ export abstract class GenericReceiver extends GenericPage {
   /**************************************************************************/
 
   /**
+   * login required
    * @override
    * @protected
    * @returns {boolean}
@@ -136,6 +137,7 @@ export abstract class GenericReceiver extends GenericPage {
   }
 
   /**
+   * basic auth required
    * @override
    * @protected
    * @returns {boolean}
@@ -146,6 +148,7 @@ export abstract class GenericReceiver extends GenericPage {
   }
 
   /**
+   * netwoirk required
    * @override
    * @protected
    * @returns {boolean}
