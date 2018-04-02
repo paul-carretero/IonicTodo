@@ -428,7 +428,11 @@ export class TodoServiceProvider {
 
     this.sharedListSub = Observable.combineLatest(obsArray).subscribe((lists: ITodoList[]) => {
       if (lists != null) {
-        this.sharedTodoLists.next(lists);
+        this.sharedTodoLists.next(
+          lists
+            .filter(n => n != null)
+            .filter((obj, pos, arr) => arr.findIndex(o => o.uuid === obj.uuid) === pos)
+        );
       } else {
         this.sharedTodoLists.next([]);
       }
@@ -463,7 +467,7 @@ export class TodoServiceProvider {
     }
 
     this.tryUnsub(this.sharedListSub);
-    this.sharedTodoLists.next([]);
+    //this.sharedTodoLists.next([]);
     this.listenForSharedUpdate();
 
     for (const listUUID of pathToDelete) {
@@ -501,7 +505,11 @@ export class TodoServiceProvider {
       .valueChanges()
       .subscribe((lists: ITodoList[]) => {
         if (lists != null) {
-          this.todoLists.next(lists);
+          this.todoLists.next(
+            lists
+              .filter(n => n != null)
+              .filter((obj, pos, arr) => arr.findIndex(o => o.uuid === obj.uuid) === pos)
+          );
         } else {
           this.todoLists.next([]);
         }
@@ -565,7 +573,11 @@ export class TodoServiceProvider {
     );
     this.localTodoListCollection.valueChanges().subscribe((lists: ITodoList[]) => {
       if (lists != null) {
-        this.localTodoLists.next(lists);
+        this.localTodoLists.next(
+          lists
+            .filter(n => n != null)
+            .filter((obj, pos, arr) => arr.findIndex(o => o.uuid === obj.uuid) === pos)
+        );
       } else {
         this.localTodoLists.next([]);
       }
@@ -607,7 +619,7 @@ export class TodoServiceProvider {
         return new Promise(resolve => {
           for (const doc of this.sharedTodoCollection) {
             const sub = doc.valueChanges().subscribe((val: ITodoList) => {
-              if (val.uuid === listUuid) {
+              if (val != null && val.uuid === listUuid) {
                 sub.unsubscribe();
                 resolve(doc);
               } else {
@@ -642,7 +654,10 @@ export class TodoServiceProvider {
     }
 
     const listsPathTab = this.getSharedListPathSnapchot();
-    listsPathTab.push(path);
+    if (listsPathTab.find(p => p.listUUID === path.listUUID) == null) {
+      listsPathTab.push(path);
+    }
+
     await this.currentUserDataDoc.update({ todoListSharedWithMe: listsPathTab }).catch(() => {
       this.currentUserDataDoc.set({
         todoListSharedWithMe: [path],
@@ -688,6 +703,18 @@ export class TodoServiceProvider {
   /**************************************************************************/
   /*********************** PUBLIC ADD LISTS INTERFACE ***********************/
   /**************************************************************************/
+
+  /**
+   * retourne true si un id de liste existe déjà
+   *
+   * @param {string} listUuid
+   * @returns {boolean}
+   * @memberof TodoServiceProvider
+   */
+  public listExist(listUuid: string): boolean {
+    const existList = this.getAllList();
+    return existList.find(l => l != null && l.uuid === listUuid) != null;
+  }
 
   /**
    * Permet de cloner une liste d'un autre utilisateur vers le compte de l'utilsateur courant
@@ -1115,7 +1142,11 @@ export class TodoServiceProvider {
   private obsObsRefactor(obs: Observable<ITodoItem[]>): void {
     this.tryUnsub(this.innerExtTodoSub);
     this.innerExtTodoSub = obs.subscribe(listTab => {
-      this.extTodoSubject.next(listTab);
+      this.extTodoSubject.next(
+        listTab
+          .filter(n => n != null)
+          .filter((obj, pos, arr) => arr.findIndex(o => o.uuid === obj.uuid) === pos)
+      );
     });
   }
 
@@ -1835,9 +1866,22 @@ export class TodoServiceProvider {
    * @memberof TodoServiceProvider
    */
   public getAllList(): ITodoList[] {
-    const localList = this.localTodoLists.getValue();
-    const privateLists = this.todoLists.getValue();
-    const sharedLists = this.sharedTodoLists.getValue();
-    return localList.concat(sharedLists).concat(privateLists);
+    let localList = this.localTodoLists.getValue();
+    let privateLists = this.todoLists.getValue();
+    let sharedLists = this.sharedTodoLists.getValue();
+    if (localList == null) {
+      localList = [];
+    }
+    if (privateLists == null) {
+      privateLists = [];
+    }
+    if (sharedLists == null) {
+      sharedLists = [];
+    }
+    return localList
+      .concat(sharedLists)
+      .concat(privateLists)
+      .filter(n => n != null)
+      .filter((obj, pos, arr) => arr.findIndex(o => o.uuid === obj.uuid) === pos);
   }
 }

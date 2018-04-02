@@ -1,4 +1,3 @@
-import { ITodoList } from './../model/todo-list';
 import { NavController } from 'ionic-angular';
 import { Subscription } from 'rxjs';
 
@@ -7,6 +6,7 @@ import { MenuRequestType } from '../model/menu-request-type';
 import { EventServiceProvider } from '../providers/event/event-service';
 import { SpeechSynthServiceProvider } from '../providers/speech-synth-service/speech-synth-service';
 import { INavRequest } from './../model/nav-request';
+import { ITodoList } from './../model/todo-list';
 import { AuthServiceProvider } from './../providers/auth-service/auth-service';
 import { UiServiceProvider } from './../providers/ui-service/ui-service';
 
@@ -118,37 +118,19 @@ export abstract class GenericPage {
       .getNavRequestSubject()
       .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page, navReq.data));
 
-    this.menuEvtSub = this.evtCtrl.getMenuRequestSubject().subscribe(async (req: IMenuRequest) => {
-      switch (req.request) {
-        case MenuRequestType.SPEECH_SYNTH:
-          this.ttsCtrl.synthText(this.generateDescription());
-          break;
-        case MenuRequestType.HELP:
-          let indice_message = 0;
-          let next : number = 0;
-          while(indice_message < this.generateHelp().messages.length){
-            indice_message += next;
-            switch (indice_message) {
-              case 0 : 
-                next = await this.uiCtrl.alert_message('Aide sur la page', this.generateHelp().subtitle, this.generateHelp().messages[indice_message], true, false);
-                break;
-              case this.generateHelp().messages.length -1 : 
-                next = await this.uiCtrl.alert_message('Aide sur la page', this.generateHelp().subtitle, this.generateHelp().messages[indice_message], false, true);
-                break;
-              default :
-                next = await this.uiCtrl.alert_message('Aide sur la page', this.generateHelp().subtitle, this.generateHelp().messages[indice_message], false, false);
-                break;
-            }
-              
-            if(next === 0){
-              break;
-            }
-          }
-          
-          break;
-      }
-      this.menuEventHandler(req);
-    });
+    this.menuEvtSub = this.evtCtrl
+      .getMenuRequestSubject()
+      .subscribe(async (req: IMenuRequest) => {
+        switch (req.request) {
+          case MenuRequestType.SPEECH_SYNTH:
+            this.ttsCtrl.synthText(this.generateDescription());
+            break;
+          case MenuRequestType.HELP:
+            this.uiCtrl.presentHelpModal(this.generateHelp());
+            break;
+        }
+        this.menuEventHandler(req);
+      });
   }
 
   /**
@@ -306,8 +288,8 @@ export abstract class GenericPage {
    * @returns {string}
    * @memberof GenericPage
    */
-  protected generateHelp(): {subtitle : string, messages : string[]} {
-    return {subtitle : "", messages :['Aucune aide disponible pour cette page :/']};
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return { subtitle: '', messages: ['Aucune aide disponible pour cette page :/'] };
   }
 
   /**

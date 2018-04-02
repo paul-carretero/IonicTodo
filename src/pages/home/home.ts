@@ -192,7 +192,7 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   private async renforceList(list: ITodoList): Promise<ITodoList> {
-    if (list.uuid == null) {
+    if (list == null || list.uuid == null) {
       throw new Error('Identifiant de liste invalide');
     }
     list.metadata = await this.todoService.getListMetaData(list.uuid);
@@ -212,7 +212,9 @@ export class HomePage extends GenericPage {
       .subscribe((lists: ITodoList[]) => {
         const todoListP: Promise<ITodoList>[] = [];
         for (const list of lists) {
-          todoListP.push(this.renforceList(list));
+          if (list != null) {
+            todoListP.push(this.renforceList(list));
+          }
         }
         Promise.all(todoListP).then(res => {
           this.dispatchList(res);
@@ -231,13 +233,15 @@ export class HomePage extends GenericPage {
     const completeList = [];
     const notCompleteList = [];
     for (const list of privateTodoList) {
-      if (
-        list.metadata.todoTotal === 0 ||
-        list.metadata.todoComplete < list.metadata.todoTotal
-      ) {
-        notCompleteList.push(list);
-      } else {
-        completeList.push(list);
+      if (list != null) {
+        if (
+          list.metadata.todoTotal === 0 ||
+          list.metadata.todoComplete < list.metadata.todoTotal
+        ) {
+          notCompleteList.push(list);
+        } else {
+          completeList.push(list);
+        }
       }
     }
     this.todoList = notCompleteList;
@@ -257,7 +261,9 @@ export class HomePage extends GenericPage {
       .subscribe((lists: ITodoList[]) => {
         const localtodoListP: Promise<ITodoList>[] = [];
         for (const list of lists) {
-          localtodoListP.push(this.renforceList(list));
+          if (list != null) {
+            localtodoListP.push(this.renforceList(list));
+          }
         }
         Promise.all(localtodoListP).then(res => {
           this.localTodoList = res;
@@ -276,9 +282,12 @@ export class HomePage extends GenericPage {
     this.sharedListSub = this.todoService
       .getTodoList(ListType.SHARED)
       .subscribe((lists: ITodoList[]) => {
+        console.log(lists);
         const sharedtodoListP: Promise<ITodoList>[] = [];
         for (const list of lists) {
-          sharedtodoListP.push(this.renforceList(list));
+          if (list != null) {
+            sharedtodoListP.push(this.renforceList(list));
+          }
         }
         Promise.all(sharedtodoListP).then(res => {
           this.sharedTodoList = res;
@@ -435,21 +444,25 @@ export class HomePage extends GenericPage {
    * @returns {string}
    * @memberof GenericPage
    */
-  protected generateHelp(): {subtitle : string, messages : string[]} {
-    const aide : string [] = [];
-    const subtitle_page = "Cette page regroupe l'ensemble de vos liste de tâches à réaliser. \n";
-    aide[0] = "Vos listes de tâches sont regroupées en différentes catégories : vos tâches en cours, vos listes terminées, vos listes partagées et vos listes locales. Vous devez être connectés pour accéder aux listes des 3 premières catégories.\n";
-    aide[1] = "À côté du nom de la liste, vous pouvez voir le nombre de tâches que vous avez réalisées sur le nombre totale des tâches contenues dans cette liste.\n" ;
-    aide[2] = "Si la liste contient au moins une tâche en retard, la liste sera marquée d'un point d'exclamation. \n";
-    aide[3] = "Vous pouvez créer une nouvelle liste en cliquant sur le bouton + bleu.\n ";
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    const aide: string[] = [];
+    const subtitle_page =
+      "Cette page regroupe l'ensemble de vos liste de tâches à réaliser. \n";
+    aide[0] =
+      'Vos listes de tâches sont regroupées en différentes catégories : vos tâches en cours, vos listes terminées, vos listes partagées et vos listes locales. Vous devez être connectés pour accéder aux listes des 3 premières catégories.\n';
+    aide[1] =
+      'À côté du nom de la liste, vous pouvez voir le nombre de tâches que vous avez réalisées sur le nombre totale des tâches contenues dans cette liste.\n';
+    aide[2] =
+      "Si la liste contient au moins une tâche en retard, la liste sera marquée d'un point d'exclamation. \n";
+    aide[3] = 'Vous pouvez créer une nouvelle liste en cliquant sur le bouton + bleu.\n ';
     aide[4] = "Vous pouvez afficher le contenu d'une liste en la sélectionnant. \n";
-    aide[5] = "À l'aide des boutons en haut à droite vous pouvez rechercher une liste, utiliser la reconnaissance vocale, demander à l'application de vous lire le contenu de la page, afficher le menu des options. \n";
-    aide[6]= "Des actions supplémentaires sont disponibles dans le menu en haut à gauche.\n";
-    aide[7]= "Pour partager une liste vous devez la sélectionner puis sélectionner les options.\n";
-    aide[8]= "Vous pouvez récupérer une liste partagée par d'autre utilisateurs en sélectionnant le menu.\n";
-    return {subtitle: subtitle_page, messages: aide};
+    aide[5] =
+      "À l'aide des boutons en haut à droite vous pouvez rechercher une liste, utiliser la reconnaissance vocale, demander à l'application de vous lire le contenu de la page, afficher le menu des options. \n";
+    aide[6] = 'Des actions supplémentaires sont disponibles dans le menu en haut à gauche.\n';
+    aide[7] =
+      'Pour partager une liste vous devez la sélectionner puis sélectionner les options.\n';
+    aide[8] =
+      "Vous pouvez récupérer une liste partagée par d'autre utilisateurs en sélectionnant le menu.\n";
+    return { subtitle: subtitle_page, messages: aide };
   }
-
-
-
 }

@@ -5,7 +5,8 @@ import {
   AlertController,
   Loading,
   LoadingController,
-  ToastController
+  ToastController,
+  ModalController
 } from 'ionic-angular';
 import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
 
@@ -29,7 +30,7 @@ export class UiServiceProvider {
    * @type {Loading}
    * @memberof UiServiceProvider
    */
-  private loading: Loading;
+  private loading: Loading | null;
 
   /**
    * true si l'on doit lire automatiquement les alert, false sinon
@@ -62,7 +63,8 @@ export class UiServiceProvider {
     private readonly synthCtrl: SpeechSynthServiceProvider,
     private readonly dbCtrl: DBServiceProvider,
     private readonly mapCtrl: MapServiceProvider,
-    private readonly evtCtrl: EventServiceProvider
+    private readonly evtCtrl: EventServiceProvider,
+    private readonly modalCtrl: ModalController
   ) {
     this.refreshAutoRead();
     this.mapCtrl.registerUiCtrl(this);
@@ -131,9 +133,7 @@ export class UiServiceProvider {
    * @memberof UiServiceProvider
    */
   public showLoading(text: string, duration?: number): void {
-    if (this.loading != null) {
-      this.loading.dismissAll();
-    }
+    this.dismissLoading();
 
     if (duration == null) {
       duration = 30000; // 30sec max default
@@ -144,7 +144,7 @@ export class UiServiceProvider {
       dismissOnPageChange: true,
       duration: duration
     });
-    this.loading.present();
+    this.loading.present().catch();
   }
 
   /**
@@ -154,7 +154,10 @@ export class UiServiceProvider {
    */
   public dismissLoading(): void {
     if (this.loading != null) {
-      this.loading.dismiss();
+      try {
+        this.loading.dismissAll();
+        this.loading = null;
+      } catch (error) {}
     }
   }
 
@@ -173,7 +176,7 @@ export class UiServiceProvider {
     this.alertCtrl
       .create({
         title: title,
-        subTitle:text,
+        subTitle: text,
         buttons: ['OK']
       })
       .present();
@@ -186,35 +189,38 @@ export class UiServiceProvider {
    * @param {string} text le texte de le fenêtre d'alerte
    * @memberof UiServiceProvider
    */
-  public alert_message(title: string, subtitle: string,  text: string, debut : boolean, fin : ConstrainBoolean): Promise<number> {
+  public alert_message(
+    title: string,
+    subtitle: string,
+    text: string,
+    debut: boolean,
+    fin: ConstrainBoolean
+  ): Promise<number> {
     if (this.autoRead) {
       this.synthCtrl.synthText(title);
       this.synthCtrl.synthText(subtitle);
       this.synthCtrl.synthText(text);
     }
-    let alert : Promise<number>;
+    let alert: Promise<number>;
 
-    if(debut){
+    if (debut) {
       alert = this.alert_debut(title, subtitle, text);
-    }
-    else{
-      if(fin){
+    } else {
+      if (fin) {
         alert = this.alert_fin(title, text);
-      }
-      else {
+      } else {
         alert = this.alert_milieu(title, text);
       }
     }
     return alert;
   }
 
-
-  private alert_debut(title: string, subtitle: string,  text: string) : Promise<number> {
+  private alert_debut(title: string, subtitle: string, text: string): Promise<number> {
     return new Promise<number>(resolve => {
       this.alertCtrl
         .create({
           title: title,
-          subTitle : subtitle,
+          subTitle: subtitle,
           message: text,
           buttons: [
             {
@@ -236,8 +242,7 @@ export class UiServiceProvider {
     });
   }
 
-
-  private alert_milieu(title: string,  text: string) : Promise<number> {
+  private alert_milieu(title: string, text: string): Promise<number> {
     return new Promise<number>(resolve => {
       this.alertCtrl
         .create({
@@ -269,8 +274,7 @@ export class UiServiceProvider {
     });
   }
 
-
-  private alert_fin(title: string,  text: string) : Promise<number> {
+  private alert_fin(title: string, text: string): Promise<number> {
     return new Promise<number>(resolve => {
       this.alertCtrl
         .create({
@@ -295,8 +299,6 @@ export class UiServiceProvider {
         .present();
     });
   }
-
-
 
   /**
    * Affiche un message 'toast' en bas de l'écran
@@ -371,5 +373,9 @@ export class UiServiceProvider {
    */
   public getBasicAlert(): Alert {
     return this.alertCtrl.create();
+  }
+
+  public presentHelpModal(data: { subtitle: string; messages: string[] }): void {
+    this.modalCtrl.create('HelpModalPage', { data: data }).present();
   }
 }

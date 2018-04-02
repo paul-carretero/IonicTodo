@@ -438,11 +438,11 @@ export class CloudServiceProvider {
       data != null &&
       data.list != null &&
       data.author != null &&
+      data.list.listUUID != null &&
       data.author.coord != null &&
       data.author.timestamp != null
     ) {
-      const existList = this.todoCtrl.getAllList();
-      if (existList.find(l => l.uuid === data.list.listUUID) == null) {
+      if (!this.todoCtrl.listExist(data.list.listUUID)) {
         const stsEnabled: boolean = await this.settingsCtrl.getSetting(Settings.ENABLE_STS);
 
         if (stsEnabled) {
@@ -450,6 +450,7 @@ export class CloudServiceProvider {
           if (now) {
             this.todoCtrl.addListLink(data.list);
             this.uiCtrl.dismissLoading();
+            this.uiCtrl.displayToast('La liste "' + data.name + '" a été liée à votre compte');
           }
         }
       }
