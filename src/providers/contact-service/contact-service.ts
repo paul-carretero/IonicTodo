@@ -358,14 +358,19 @@ export class ContactServiceProvider {
    * @memberof ContactModalPage
    */
   private getMobile(contact: Contact): string | null {
-    for (const phone of contact.phoneNumbers) {
-      if (
-        phone.type != null &&
-        phone.type === 'mobile' &&
-        phone.value != null &&
-        (phone.value.charAt(1) === '6' || phone.value.charAt(1) === '7')
-      ) {
-        return phone.value;
+    if (
+      contact.phoneNumbers != null &&
+      typeof contact.phoneNumbers[Symbol.iterator] === 'function'
+    ) {
+      for (const phone of contact.phoneNumbers) {
+        if (
+          phone.type != null &&
+          phone.type === 'mobile' &&
+          phone.value != null &&
+          (phone.value.charAt(1) === '6' || phone.value.charAt(1) === '7')
+        ) {
+          return phone.value;
+        }
       }
     }
     return null;

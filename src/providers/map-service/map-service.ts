@@ -1,3 +1,5 @@
+import { ISimpleWeather, IRawWeather } from './../../model/weather';
+import { HttpClient } from '@angular/common/http';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { ILatLng } from '@ionic-native/google-maps';
 import { Injectable } from '@angular/core';
@@ -13,7 +15,17 @@ import { UiServiceProvider } from '../ui-service/ui-service';
  */
 @Injectable()
 export class MapServiceProvider {
+  /**
+   * timeout pour la gestion des demande de position successive
+   *
+   * @private
+   * @static
+   * @type {number}
+   * @memberof MapServiceProvider
+   */
   private static readonly TIMEOUT: number = 8000;
+
+  private static readonly OPEN_WEATHER_KEY = '39c2928bcc29405055609314f3cf0919';
 
   /**
    * dernière position connue dans le cache
@@ -56,12 +68,52 @@ export class MapServiceProvider {
   constructor(
     private readonly nativeGeocoder: NativeGeocoder,
     private readonly geolocCtrl: Geolocation,
-    private readonly androidPermsCtrl: AndroidPermissions
+    private readonly androidPermsCtrl: AndroidPermissions,
+    private readonly httpCtrl: HttpClient
   ) {}
 
   /**************************************************************************/
   /********************** METHODES PUBLIQUES/INTERFACE **********************/
   /**************************************************************************/
+
+  public async getWeatherPerLatLng(coord: ILatLng): Promise<ISimpleWeather[]> {
+    const weatherP = this.httpCtrl
+      .get<IRawWeather>(
+        `http://api.openweathermap.org/data/2.5/forecast?lat=${coord.lat}&lon=${
+          coord.lng
+        }&units=metric&lang=fr&appid=${MapServiceProvider.OPEN_WEATHER_KEY}`
+      )
+      .toPromise();
+
+    let weather: IRawWeather;
+    try {
+      weather = await weatherP;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+
+    const takeAfter = 12;
+    const result: ISimpleWeather[] = [];
+
+    for (const meteo of weather.list) {
+      const date: Date = new Date(meteo.dt * 1000);
+      if (
+        date.getHours() >= takeAfter &&
+        (result.length === 0 || result[0].date.getDate() !== date.getDate())
+      ) {
+        result.unshift({
+          date: date,
+          desc: meteo.weather[0].description,
+          temp: meteo.main.temp,
+          icon: meteo.weather[0].icon,
+          city: weather.city.name
+        });
+      }
+    }
+    result.reverse();
+    return result;
+  }
 
   /**
    * permet au controlleur ui de s'enregistrer sur ce service à la création

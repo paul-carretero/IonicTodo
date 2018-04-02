@@ -124,6 +124,8 @@
             <ion-item>{{todo.address}}</ion-item>
         </ion-card>
 
+        <meteo *ngIf="meteo" [weather]="meteo"></meteo>
+
         <ion-card style="height : 500px" #mapwrapper id="mapwrapper"></ion-card>
 
         <ion-card *ngIf="todo.author != null">

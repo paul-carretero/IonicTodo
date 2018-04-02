@@ -1,3 +1,4 @@
+import { ISimpleWeather } from './../../model/weather';
 import { Component } from '@angular/core';
 import { DocumentReference } from '@firebase/firestore-types';
 import { Calendar } from '@ionic-native/calendar';
@@ -76,11 +77,21 @@ export class TodoPage extends GenericPage {
    */
   protected isInCalendar: boolean;
 
+  /**
+   * météo éventuelle de l'addresse du todo
+   *
+   * @protected
+   * @type {ISimpleWeather}
+   * @memberof TodoPage
+   */
+  protected meteo: ISimpleWeather | null;
+
   /**************************** PRIVATE FIELDS ******************************/
 
   /**
    * référence firestore vers ce document
    *
+   * @readonly
    * @private
    * @type {DocumentReference}
    * @memberof TodoPage
@@ -90,6 +101,7 @@ export class TodoPage extends GenericPage {
   /**
    * référence vers la liste ayant mené ce todo
    *
+   * @readonly
    * @private
    * @type {(string | null)}
    * @memberof TodoPage
@@ -99,6 +111,7 @@ export class TodoPage extends GenericPage {
   /**
    * true si le todo était un externe de la liste de référence
    *
+   * @readonly
    * @private
    * @type {boolean}
    * @memberof TodoPage
@@ -108,6 +121,7 @@ export class TodoPage extends GenericPage {
   /**
    * true si le todo est editable, false sinon
    *
+   * @readonly
    * @private
    * @type {boolean}
    * @memberof TodoPage
@@ -244,10 +258,7 @@ export class TodoPage extends GenericPage {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
     this.todoRef = this.navParams.get('todoRef');
     this.fromListUuid = this.navParams.get('listUuid');
-    this.mapLoaded = false;
-    this.todoAddressMarker = null;
-    this.todoAuthorMapMarker = null;
-    this.todoCompleteAuthorMapMarker = null;
+
     if (this.navParams.get('isExternal') == null) {
       this.isExternal = false;
     } else {
@@ -257,7 +268,20 @@ export class TodoPage extends GenericPage {
   }
 
   /**
-   * a chaque nouveau todo, reset les constante de la page (lié à un todo)
+   * a chaque affichage de la page reset les paramètres de la map
+   *
+   * @private
+   * @memberof TodoPage
+   */
+  private resetMap(): void {
+    this.mapLoaded = false;
+    this.todoAddressMarker = null;
+    this.todoAuthorMapMarker = null;
+    this.todoCompleteAuthorMapMarker = null;
+  }
+
+  /**
+   * reset les constantes du todo
    *
    * @private
    * @memberof TodoPage
@@ -284,21 +308,12 @@ export class TodoPage extends GenericPage {
    */
   ionViewWillEnter(): void {
     super.ionViewWillEnter();
+    this.resetMap();
     if (this.todoRef == null) {
       this.navCtrl.popToRoot();
       this.uiCtrl.displayToast('Une erreur est survenue pendant le chargement de la tâche');
     }
     this.genericInitView();
-  }
-
-  /**
-   * Override la detection de changement d'angular (sinon on spin-loop sur les date :/)
-   * pour n'effectuer une detection des changemenents que toutes les 3s.
-   * Attends quand même 1 seconde avant de le faire pour laisser l'initialisation normal se faire...
-   *
-   * @memberof TodoPage
-   */
-  ionViewDidEnter(): void {
     this.askForCalendarPerms();
     Environment.setBackgroundColor('lightgrey');
   }
@@ -311,21 +326,14 @@ export class TodoPage extends GenericPage {
   ionViewWillLeave(): void {
     this.tryUnSub(this.todoSub);
     this.evtCtrl.resetContext();
-  }
-
-  /**
-   * termine la map google map lors de la destruction de l'objet
-   *
-   * @memberof TodoPage
-   */
-  ionViewWillUnload(): void {
-    super.ionViewWillUnload();
     this.tryUnSub(this.todoAddressMarkerSub);
     this.tryUnSub(this.todoAuthorMapMarkerSub);
     this.tryUnSub(this.todoCompleteAuthorMapMarkerSub);
     if (this.map != null) {
-      this.map.removeEventListener();
-      this.map.empty();
+      this.map.destroy();
+      this.map.clear();
+      this.map.remove();
+      this.resetMap();
     }
   }
 
@@ -426,6 +434,19 @@ export class TodoPage extends GenericPage {
 
   /********************************** MAP ***********************************/
 
+  private async updateWeather(coords: ILatLng | null): Promise<void> {
+    if (coords == null) {
+      this.meteo = null;
+    } else {
+      const meteos = await this.mapCtrl.getWeatherPerLatLng(coords);
+      if (meteos != null && meteos.length > 0) {
+        this.meteo = meteos[0];
+      } else {
+        this.meteo = null;
+      }
+    }
+  }
+
   /**
    * retourne, si possible une position de départ pour la carte
    * dans l'ordre de priorité : l'addresse du todo, le position de la personne, la position de création puis de complétion du todo
@@ -467,7 +488,8 @@ export class TodoPage extends GenericPage {
   }
 
   /**
-   * lors de chaque mise à jour, recentre la camera pour voir l'ensemble des maps marker représentés
+   * lors de chaque mise à jour, recentre la camera pour voir l'ensemble des maps marker représentés.
+   * Met en plus à jour la météo comme on a besoin des latlng de l'addresse du todo
    *
    * @private
    * @returns {Promise<void>}
@@ -484,6 +506,8 @@ export class TodoPage extends GenericPage {
       }
     }
     const myPos = await myPosP;
+
+    this.updateWeather(todoAddress);
 
     const bounds: ILatLng[] = [];
     if (todoAddress != null) {
@@ -506,7 +530,9 @@ export class TodoPage extends GenericPage {
         tilt: 30,
         duration: 500
       };
-      this.map.animateCamera(opts);
+      this.map
+        .animateCamera(opts)
+        .catch(() => console.log("Impossible d'annimer la caméra, map toujours active ?"));
     }
   }
 
@@ -522,9 +548,8 @@ export class TodoPage extends GenericPage {
     if (this.todo.address == null || this.todo.address === '') {
       if (this.todoAddressMarker != null) {
         try {
-          this.todoAddressMarker.removeEventListener();
-          this.todoAddressMarker.remove();
           this.todoAddressMarker.destroy();
+          this.todoAddressMarker.remove();
         } catch (error) {}
         this.todoAddressMarker = null;
       }
@@ -542,26 +567,29 @@ export class TodoPage extends GenericPage {
       this.todoAddressMarker.setPosition(latlnt);
       this.todoAddressMarker.setTitle(this.todo.address);
     } else {
-      this.todoAddressMarker = await this.map.addMarker({
-        title: this.todo.address,
-        icon: 'blue',
-        animation: 'DROP',
-        position: latlnt
-      });
-
-      if (this.todoAddressMarker == null) {
+      try {
+        this.todoAddressMarker = await this.map.addMarker({
+          title: this.todo.address,
+          icon: 'blue',
+          animation: 'DROP',
+          position: latlnt
+        });
+      } catch (error) {
+        console.log("Impossible d'ajouter un marker à map, toujours active ?");
         return;
       }
 
-      this.todoAddressMarkerSub = this.todoAddressMarker
-        .on(GoogleMapsEvent.MARKER_CLICK)
-        .subscribe(() => {
-          let adr = this.todo.address;
-          if (adr == null) {
-            adr = '';
-          }
-          this.uiCtrl.alert('Addresse de la tâche', adr);
-        });
+      if (this.todoAddressMarker != null) {
+        this.todoAddressMarkerSub = this.todoAddressMarker
+          .on(GoogleMapsEvent.MARKER_CLICK)
+          .subscribe(() => {
+            let adr = this.todo.address;
+            if (adr == null) {
+              adr = '';
+            }
+            this.uiCtrl.alert('Addresse de la tâche', adr);
+          });
+      }
     }
   }
 
@@ -577,9 +605,8 @@ export class TodoPage extends GenericPage {
     if (this.todo.author == null || this.todo.author.coord == null) {
       if (this.todoAuthorMapMarker != null) {
         try {
-          this.todoAuthorMapMarker.removeEventListener();
-          this.todoAuthorMapMarker.remove();
           this.todoAuthorMapMarker.destroy();
+          this.todoAuthorMapMarker.remove();
         } catch (error) {}
         this.todoAuthorMapMarker = null;
       }
@@ -590,28 +617,32 @@ export class TodoPage extends GenericPage {
     if (this.todoAuthorMapMarker != null) {
       this.todoAuthorMapMarker.setPosition(latlnt);
     } else {
-      this.todoAuthorMapMarker = await this.map.addMarker({
-        title: 'Création de la tâche',
-        icon: 'green',
-        animation: 'DROP',
-        position: latlnt
-      });
-
-      if (this.todoAuthorMapMarker == null) {
+      try {
+        this.todoAuthorMapMarker = await this.map.addMarker({
+          title: 'Création de la tâche',
+          icon: 'green',
+          animation: 'DROP',
+          position: latlnt
+        });
+      } catch (error) {
+        console.log("Impossible d'ajouter un marker à map, toujours active ?");
         return;
       }
-      this.todoAuthorMapMarkerSub = this.todoAuthorMapMarker
-        .on(GoogleMapsEvent.MARKER_CLICK)
-        .subscribe(() => {
-          let name = 'un anonyme';
-          if (this.todo.author != null && this.todo.author.displayName != null) {
-            name = this.todo.author.displayName;
-          }
-          this.uiCtrl.alert(
-            'Création de la tâche',
-            'La tâche a été créé le ' + this.getDate(this.todo.author) + ' par ' + name
-          );
-        });
+
+      if (this.todoAuthorMapMarker != null) {
+        this.todoAuthorMapMarkerSub = this.todoAuthorMapMarker
+          .on(GoogleMapsEvent.MARKER_CLICK)
+          .subscribe(() => {
+            let name = 'un anonyme';
+            if (this.todo.author != null && this.todo.author.displayName != null) {
+              name = this.todo.author.displayName;
+            }
+            this.uiCtrl.alert(
+              'Création de la tâche',
+              'La tâche a été créé le ' + this.getDate(this.todo.author) + ' par ' + name
+            );
+          });
+      }
     }
   }
 
@@ -627,9 +658,8 @@ export class TodoPage extends GenericPage {
     if (this.todo.completeAuthor == null || this.todo.completeAuthor.coord == null) {
       if (this.todoCompleteAuthorMapMarker != null) {
         try {
-          this.todoCompleteAuthorMapMarker.removeEventListener();
-          this.todoCompleteAuthorMapMarker.remove();
           this.todoCompleteAuthorMapMarker.destroy();
+          this.todoCompleteAuthorMapMarker.remove();
         } catch (error) {}
         this.todoCompleteAuthorMapMarker = null;
       }
@@ -640,36 +670,39 @@ export class TodoPage extends GenericPage {
     if (this.todoCompleteAuthorMapMarker != null) {
       this.todoCompleteAuthorMapMarker.setPosition(latlnt);
     } else {
-      this.todoCompleteAuthorMapMarker = await this.map.addMarker({
-        title: 'Complétion de la tâche',
-        icon: 'red',
-        animation: 'DROP',
-        position: latlnt,
-        preferences: { building: true }
-      });
-
-      if (this.todoCompleteAuthorMapMarker == null) {
+      try {
+        this.todoCompleteAuthorMapMarker = await this.map.addMarker({
+          title: 'Complétion de la tâche',
+          icon: 'red',
+          animation: 'DROP',
+          position: latlnt,
+          preferences: { building: true }
+        });
+      } catch (error) {
+        console.log("Impossible d'ajouter un marker à map, toujours active ?");
         return;
       }
 
-      this.todoCompleteAuthorMapMarkerSub = this.todoCompleteAuthorMapMarker
-        .on(GoogleMapsEvent.MARKER_CLICK)
-        .subscribe(() => {
-          let name = 'un anonyme';
-          if (
-            this.todo.completeAuthor != null &&
-            this.todo.completeAuthor.displayName != null
-          ) {
-            name = this.todo.completeAuthor.displayName;
-          }
-          this.uiCtrl.alert(
-            'Complétion de la tâche',
-            'La tâche a été complétée le ' +
-              this.getDate(this.todo.completeAuthor) +
-              ' par ' +
-              name
-          );
-        });
+      if (this.todoCompleteAuthorMapMarker != null) {
+        this.todoCompleteAuthorMapMarkerSub = this.todoCompleteAuthorMapMarker
+          .on(GoogleMapsEvent.MARKER_CLICK)
+          .subscribe(() => {
+            let name = 'un anonyme';
+            if (
+              this.todo.completeAuthor != null &&
+              this.todo.completeAuthor.displayName != null
+            ) {
+              name = this.todo.completeAuthor.displayName;
+            }
+            this.uiCtrl.alert(
+              'Complétion de la tâche',
+              'La tâche a été complétée le ' +
+                this.getDate(this.todo.completeAuthor) +
+                ' par ' +
+                name
+            );
+          });
+      }
     }
   }
 
@@ -682,18 +715,17 @@ export class TodoPage extends GenericPage {
    * @memberof TodoPage
    */
   private async loadMap(): Promise<void> {
-    if (this.mapLoaded) {
-      return;
-    }
-    const mapOptions = await this.getStartOpts();
-    this.map = GoogleMaps.create('mapwrapper', mapOptions);
-    try {
-      await this.map.one(GoogleMapsEvent.MAP_READY);
-      this.map.setMyLocationEnabled(true);
-      this.map.setMyLocationButtonEnabled(true);
-      this.mapLoaded = true;
-    } catch (error) {
-      console.log(error);
+    if (!this.mapLoaded) {
+      const mapOptions = await this.getStartOpts();
+      this.map = GoogleMaps.create('mapwrapper', mapOptions);
+      try {
+        await this.map.one(GoogleMapsEvent.MAP_READY);
+        this.map.setMyLocationEnabled(true);
+        this.map.setMyLocationButtonEnabled(true);
+        this.mapLoaded = true;
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 
@@ -705,16 +737,15 @@ export class TodoPage extends GenericPage {
    * @memberof TodoPage
    */
   private async resetMarker(): Promise<void> {
-    if (!this.mapLoaded) {
-      return;
-    }
-    try {
-      this.animateCamera();
-      this.addAddressMarker();
-      this.addCreateMarker();
-      this.addCompleteMarker();
-    } catch (error) {
-      console.log(error);
+    if (this.mapLoaded) {
+      try {
+        this.animateCamera();
+        this.addAddressMarker();
+        this.addCreateMarker();
+        this.addCompleteMarker();
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 

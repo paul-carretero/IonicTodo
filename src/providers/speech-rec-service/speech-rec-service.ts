@@ -794,7 +794,7 @@ export class SpeechRecServiceProvider {
               isExternal: false
             }
           });
-        } else {
+        } else if (this.evtCtrl.getCurrentContext(false) !== sentence.todoFound.uuid) {
           this.evtCtrl.getMenuRequestSubject().next({
             request: MenuRequestType.VIEW,
             ref: sentence.todoFound.ref,

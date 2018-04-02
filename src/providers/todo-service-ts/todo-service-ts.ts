@@ -429,6 +429,8 @@ export class TodoServiceProvider {
     this.sharedListSub = Observable.combineLatest(obsArray).subscribe((lists: ITodoList[]) => {
       if (lists != null) {
         this.sharedTodoLists.next(lists);
+      } else {
+        this.sharedTodoLists.next([]);
       }
     });
   }
@@ -498,7 +500,11 @@ export class TodoServiceProvider {
     this.privateListSub = this.todoListCollection
       .valueChanges()
       .subscribe((lists: ITodoList[]) => {
-        this.todoLists.next(lists);
+        if (lists != null) {
+          this.todoLists.next(lists);
+        } else {
+          this.todoLists.next([]);
+        }
       });
   }
 
@@ -558,7 +564,11 @@ export class TodoServiceProvider {
       ref => ref.orderBy('order', 'asc')
     );
     this.localTodoListCollection.valueChanges().subscribe((lists: ITodoList[]) => {
-      this.localTodoLists.next(lists);
+      if (lists != null) {
+        this.localTodoLists.next(lists);
+      } else {
+        this.localTodoLists.next([]);
+      }
     });
   }
 
@@ -624,7 +634,8 @@ export class TodoServiceProvider {
    */
   public async addListLink(path: ITodoListPath): Promise<void> {
     const lists: ITodoList[] = this.getAllList();
-    const alreadyExist: boolean = lists.find(l => l.uuid === path.listUUID) != null;
+    const alreadyExist: boolean =
+      lists.find(l => l != null && l.uuid === path.listUUID) != null;
     if (alreadyExist) {
       this.uiCtrl.alert('Echec', 'Vous avez déjà importer cette liste');
       return;
@@ -691,7 +702,7 @@ export class TodoServiceProvider {
       listData.uuid = null;
       listData.order = 0;
       const listUuid = await this.addList(listData);
-      await this.cloneTodo(path.listUUID, path.userUUID, listUuid);
+      await this.cloneTodo(path.listUUID, path.userUUID, listUuid, false);
     }
   }
 
@@ -1200,6 +1211,9 @@ export class TodoServiceProvider {
     for (const doc of docs) {
       const todo: ITodoItem = doc.data() as ITodoItem;
       if (todo.uuid != null) {
+        if (keepUuid == null || keepUuid === false) {
+          todo.pictures = [];
+        }
         promises.push(this.addTodo(listUuidDest, todo, keepUuid));
       }
     }
@@ -1434,7 +1448,7 @@ export class TodoServiceProvider {
   ): Promise<DocumentReference | null> {
     let listDoc: AngularFirestoreDocument<ITodoList>;
     if (newItem.uuid == null) {
-      return null;
+      newItem.uuid = uuid();
     }
     try {
       listDoc = await this.getFirestoreDocument(listUuid);

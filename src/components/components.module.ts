@@ -6,6 +6,7 @@ import { AuthorDisplayComponent } from './author-display/author-display';
 import { AccountComponent } from './account/account';
 import { CreateAccountComponent } from './create-account/create-account';
 import { LoginAccountComponent } from './login-account/login-account';
+import { MeteoComponent } from './meteo/meteo';
 
 /**
  * ComponentsModule
@@ -20,7 +21,9 @@ import { LoginAccountComponent } from './login-account/login-account';
     AccountComponent,
     CreateAccountComponent,
     LoginAccountComponent,
-    LoginAccountComponent
+    LoginAccountComponent,
+    MeteoComponent,
+    MeteoComponent
   ],
   imports: [IonicPageModule.forChild(HeaderComponent), CommonModule],
   exports: [
@@ -29,7 +32,9 @@ import { LoginAccountComponent } from './login-account/login-account';
     AccountComponent,
     CreateAccountComponent,
     LoginAccountComponent,
-    LoginAccountComponent
+    LoginAccountComponent,
+    MeteoComponent,
+    MeteoComponent
   ]
 })
 export class ComponentsModule {}
