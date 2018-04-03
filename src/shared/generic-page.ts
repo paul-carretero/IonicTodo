@@ -21,20 +21,22 @@ export abstract class GenericPage {
   /**
    * subscription aux requêtes de navigation internes
    *
+   * @static
    * @private
    * @type {Subscription}
    * @memberof GenericPage
    */
-  private navSub: Subscription;
+  private static navSub: Subscription;
 
   /**
    * Subscription au evenement utilisateur sur le menu
    *
+   * @static
    * @private
    * @type {Subscription}
    * @memberof GenericPage
    */
-  private menuEvtSub: Subscription;
+  private static menuEvtSub: Subscription;
 
   /**
    * subscription pour les connexion utilisateur et la vérification des authorisation
@@ -114,30 +116,35 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   ionViewWillEnter() {
-    this.navSub = this.evtCtrl
+    this.tryUnSub(GenericPage.navSub);
+    this.tryUnSub(GenericPage.menuEvtSub);
+
+    GenericPage.navSub = this.evtCtrl
       .getNavRequestSubject()
       .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page, navReq.data));
 
-    this.menuEvtSub = this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
-      switch (req.request) {
-        case MenuRequestType.SPEECH_SYNTH:
-          this.ttsCtrl.synthText(this.generateDescription());
-          break;
-        case MenuRequestType.HELP:
-          const help = this.generateHelp();
-          if (help.messages.length > 1) {
-            this.uiCtrl.presentModal(help, 'HelpModalPage');
-          } else if (help.messages.length === 1) {
-            this.uiCtrl.alert_message(
-              "Aide sur l'application",
-              help.subtitle,
-              help.messages[0]
-            );
-          }
-          break;
-      }
-      this.menuEventHandler(req);
-    });
+    GenericPage.menuEvtSub = this.evtCtrl
+      .getMenuRequestSubject()
+      .subscribe((req: IMenuRequest) => {
+        switch (req.request) {
+          case MenuRequestType.SPEECH_SYNTH:
+            this.ttsCtrl.synthText(this.generateDescription());
+            break;
+          case MenuRequestType.HELP:
+            const help = this.generateHelp();
+            if (help.messages.length > 1) {
+              this.uiCtrl.presentModal(help, 'HelpModalPage');
+            } else if (help.messages.length === 1) {
+              this.uiCtrl.alert_message(
+                "Aide sur l'application",
+                help.subtitle,
+                help.messages[0]
+              );
+            }
+            break;
+        }
+        this.menuEventHandler(req);
+      });
   }
 
   /**
@@ -146,9 +153,7 @@ export abstract class GenericPage {
    *
    * @memberof GenericPage
    */
-  ionViewDidLeave() {
-    this.tryUnSub(this.navSub);
-    this.tryUnSub(this.menuEvtSub);
+  ionViewWillLeave() {
     this.tryUnSub(this.deleteSub);
     this.tryUnSub(this.netSub);
   }

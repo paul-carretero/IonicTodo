@@ -117,6 +117,7 @@ export class AuthentificationPage extends GenericPage {
    * @memberof AuthentificationPage
    */
   ionViewWillLeave(): void {
+    super.ionViewWillLeave();
     if (this.connSub != null) {
       this.connSub.unsubscribe();
     }

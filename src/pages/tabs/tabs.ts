@@ -187,6 +187,16 @@ export class TabsPage {
   }
 
   /**
+   * envoie une demande de redirection vers la page de planification de sms
+   *
+   * @protected
+   * @memberof TabsPage
+   */
+  protected autoSms(): void {
+    this.evtCtrl.getNavRequestSubject().next({ page: 'AutoSmsPage' });
+  }
+
+  /**
    * Permet de mieux voir en allumant la lampe torche
    * Si on voit déjà mieux
    *

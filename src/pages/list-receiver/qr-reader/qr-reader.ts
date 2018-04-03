@@ -142,6 +142,7 @@ export class QrReaderPage extends GenericReceiver {
    * @memberof QrReaderPage
    */
   ionViewWillLeave() {
+    super.ionViewWillLeave();
     if (this.scanSub != null && !this.scanSub.closed) {
       this.scanSub.unsubscribe();
     }

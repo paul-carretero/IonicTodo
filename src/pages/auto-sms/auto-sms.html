@@ -1,0 +1,82 @@
+<ion-header>
+  <HeaderComponent></HeaderComponent>
+</ion-header>
+
+
+<ion-content padding>
+  <ion-card>
+    <ion-card-header icon-start>
+      <ion-icon name="create"></ion-icon>
+      Planifier un sms
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label color="primary" stacked>SMS</ion-label>
+        <ion-textarea autocomplete="on" autocorrect="on" [(ngModel)]="message" placeholder="Votre Sms (requis)"></ion-textarea>
+      </ion-item>
+
+      <button ion-item (click)="selectDate()" type="button" color="secondary">
+        <ion-icon name="calendar" item-start></ion-icon>
+        {{dateStr}}
+        <ion-icon name="create" item-end></ion-icon>
+      </button>
+
+      <button ion-item color="secondary" (click)="openContactPopup()" type="button">
+        <ion-icon name="contacts" item-start></ion-icon>
+        Ajouter des contacts
+        <ion-icon name="add" item-end></ion-icon>
+      </button>
+
+      <ion-list>
+        <ion-item-sliding *ngFor="let contact of contactList">
+          <ion-item>
+            {{contact.displayName}} ({{contact.mobile}})
+          </ion-item>
+          <ion-item-options side="right">
+            <button ion-button color="danger" (click)="deleteContact(contact)">
+              <ion-icon name="trash">
+                supprimer
+              </ion-icon>
+            </button>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+      <hr/>
+
+      <button block ion-button type="submit" [disabled]="!isFormValid" (click)="validate()">
+        <ion-icon name="checkmark" class="button-icon"></ion-icon>
+        Plannifier un sms
+      </button>
+
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="autoSmsList.length > 0" class="button-wrapper">
+    <ion-card-header icon-start>
+      <ion-icon name="timer"></ion-icon>
+      SMS en attente
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card padding *ngFor="let sms of autoSmsList">
+    <ion-card-header>
+      {{sms.dateStr}}
+      <ion-buttons right>
+        <button small outline ion-button icon-start (click)="rmPlanifiedSms(sms)" class="float-right">
+          <ion-icon name="trash"></ion-icon>
+          Suppr.
+        </button>
+      </ion-buttons>
+    </ion-card-header>
+    <ion-card-content>
+      {{sms.message}}
+      <hr/>
+      <ion-list>
+        <ion-item small *ngFor="let contact of sms.contacts">
+          @ {{contact.displayName}} ({{contact.mobile}})
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

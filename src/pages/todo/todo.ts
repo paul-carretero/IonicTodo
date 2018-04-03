@@ -333,6 +333,7 @@ export class TodoPage extends GenericPage {
    * @memberof TodoPage
    */
   ionViewWillLeave(): void {
+    super.ionViewWillLeave();
     this.tryUnSub(this.todoSub);
     this.evtCtrl.resetContext();
     this.tryUnSub(this.todoAddressMarkerSub);

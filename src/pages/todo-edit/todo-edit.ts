@@ -236,6 +236,7 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   ionViewWillLeave(): void {
+    super.ionViewWillLeave();
     if (!this.imgCacheClean && !this.isInCreation) {
       this.todoService.updateTodoPictures(this.todo);
     } else if (!this.imgCacheClean && this.isInCreation && this.todo.uuid != null) {

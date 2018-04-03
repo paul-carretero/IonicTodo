@@ -177,6 +177,16 @@ export class EventServiceProvider {
     });
   }
 
+  public forceRefreshNetwork(): void {
+    console.log('------check--------');
+    if (this.netSubject.getValue() === false) {
+      const status = this.netCtrl.type !== 'none';
+      if (status) {
+        this.netSubject.next(true);
+      }
+    }
+  }
+
   /**
    * réinitialise la référence d'un document copier lors de chaque déconnexion
    * réinitialise la dernière snapshot des todos lors d'une déconnexion

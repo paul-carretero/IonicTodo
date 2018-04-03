@@ -111,6 +111,7 @@ export class CloudSpacePage extends GenericPage {
    * @memberof CloudSpacePage
    */
   ionViewWillLeave(): void {
+    super.ionViewWillLeave();
     this.tryUnSub(this.cloudListSub);
   }
 

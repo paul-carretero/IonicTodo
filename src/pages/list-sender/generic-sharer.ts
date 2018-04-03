@@ -118,6 +118,7 @@ export class GenericSharer extends GenericPage {
    * @memberof GenericSharer
    */
   ionViewWillLeave(): void {
+    super.ionViewWillLeave();
     this.todoCtrl.unsubDeleteSubject();
   }
 

@@ -242,6 +242,7 @@ export class TodoListPage extends GenericPage {
    * @memberof TodoListPage
    */
   ionViewWillLeave(): void {
+    super.ionViewWillLeave();
     this.todoService.unsubscribeOfTodo();
     this.todoService.unsubDeleteSubject();
     this.tryUnSub(this.listeSub);

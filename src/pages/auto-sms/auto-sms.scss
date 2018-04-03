@@ -1,0 +1,23 @@
+page-auto-sms {
+  ion-content {
+    background-color: lightgrey !important;
+  }
+  ion-card-header {
+    background-color: color($colors, light, base);
+    border-bottom: 1px solid black;
+    margin-bottom: 5px;
+  }
+  .button-icon {
+    position: absolute !important;
+    left: 10px !important;
+  }
+  .button-wrapper {
+    background: none;
+    border: none;
+    box-shadow: none;
+    border-top: 1px solid black;
+  }
+  .float-right {
+    float: right;
+  }
+}

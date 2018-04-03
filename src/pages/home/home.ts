@@ -174,6 +174,7 @@ export class HomePage extends GenericPage {
    * @memberof HomePage
    */
   ionViewWillLeave() {
+    super.ionViewWillLeave();
     this.tryUnSub(this.listSub);
     this.tryUnSub(this.localListSub);
     this.tryUnSub(this.sharedListSub);

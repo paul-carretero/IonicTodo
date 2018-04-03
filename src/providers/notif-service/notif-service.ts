@@ -62,11 +62,12 @@ export class NotifServiceProvider {
   /**
    * retourne le temps moyen de maintenant en minutes arrondies
    *
+   * @private
    * @readonly
    * @type {number}
    * @memberof NotifServiceProvider
    */
-  get approxNow(): number {
+  private get approxNow(): number {
     return this.roundTime();
   }
 

@@ -1,7 +1,9 @@
 import { HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { AdMobFree } from '@ionic-native/admob-free';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
+import { BackgroundMode } from '@ionic-native/background-mode';
 import { Base64 } from '@ionic-native/base64';
 import { Calendar } from '@ionic-native/calendar';
 import { CallNumber } from '@ionic-native/call-number';
@@ -36,10 +38,11 @@ import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AngularFireStorageModule } from 'angularfire2/storage';
 import { AlertController, IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { NgxQRCodeModule } from 'ngx-qrcode2';
-import { AdMobFree } from '@ionic-native/admob-free';
 
 import { ComponentsModule } from '../components/components.module';
+import { AdsServiceProvider } from '../providers/ads-service/ads-service';
 import { AuthServiceProvider } from '../providers/auth-service/auth-service';
+import { AutoSmsServiceProvider } from '../providers/auto-sms-service/auto-sms-service';
 import { CloudServiceProvider } from '../providers/cloud-service/cloud-service';
 import { DBServiceProvider } from '../providers/db/db-service';
 import { MapServiceProvider } from '../providers/map-service/map-service';
@@ -52,10 +55,9 @@ import { TodoServiceProvider } from '../providers/todo-service-ts/todo-service-t
 import { UiServiceProvider } from '../providers/ui-service/ui-service';
 import { ContactServiceProvider } from './../providers/contact-service/contact-service';
 import { EventServiceProvider } from './../providers/event/event-service';
+import { appOpts } from './app-opts';
 import { MyApp } from './app.component';
 import { FirebaseCredentials } from './firebase.credentials';
-import { appOpts } from './app-opts';
-import { AdsServiceProvider } from '../providers/ads-service/ads-service';
 
 /**
  * AppModule
@@ -127,7 +129,9 @@ import { AdsServiceProvider } from '../providers/ads-service/ads-service';
     CallNumber,
     EmailComposer,
     AdMobFree,
-    AdsServiceProvider
+    AdsServiceProvider,
+    AutoSmsServiceProvider,
+    BackgroundMode
   ]
 })
 export class AppModule {}

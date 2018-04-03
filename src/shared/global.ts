@@ -1,3 +1,4 @@
+import { IPlanifiedSms } from './../model/planified-sms';
 import { ILatLng } from '@ionic-native/google-maps';
 import * as firebase from 'firebase';
 
@@ -192,6 +193,7 @@ export class Global {
   /**
    * retourne un objet de liste vide
    *
+   * @public
    * @static
    * @returns {ITodoList}
    * @memberof Global
@@ -211,6 +213,7 @@ export class Global {
   /**
    * retourne un objet todo vide
    *
+   * @public
    * @static
    * @returns {ITodoItem}
    * @memberof Global
@@ -237,6 +240,7 @@ export class Global {
   /**
    * retourne des métadata vide pour une liste
    *
+   * @public
    * @static
    * @returns {IListMetadata}
    * @memberof Global
@@ -252,6 +256,7 @@ export class Global {
   /**
    * retourne un contact par défault
    *
+   * @public
    * @static
    * @returns {ISimpleContact}
    * @memberof Global
@@ -262,6 +267,23 @@ export class Global {
       displayName: null,
       email: null,
       mobile: null
+    };
+  }
+
+  /**
+   * retourne un objet de sms plannifié vide
+   *
+   * @public
+   * @static
+   * @returns {IPlanifiedSms}
+   * @memberof Global
+   */
+  public static getBlankPlanifiedSms(): IPlanifiedSms {
+    return {
+      smsUuid: '',
+      date: new Date(),
+      contacts: [],
+      message: ''
     };
   }
 

@@ -10,6 +10,7 @@ import { Platform } from 'ionic-angular';
 
 import { NfcProvider } from '../providers/nfc/nfc';
 import { CloudServiceProvider } from './../providers/cloud-service/cloud-service';
+import { AutoSmsServiceProvider } from '../providers/auto-sms-service/auto-sms-service';
 
 /**
  * base de l'application OhMyTask, initialise les services et la gestion des pages
@@ -59,7 +60,8 @@ export class MyApp {
     private readonly speechCtrl: SpeechRecServiceProvider,
     private readonly adsCtrl: AdsServiceProvider,
     private readonly authCtrl: AuthServiceProvider,
-    private readonly mapCtrl: MapServiceProvider
+    private readonly mapCtrl: MapServiceProvider,
+    private readonly smsCtrl: AutoSmsServiceProvider
   ) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
@@ -91,5 +93,6 @@ export class MyApp {
     this.adsCtrl.refreshBanner();
     this.authCtrl.applyAutoLoginSetting();
     this.mapCtrl.getMyPosition();
+    this.smsCtrl.restoreState();
   }
 }
