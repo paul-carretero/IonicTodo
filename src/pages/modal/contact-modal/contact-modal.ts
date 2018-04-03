@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavParams, ViewController } from 'ionic-angular';
 
-import { IMenuRequest } from '../../model/menu-request';
-import { MenuRequestType } from '../../model/menu-request-type';
-import { ISimpleContact } from './../../model/simple-contact';
-import { ContactServiceProvider } from './../../providers/contact-service/contact-service';
-import { Global } from './../../shared/global';
+import { IMenuRequest } from '../../../model/menu-request';
+import { MenuRequestType } from '../../../model/menu-request-type';
+import { ISimpleContact } from '../../../model/simple-contact';
+import { ContactServiceProvider } from '../../../providers/contact-service/contact-service';
+import { Global } from '../../../shared/global';
 
 /**
  * Page orienté modal créée pour permettre de choisir plusieurs contacts parmis la listes des contacts du terminal.

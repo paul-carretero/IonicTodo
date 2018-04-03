@@ -1844,7 +1844,7 @@ export class TodoServiceProvider {
    * @returns {ITodoItem[]}
    * @memberof TodoServiceProvider
    */
-  public getAllTodos(listUuid?: string | null): ITodoItem[] {
+  public getAllTodos(listUuid?: string | null): ITodoSnapshot[] {
     if (listUuid == null) {
       return this.lastAllTodosSnapshot;
     }
