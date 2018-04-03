@@ -8,7 +8,7 @@ Création de l'espace de travail
 
 Préparation de l'espace de travail
 -
-> - `./ohmytask.sh rebuild`
+> - `./ohmytask.sh rebuild` (-aucune garantie-... dépendra des mises à jours éventuelles des plugins...)
 
 Lancement de l'application
 -
@@ -17,12 +17,13 @@ Lancement de l'application
 
 Lancement du serveur de documentation
 -
-> - `./ohmytask.sh doc` 
+> - `./ohmytask.sh doc`
+> - ouvrir `127.0.0.1:8080`
 
 # Fonctionnalités TL;DR
 - SSO Firebase et Google+
 - Cloud Firestore
-- Partage de liste: (référence ou valeur) & (qrcode, cloud, nfc, shakeToShare, pour un contact)
+- Partage de listes: (référence ou valeur) & (qrcode, cloud, nfc, shakeToShare, pour un contact)
 - Photos par todos sur Firebase Storage (gallerie ou prises de vues)
 - Google Map et géolocalisation
 - Mode hors ligne - hors connexion
@@ -53,7 +54,7 @@ Todos
 
 Partages de listes
 -
-- Partage de liste par référence, par référence en lecture seule (pas de modification des liste et todos, complété todo OK) et copie par valeur
+- Partage de liste par référence, par référence en lecture seule (pas de modification des liste et todos, complétées todo OK) et copie par valeur
 - QR Code export/import
 - NFC export/import depuis un Tag NFC (expérimental)
 - ShakeToShare : partage de la liste courrante si deux evenement de shake ont lieu pas trop loin au meme moment
@@ -105,8 +106,8 @@ Configuration
 
 Meteo
 -
-- meteo des lieu des todos instantanée sur la page des todo
-- prévision 5 jours du lieu d'un todo (temps moyen de la journée)
+- meteo des lieux des todos instantanée sur la page des todo
+- prévision 5 jours de la ville du lieu d'un todo (temps moyen de la journée)
 - API openweather
 
 Publicité
