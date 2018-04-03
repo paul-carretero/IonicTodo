@@ -85,6 +85,7 @@ Notifications
 - alert si deadline todo proche à la connexion
 - notification annulable
 - clique pour voir la tâche concernée
+- synchronisation par todo et par utilisateur
 
 Authoring et géolocalisation
 -
@@ -194,7 +195,7 @@ Incompatibilité entre le plugin de prévisualisation (scan QR Code) et le plugi
 Notifications non mises à jour en temps réel si un AUTRE utilisateur modifie leur date de notification (contexte de listes partagées)
 -
 - la synchronisation étant couteuse, elle n'est faite que lors de la connexion d'un utilisateur. De plus la periode de disponibilité de l'application est supposé faible, il n'était de toutes façon pas envisageable de synchroniser les notification lorsque l'application est éteinte. Le comportement est tel qu'attendu si l'utilisateur modifie lui même une tâche.
-- Fix immédiat: redémarrer l'application
+- Fix immédiat: se relogger
 - Evolution envisagée: -
 
 Page d'accueil non mise à jour en cas de complétion de tâche des listes (contexte de listes partagées)
