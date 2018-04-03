@@ -12,74 +12,80 @@
             <ion-card-content>
                 <ion-item>
                     <ion-label color="primary" stacked>Nom de la tâche</ion-label>
-                    <ion-input formControlName="name" type="text" placeholder="Champs Requis"></ion-input>
+                    <ion-input autocomplete="on" autocorrect="on" formControlName="name" type="text" placeholder="Nommer cette tâche (requis)"></ion-input>
                 </ion-item>
                 <ion-item>
                     <ion-label color="primary" stacked>Description de la tâche</ion-label>
-                    <ion-textarea formControlName="desc" placeholder="Champs optionnel"></ion-textarea>
+                    <ion-textarea autocomplete="on" autocorrect="on" formControlName="desc" placeholder="Décrire cette tâche (optionel)"></ion-textarea>
                 </ion-item>
             </ion-card-content>
         </ion-card>
 
-        <ion-card>
-            <ion-card-header icon-start>
-                <ion-icon name="time"></ion-icon>
-                Date et Notification
-            </ion-card-header>
-            <ion-card-content>
-                <ion-list>
-                    <ion-item color="light">
-                        <ion-icon name="calendar" item-start></ion-icon>
-                        Programmer la tâche pour:
-                    </ion-item>
-                    <button ion-item (click)="selectDate(true)" type="button" color="secondary">
-                        {{deadlineStr}}
-                    </button>
-                    <ion-item color="light">
-                        <ion-icon name="alarm" item-start></ion-icon>
-                        Programmer une notification:
-                    </ion-item>
-                    <button ion-item (click)="selectDate(false)" type="button" color="secondary">
-                        {{notifStr}}
-                    </button>
-                </ion-list>
-            </ion-card-content>
+        <ion-card class="button-wrapper">
+            <ion-list>
+                <button ion-item (click)="selectDate(true)" type="button" color="secondary">
+                    <ion-icon name="calendar" item-start></ion-icon>
+                    {{deadlineStr}}
+                    <ion-icon name="create" item-end></ion-icon>
+                </button>
+
+                <ion-item-divider color="light">Option:</ion-item-divider>
+
+                <button ion-item (click)="selectDate(false)" type="button" color="secondary">
+                    <ion-icon name="alarm" item-start></ion-icon>
+                    {{notifStr}}
+                    <ion-icon name="create" item-end></ion-icon>
+                </button>
+            </ion-list>
         </ion-card>
 
         <ion-card>
             <ion-card-header icon-start>
-                <ion-icon name="contacts"></ion-icon>
-                Contacts
+                <ion-icon name="pin"></ion-icon>
+                Localisation
             </ion-card-header>
             <ion-card-content>
-                <ion-list>
-                    <ion-item-sliding *ngFor="let contact of this.todo.contacts">
-                        <ion-item>
-                            {{contact.displayName}} ({{contact.mobile}})
-                        </ion-item>
-                        <ion-item-options side="right">
-                            <button ion-button color="danger" (click)="deleteContact(contact)" type="button">
-                                <ion-icon name="trash">
-                                    supprimer
-                                </ion-icon>
-                            </button>
-                        </ion-item-options>
-                    </ion-item-sliding>
-                    <button ion-item color="light" (click)="openContactPopup()" type="button">
-                        <ion-icon name="add-circle" item-start></ion-icon>
-                        Ajouter des contacts
-                    </button>
-                    <button ion-item color="light" (click)="openCreateContact()" type="button">
-                        <ion-icon name="create" item-start></ion-icon>
-                        Créer un contact
-                    </button>
-                    <ion-item color="light">
-                        <ion-icon name="text" item-start></ion-icon>
-                        <ion-label>SMS à la complétion ?</ion-label>
-                        <ion-toggle formControlName="sendSMS"></ion-toggle>
-                    </ion-item>
-                </ion-list>
+                <ion-item>
+                    <ion-label color="primary" stacked>Addresse de la tâche</ion-label>
+                    <ion-textarea autocomplete="on" autocorrect="on" formControlName="address" placeholder="Localiser cette tâche (optionel)"></ion-textarea>
+                </ion-item>
             </ion-card-content>
+        </ion-card>
+
+        <ion-card class="button-wrapper">
+            <ion-list>
+                <button ion-item color="secondary" (click)="openContactPopup()" type="button">
+                    <ion-icon name="contacts" item-start></ion-icon>
+                    Associer des contacts
+                    <ion-icon name="add" item-end></ion-icon>
+                </button>
+
+                <ion-item-sliding *ngFor="let contact of this.todo.contacts">
+                    <ion-item>
+                        {{contact.displayName}} ({{contact.email}})
+                    </ion-item>
+                    <ion-item-options side="right">
+                        <button ion-button color="danger" (click)="deleteContact(contact)">
+                            <ion-icon name="trash">
+                                supprimer
+                            </ion-icon>
+                        </button>
+                    </ion-item-options>
+                </ion-item-sliding>
+
+                <ion-item-divider color="light">Option:</ion-item-divider>
+
+                <ion-item color="light" *ngIf="this.todo.contacts.length > 0">
+                    <ion-icon name="text" item-start></ion-icon>
+                    <ion-label>SMS à la complétion ?</ion-label>
+                    <ion-toggle formControlName="sendSMS"></ion-toggle>
+                </ion-item>
+
+                <button ion-item color="secondary" (click)="openCreateContact()" type="button">
+                    Créer un contact
+                    <ion-icon name="create" item-end></ion-icon>
+                </button>
+            </ion-list>
         </ion-card>
 
         <ion-card *ngIf="netStatus$ | async">
@@ -95,7 +101,8 @@
                                 <img *ngIf="!(pic.url == null)" [src]="pic.url" />
                             </ion-thumbnail>
                             <progress *ngIf="pic.dl < 100" [value]="pic.dl" max="100" min="0" class="progressbar">{{pic.dl}} %</progress>
-                            <ion-input *ngIf="pic.url" type="text" placeholder="Nom de l'image" [(ngModel)]="pic.name" [ngModelOptions]="{standalone: true}"></ion-input>
+                            <ion-input autocomplete="on" autocorrect="on" *ngIf="pic.url" type="text" placeholder="Nom de l'image" [(ngModel)]="pic.name"
+                                [ngModelOptions]="{standalone: true}"></ion-input>
                         </ion-item>
 
                         <ion-item-options side="right" *ngIf="!(pic.url == null)">
@@ -106,29 +113,16 @@
                             </button>
                         </ion-item-options>
                     </ion-item-sliding>
-
-                    <button ion-item color="light" type="button" (click)="takePicture()">
-                        <ion-icon name="camera" item-start></ion-icon>
-                        Prendre une photo
-                    </button>
-                    <button ion-item color="light" (click)="openGalleryWrapper()" type="button">
-                        <ion-icon name="images" item-start></ion-icon>
-                        Rechercher dans la gallerie
-                    </button>
                 </ion-list>
-            </ion-card-content>
-        </ion-card>
-
-        <ion-card>
-            <ion-card-header icon-start>
-                <ion-icon name="pin"></ion-icon>
-                Localisation
-            </ion-card-header>
-            <ion-card-content>
-                <ion-item>
-                    <ion-label color="primary" stacked>Addresse de la tâche</ion-label>
-                    <ion-textarea formControlName="address" placeholder="Champs optionnel"></ion-textarea>
-                </ion-item>
+                <hr/>
+                <button ion-item color="light" type="button" (click)="takePicture()" block>
+                    <ion-icon name="camera" item-start></ion-icon>
+                    Prendre une photo
+                </button>
+                <button ion-item color="light" (click)="openGalleryWrapper()" type="button" block>
+                    <ion-icon name="images" item-start></ion-icon>
+                    Rechercher dans la gallerie
+                </button>
             </ion-card-content>
         </ion-card>
 

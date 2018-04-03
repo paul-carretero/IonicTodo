@@ -5,14 +5,13 @@
 <ion-content padding>
   <form [formGroup]="newList" (ngSubmit)="defList()">
     <ion-item>
-      <ion-label>Nom</ion-label>
-      <ion-input type="text" formControlName="name" placeholder="Text Input"></ion-input>
+      <ion-label stacked>Nom</ion-label>
+      <ion-input autocomplete="on" autocorrect="on" type="text" formControlName="name" placeholder="Nom de la liste"></ion-input>
     </ion-item>
     <ion-item>
-      <ion-label>Type
-      </ion-label>
+      <ion-label>Type</ion-label>
       <ion-select formControlName="icon">
-        <ion-option selected value="list-box">Default</ion-option>
+        <ion-option selected value="list-box">Classique</ion-option>
         <ion-option value="cart">Shopping</ion-option>
         <ion-option value="home">Maison</ion-option>
         <ion-option value="briefcase">Travail</ion-option>

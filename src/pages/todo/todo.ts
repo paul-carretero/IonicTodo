@@ -86,6 +86,15 @@ export class TodoPage extends GenericPage {
    */
   protected meteo: ISimpleWeather | null;
 
+  /**
+   * tableau des prévision (un seul appel suffit)
+   *
+   * @protected
+   * @type {(ISimpleWeather[] | null)}
+   * @memberof TodoPage
+   */
+  protected meteos: ISimpleWeather[] | null;
+
   /**************************** PRIVATE FIELDS ******************************/
 
   /**
@@ -397,8 +406,7 @@ export class TodoPage extends GenericPage {
         this.evtCtrl.setCurrentContext(false, todo.uuid);
       } else {
         this.evtCtrl.resetContext();
-        this.navCtrl.popToRoot();
-        this.uiCtrl.displayToast('Une erreur est survenue');
+        this.hasBeenRemoved(false);
       }
     });
   }
@@ -425,27 +433,30 @@ export class TodoPage extends GenericPage {
         this.todoCtrl.removeTodoRef(this.fromListUuid, this.todoRef);
       } else {
         if (this.todo.uuid != null) {
-          this.todoCtrl.deleteTodo(this.todoRef, this.todo.uuid);
+          this.todoCtrl.deleteTodo(this.todo);
         }
       }
       this.navCtrl.pop();
     }
   }
 
-  /********************************** MAP ***********************************/
+  /********************************* METEO **********************************/
 
   private async updateWeather(coords: ILatLng | null): Promise<void> {
     if (coords == null) {
       this.meteo = null;
+      this.meteos = null;
     } else {
-      const meteos = await this.mapCtrl.getWeatherPerLatLng(coords);
-      if (meteos != null && meteos.length > 0) {
-        this.meteo = meteos[0];
+      this.meteos = await this.mapCtrl.getWeatherPerLatLng(coords);
+      if (this.meteos != null && this.meteos.length > 0) {
+        this.meteo = this.meteos[0];
       } else {
         this.meteo = null;
       }
     }
   }
+
+  /********************************** MAP ***********************************/
 
   /**
    * retourne, si possible une position de départ pour la carte
@@ -530,9 +541,12 @@ export class TodoPage extends GenericPage {
         tilt: 30,
         duration: 500
       };
-      this.map
-        .animateCamera(opts)
-        .catch(() => console.log("Impossible d'annimer la caméra, map toujours active ?"));
+
+      if (this.mapLoaded) {
+        this.map
+          .animateCamera(opts)
+          .catch(() => console.log("Impossible d'annimer la caméra, map toujours active ?"));
+      }
     }
   }
 
@@ -548,6 +562,7 @@ export class TodoPage extends GenericPage {
     if (this.todo.address == null || this.todo.address === '') {
       if (this.todoAddressMarker != null) {
         try {
+          this.tryUnSub(this.todoAddressMarkerSub);
           this.todoAddressMarker.destroy();
           this.todoAddressMarker.remove();
         } catch (error) {}
@@ -568,12 +583,14 @@ export class TodoPage extends GenericPage {
       this.todoAddressMarker.setTitle(this.todo.address);
     } else {
       try {
-        this.todoAddressMarker = await this.map.addMarker({
-          title: this.todo.address,
-          icon: 'blue',
-          animation: 'DROP',
-          position: latlnt
-        });
+        if (this.mapLoaded) {
+          this.todoAddressMarker = await this.map.addMarker({
+            title: this.todo.address,
+            icon: 'blue',
+            animation: 'DROP',
+            position: latlnt
+          });
+        }
       } catch (error) {
         console.log("Impossible d'ajouter un marker à map, toujours active ?");
         return;
@@ -605,6 +622,7 @@ export class TodoPage extends GenericPage {
     if (this.todo.author == null || this.todo.author.coord == null) {
       if (this.todoAuthorMapMarker != null) {
         try {
+          this.tryUnSub(this.todoAuthorMapMarkerSub);
           this.todoAuthorMapMarker.destroy();
           this.todoAuthorMapMarker.remove();
         } catch (error) {}
@@ -618,12 +636,14 @@ export class TodoPage extends GenericPage {
       this.todoAuthorMapMarker.setPosition(latlnt);
     } else {
       try {
-        this.todoAuthorMapMarker = await this.map.addMarker({
-          title: 'Création de la tâche',
-          icon: 'green',
-          animation: 'DROP',
-          position: latlnt
-        });
+        if (this.mapLoaded) {
+          this.todoAuthorMapMarker = await this.map.addMarker({
+            title: 'Création de la tâche',
+            icon: 'green',
+            animation: 'DROP',
+            position: latlnt
+          });
+        }
       } catch (error) {
         console.log("Impossible d'ajouter un marker à map, toujours active ?");
         return;
@@ -658,6 +678,7 @@ export class TodoPage extends GenericPage {
     if (this.todo.completeAuthor == null || this.todo.completeAuthor.coord == null) {
       if (this.todoCompleteAuthorMapMarker != null) {
         try {
+          this.tryUnSub(this.todoCompleteAuthorMapMarkerSub);
           this.todoCompleteAuthorMapMarker.destroy();
           this.todoCompleteAuthorMapMarker.remove();
         } catch (error) {}
@@ -671,13 +692,15 @@ export class TodoPage extends GenericPage {
       this.todoCompleteAuthorMapMarker.setPosition(latlnt);
     } else {
       try {
-        this.todoCompleteAuthorMapMarker = await this.map.addMarker({
-          title: 'Complétion de la tâche',
-          icon: 'red',
-          animation: 'DROP',
-          position: latlnt,
-          preferences: { building: true }
-        });
+        if (this.mapLoaded) {
+          this.todoCompleteAuthorMapMarker = await this.map.addMarker({
+            title: 'Complétion de la tâche',
+            icon: 'red',
+            animation: 'DROP',
+            position: latlnt,
+            preferences: { building: true }
+          });
+        }
       } catch (error) {
         console.log("Impossible d'ajouter un marker à map, toujours active ?");
         return;
@@ -1019,6 +1042,18 @@ export class TodoPage extends GenericPage {
       this.uiCtrl.displayToast('Une erreur est survenue pendant la suppression de la tâche');
     }
     this.isInCalendar = false;
+  }
+
+  /**
+   * affiche si possible de modal de météo
+   *
+   * @protected
+   * @memberof TodoPage
+   */
+  protected viewDetailWeathers(): void {
+    if (this.meteos != null && this.meteos.length > 0) {
+      this.uiCtrl.presentModal(this.meteos, 'MeteoModalPage');
+    }
   }
 
   /**************************************************************************/

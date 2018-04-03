@@ -744,7 +744,7 @@ export class SpeechRecServiceProvider {
             sentence.listFound.name
         );
 
-        this.todoService.deleteTodo(sentence.todoFound.ref, sentence.todoFound.uuid);
+        this.todoService.deleteTodo(sentence.todoFound);
 
         if (this.evtCtrl.getCurrentContext(true) !== sentence.listFound.uuid) {
           this.evtCtrl

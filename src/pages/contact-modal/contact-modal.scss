@@ -1,15 +1,23 @@
 page-contact-modal {
-    ion-content {
-        background-color: lightgrey !important;
-    }
-    .button-wrapper {
-        padding: 0;
-        background: none;
-        border: none;
-        box-shadow: none;
-    }
-    .button-icon {
-        position: absolute !important;
-        left: 10px !important;
-    }
+  ion-content {
+    background-color: lightgrey !important;
+  }
+  .button-wrapper {
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+  .button-icon {
+    position: absolute !important;
+    left: 10px !important;
+  }
+  ion-toolbar {
+    color: white;
+    text-align: center;
+  }
+  ion-buttons {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
 }

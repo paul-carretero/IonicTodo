@@ -1,31 +1,24 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { IonicPage, NavParams, ViewController } from 'ionic-angular';
 
 import { IMenuRequest } from '../../model/menu-request';
 import { MenuRequestType } from '../../model/menu-request-type';
-import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
-import { EventServiceProvider } from '../../providers/event/event-service';
-import { SpeechSynthServiceProvider } from '../../providers/speech-synth-service/speech-synth-service';
-import { UiServiceProvider } from '../../providers/ui-service/ui-service';
-import { GenericPage } from '../../shared/generic-page';
 import { ISimpleContact } from './../../model/simple-contact';
 import { ContactServiceProvider } from './../../providers/contact-service/contact-service';
 import { Global } from './../../shared/global';
 
 /**
  * Page orienté modal créée pour permettre de choisir plusieurs contacts parmis la listes des contacts du terminal.
- * En fait ce n'est plus un moddal désolé pour le nom, une page normale c'est mieux...
  *
  * @export
  * @class ContactModalPage
- * @extends {GenericPage}
  */
 @IonicPage()
 @Component({
   selector: 'page-contact-modal',
   templateUrl: 'contact-modal.html'
 })
-export class ContactModalPage extends GenericPage {
+export class ContactModalPage {
   /**************************** PRIVATE FIELDS ******************************/
 
   /**
@@ -36,6 +29,15 @@ export class ContactModalPage extends GenericPage {
    * @memberof ContactModalPage
    */
   private readonly emailRequired: boolean;
+
+  /**
+   * copie de sauvegarde des contacts au cas ou on annule
+   *
+   * @private
+   * @type {ISimpleContact[]}
+   * @memberof ContactModalPage
+   */
+  private readonly previousContacts: ISimpleContact[];
 
   /***************************** PUBLIC FIELDS ******************************/
 
@@ -62,31 +64,24 @@ export class ContactModalPage extends GenericPage {
 
   /**
    * Creates an instance of ContactModalPage.
-   * @param {NavController} navCtrl
-   * @param {EventServiceProvider} evtCtrl
-   * @param {SpeechSynthServiceProvider} ttsCtrl
-   * @param {AuthServiceProvider} authCtrl
-   * @param {UiServiceProvider} uiCtrl
    * @param {NavParams} navParams
    * @param {ContactServiceProvider} contactsCtrl
+   * @param {ViewController} viewCtrl
    * @memberof ContactModalPage
    */
   constructor(
-    protected readonly navCtrl: NavController,
-    protected readonly evtCtrl: EventServiceProvider,
-    protected readonly ttsCtrl: SpeechSynthServiceProvider,
-    protected readonly authCtrl: AuthServiceProvider,
-    protected readonly uiCtrl: UiServiceProvider,
     private readonly navParams: NavParams,
-    private readonly contactsCtrl: ContactServiceProvider
+    private readonly contactsCtrl: ContactServiceProvider,
+    private readonly viewCtrl: ViewController
   ) {
-    super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
-    this.exportedContacts = this.navParams.get('contacts');
-    this.emailRequired = false;
-    if (this.navParams.get('onlyEmail') != null) {
-      this.emailRequired = this.navParams.get('onlyEmail');
+    const data = this.navParams.get('data');
+    this.exportedContacts = data.contacts;
+    this.emailRequired = data.email;
+    if (this.emailRequired == null) {
+      this.emailRequired = false;
     }
     this.fullContactList = [];
+    this.previousContacts = this.exportedContacts.slice(0);
   }
 
   /**************************************************************************/
@@ -99,11 +94,9 @@ export class ContactModalPage extends GenericPage {
    * @memberof ContactModalPage
    */
   ionViewWillEnter(): void {
-    super.ionViewWillEnter();
     const header = Global.getValidablePageData();
     header.title = 'Selectionner vos contacts';
     header.subtitle = 'Contacts disponibles';
-    this.evtCtrl.setHeader(header);
     this.initSelected();
   }
 
@@ -112,13 +105,27 @@ export class ContactModalPage extends GenericPage {
   /**************************************************************************/
 
   /**
+   * annule la selection
+   *
+   * @protected
+   * @memberof ContactModalPage
+   */
+  protected dismiss(): void {
+    this.exportedContacts.splice(0);
+    for (const item of this.previousContacts) {
+      this.exportedContacts.push(item);
+    }
+    this.viewCtrl.dismiss();
+  }
+
+  /**
    * Valide et termine la saisie des contacts
    *
    * @protected
    * @memberof ContactModalPage
    */
   protected validate() {
-    this.navCtrl.pop();
+    this.viewCtrl.dismiss();
   }
 
   /**
@@ -194,7 +201,6 @@ export class ContactModalPage extends GenericPage {
 
   /**
    * retourne true si le contact est selectionné
-   * A fixer, attente active pas top :/
    *
    * @private
    * @param {ISimpleContact} contact

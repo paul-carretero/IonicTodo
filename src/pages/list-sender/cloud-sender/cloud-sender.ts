@@ -12,6 +12,7 @@ import { TodoServiceProvider } from './../../../providers/todo-service-ts/todo-s
 import { Global } from './../../../shared/global';
 import { GenericSharer } from './../generic-sharer';
 import { ContactServiceProvider } from '../../../providers/contact-service/contact-service';
+import { AlertInputOptions } from 'ionic-angular/components/alert/alert-options';
 
 /**
  * page permettant d'envoyer une liste à des contacts ou sur le cloud ohmytask
@@ -205,10 +206,13 @@ export class CloudSenderPage extends GenericSharer {
    * @memberof CloudSenderPage
    */
   protected openContactPopup(): void {
-    this.navCtrl.push('ContactModalPage', {
-      contacts: this.contactList,
-      onlyEmail: true
-    });
+    this.uiCtrl.presentModal(
+      {
+        contacts: this.contactList,
+        email: true
+      },
+      'ContactModalPage'
+    );
   }
 
   /**
@@ -222,6 +226,62 @@ export class CloudSenderPage extends GenericSharer {
     const index = this.contactList.findIndex(c => c.id === contact.id);
     if (index !== -1) {
       this.contactList.splice(index, 1);
+    }
+  }
+
+  /**
+   * ouvre un popup pour créer un contact et si possible, l'ajoute à la liste des contacts de ce todo
+   *
+   * @protected
+   * @returns {Promise<void>}
+   * @memberof CloudSenderPage
+   */
+  protected async openCreateContact(): Promise<void> {
+    const inputs: AlertInputOptions[] = [
+      {
+        name: 'name',
+        placeholder: 'Nom (requis)',
+        type: 'text'
+      },
+      {
+        name: 'email',
+        placeholder: 'E-Mail (requis)',
+        type: 'email'
+      },
+      {
+        name: 'mobile',
+        placeholder: 'Mobile (optionnel)',
+        type: 'phone'
+      }
+    ];
+
+    try {
+      const res = await this.uiCtrl.presentPrompt(
+        'Nouveau Contact',
+        'Associer un contact à ce partage ',
+        inputs
+      );
+
+      const newContact = Global.getBlankContact();
+      if (
+        res != null &&
+        res.name != null &&
+        res.name !== '' &&
+        res.email != null &&
+        res.email !== ''
+      ) {
+        newContact.displayName = res.name;
+        newContact.email = res.email;
+        if (res.mobile !== '' && res.mobile !== undefined) {
+          newContact.mobile = res.mobile;
+        }
+
+        this.contactList.push(newContact);
+      } else {
+        this.uiCtrl.alert('Echec', "Vous devez renseigner le nom et l'email du contact");
+      }
+    } catch (error) {
+      // l'ajout à été annulé
     }
   }
 

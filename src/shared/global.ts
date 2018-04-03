@@ -258,7 +258,7 @@ export class Global {
    */
   public static getBlankContact(): ISimpleContact {
     return {
-      id: 0,
+      id: Math.round(Math.random() * 1000000000000),
       displayName: null,
       email: null,
       mobile: null

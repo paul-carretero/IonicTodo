@@ -20,15 +20,14 @@ export class StorageServiceProvider {
   /**
    * supprime toutes les images d'un todo (si elle existent)
    *
-   * @param {string} todoUuid
+   * @param {ITodoItem} todo
    * @memberof StorageServiceProvider
    */
-  public deleteMedias(todoUuid: string) {
-    try {
-      const ref = this.storageCtrl.ref(todoUuid);
-      ref.delete();
-    } catch (error) {
-      console.log('erreur lors de la suppression, le media existe il toujours ?');
+  public deleteMedias(todo: ITodoItem) {
+    if (todo != null && todo.pictures != null && todo.uuid != null) {
+      for (const pic of todo.pictures) {
+        this.deleteMedia(todo.uuid, pic.uuid);
+      }
     }
   }
 

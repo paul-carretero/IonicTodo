@@ -1,9 +1,9 @@
-<ion-card *ngIf="weather" padding>
+<ion-card *ngIf="weather && isButton">
   <button ion-item type="button">
     <ion-thumbnail item-start>
       <img [src]="iconSrc">
     </ion-thumbnail>
-    <h2>{{weather.desc}} ({{temp}}°C)</h2>
+    <h2>{{temp}}°C - {{weather.desc}}</h2>
     <p>
       <ion-icon name="pin" color="primary"></ion-icon> &nbsp; : {{weather.city}}
       <br/>
@@ -12,3 +12,13 @@
     <ion-icon name="arrow-forward" item-end></ion-icon>
   </button>
 </ion-card>
+
+<ion-item *ngIf="weather && !isButton" class="margin-bottom">
+  <ion-thumbnail item-start>
+    <img [src]="iconSrc">
+  </ion-thumbnail>
+  <h2>{{temp}}°C -{{weather.desc}}</h2>
+  <p>
+    <ion-icon name="calendar"></ion-icon> &nbsp; : {{date}}
+  </p>
+</ion-item>

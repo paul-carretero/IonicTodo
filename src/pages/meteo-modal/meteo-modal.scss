@@ -1,9 +1,13 @@
-page-help-modal {
+page-meteo-modal {
   ion-toolbar {
     color: white;
     text-align: center;
   }
   ion-content {
     background-color: lightgrey !important;
+  }
+  ion-buttons {
+    margin-left: 20px;
+    margin-right: 20px;
   }
 }

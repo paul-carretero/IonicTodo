@@ -5,69 +5,127 @@
 <ion-content padding>
     <ion-list>
         <ng-container *ngIf="isConnected">
-            <ion-item-divider color="light" icon-start>
-                <ion-icon name="person" small></ion-icon> Vos Listes de Todo en cours
-            </ion-item-divider>
-            <ion-item-group reorder="true" (ionItemReorder)="reorder($event,todoList)">
-                <ng-container *ngFor="let list of todoList">
-                    <ng-container *ngIf="search$ | async as search">
-                        <ion-item-sliding *ngIf="areMatching(list,search)" #todoSlide>
-                            <ion-item (click)="selectTodoList(list.uuid)" detail-push>
-                                <ion-icon name="{{list.icon}}" item-start></ion-icon>
-                                {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
-                                <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
-                            </ion-item>
-                            <ion-item-options side="right">
-                                <button ion-button color="danger" (click)="deleteTodoList(list, todoList, todoSlide)">
-                                    <ion-icon name="trash">
-                                        supprimer
-                                    </ion-icon>
-                                </button>
-                            </ion-item-options>
-                        </ion-item-sliding>
+
+            <ng-container *ngIf="todoList.length === 0">
+                <ion-item-divider color="light" icon-start>
+                    <ion-icon name="person" small></ion-icon> Aucune Listes de tâches en cours
+                </ion-item-divider>
+            </ng-container>
+
+            <ng-container *ngIf="todoList.length > 0">
+                <ion-item-divider color="light" icon-start>
+                    <ion-icon name="person" small></ion-icon> Vos Listes de tâches en cours
+                </ion-item-divider>
+                <ion-item-group reorder="true" (ionItemReorder)="reorder($event,todoList)">
+                    <ng-container *ngFor="let list of todoList">
+                        <ng-container *ngIf="search$ | async as search">
+                            <ion-item-sliding *ngIf="areMatching(list,search)" #todoSlide>
+                                <ion-item (click)="selectTodoList(list.uuid)" detail-push>
+                                    <ion-icon name="{{list.icon}}" item-start></ion-icon>
+                                    {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
+                                    <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
+                                </ion-item>
+                                <ion-item-options side="right">
+                                    <button ion-button color="danger" (click)="deleteTodoList(list, todoList, todoSlide)">
+                                        <ion-icon name="trash">
+                                            supprimer
+                                        </ion-icon>
+                                    </button>
+                                </ion-item-options>
+                            </ion-item-sliding>
+                        </ng-container>
                     </ng-container>
-                </ng-container>
-            </ion-item-group>
+                </ion-item-group>
+            </ng-container>
 
+            <ng-container *ngIf="completeTodoList.length === 0">
+                <ion-item-divider color="light" icon-start>
+                    <ion-icon name="done-all" small></ion-icon> Aucune Listes Terminées
+                </ion-item-divider>
+            </ng-container>
+
+            <ng-container *ngIf="completeTodoList.length > 0">
+                <ion-item-divider color="light" icon-start>
+                    <ion-icon name="done-all" small></ion-icon> Vos Listes Terminées
+                </ion-item-divider>
+
+                <ion-item-group reorder="true" (ionItemReorder)="reorder($event,completeTodoList)">
+                    <ng-container *ngFor="let list of completeTodoList">
+                        <ng-container *ngIf="search$ | async as search">
+                            <ion-item-sliding *ngIf="areMatching(list,search)" #completeSlide>
+                                <ion-item (click)="selectTodoList(list.uuid)" detail-push>
+                                    <ion-icon name="{{list.icon}}" item-start></ion-icon>
+                                    {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
+                                </ion-item>
+                                <ion-item-options side="right">
+                                    <button ion-button color="danger" (click)="deleteTodoList(list, completeTodoList, completeSlide)">
+                                        <ion-icon name="trash">
+                                            supprimer
+                                        </ion-icon>
+                                    </button>
+                                </ion-item-options>
+                            </ion-item-sliding>
+                        </ng-container>
+                    </ng-container>
+                </ion-item-group>
+            </ng-container>
+
+            <ng-container *ngIf="sharedTodoList.length === 0">
+                <ion-item-divider ion-item color="light" icon-start>
+                    <ion-icon name="people" small></ion-icon> Aucune Listes Partagées
+                </ion-item-divider>
+            </ng-container>
+
+            <ng-container *ngIf="sharedTodoList.length > 0">
+                <ion-item-divider ion-item color="light" icon-start>
+                    <ion-icon name="people" small></ion-icon> Vos listes partagées
+                </ion-item-divider>
+
+                <ion-item-group>
+                    <ng-container *ngFor="let list of sharedTodoList">
+                        <ng-container *ngIf="search$ | async as search">
+                            <ion-item-sliding *ngIf="areMatching(list,search)" #sharedSlide>
+                                <ion-item (click)="selectTodoList(list.uuid)" detail-push>
+                                    <ion-icon name="{{list.icon}}" item-start></ion-icon>
+                                    {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
+                                    <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
+                                </ion-item>
+                                <ion-item-options side="right">
+                                    <button ion-button color="danger" (click)="deleteTodoList(list, sharedTodoList, sharedSlide)">
+                                        <ion-icon name="trash">
+                                            supprimer
+                                        </ion-icon>
+                                    </button>
+                                </ion-item-options>
+                            </ion-item-sliding>
+                        </ng-container>
+                    </ng-container>
+                </ion-item-group>
+            </ng-container>
+        </ng-container>
+
+        <ng-container *ngIf="localTodoList.length === 0">
             <ion-item-divider color="light" icon-start>
-                <ion-icon name="done-all" small></ion-icon> Vos Listes Terminées
+                <ion-icon name="phone-portrait" small></ion-icon> Aucune Listes Locales
+            </ion-item-divider>
+        </ng-container>
+
+        <ng-container *ngIf="localTodoList.length > 0">
+            <ion-item-divider color="light" icon-start>
+                <ion-icon name="phone-portrait" small></ion-icon> Listes Locales
             </ion-item-divider>
 
-            <ion-item-group reorder="true" (ionItemReorder)="reorder($event,completeTodoList)">
-                <ng-container *ngFor="let list of completeTodoList">
+            <ion-item-group reorder="true" (ionItemReorder)="reorder($event,localTodoList)">
+                <ng-container *ngFor="let list of localTodoList">
                     <ng-container *ngIf="search$ | async as search">
                         <ion-item-sliding *ngIf="areMatching(list,search)" #completeSlide>
                             <ion-item (click)="selectTodoList(list.uuid)" detail-push>
                                 <ion-icon name="{{list.icon}}" item-start></ion-icon>
                                 {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
-                            </ion-item>
-                            <ion-item-options side="right">
-                                <button ion-button color="danger" (click)="deleteTodoList(list, completeTodoList, completeSlide)">
-                                    <ion-icon name="trash">
-                                        supprimer
-                                    </ion-icon>
-                                </button>
-                            </ion-item-options>
-                        </ion-item-sliding>
-                    </ng-container>
-                </ng-container>
-            </ion-item-group>
-
-            <ion-item-divider ion-item color="light" icon-start>
-                <ion-icon name="people" small></ion-icon> Listes Partagées
-            </ion-item-divider>
-
-            <ion-item-group>
-                <ng-container *ngFor="let list of sharedTodoList">
-                    <ng-container *ngIf="search$ | async as search">
-                        <ion-item-sliding *ngIf="areMatching(list,search)" #sharedSlide>
-                            <ion-item (click)="selectTodoList(list.uuid)" detail-push>
-                                <ion-icon name="{{list.icon}}" item-start></ion-icon>
-                                {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
                                 <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
                             </ion-item>
                             <ion-item-options side="right">
-                                <button ion-button color="danger" (click)="deleteTodoList(list, sharedTodoList, sharedSlide)">
+                                <button ion-button color="danger" (click)="deleteTodoList(list, localTodoList, completeSlide)">
                                     <ion-icon name="trash">
                                         supprimer
                                     </ion-icon>
@@ -77,33 +135,8 @@
                     </ng-container>
                 </ng-container>
             </ion-item-group>
-
         </ng-container>
 
-        <ion-item-divider color="light" icon-start>
-            <ion-icon name="phone-portrait" small></ion-icon> Listes Locales
-        </ion-item-divider>
-
-        <ion-item-group reorder="true" (ionItemReorder)="reorder($event,localTodoList)">
-            <ng-container *ngFor="let list of localTodoList">
-                <ng-container *ngIf="search$ | async as search">
-                    <ion-item-sliding *ngIf="areMatching(list,search)" #completeSlide>
-                        <ion-item (click)="selectTodoList(list.uuid)" detail-push>
-                            <ion-icon name="{{list.icon}}" item-start></ion-icon>
-                            {{ list.name }} ({{list.metadata.todoComplete}}/{{list.metadata.todoTotal}})
-                            <ion-icon *ngIf="list.metadata.atLeastOneLate" name="alert" item-end></ion-icon>
-                        </ion-item>
-                        <ion-item-options side="right">
-                            <button ion-button color="danger" (click)="deleteTodoList(list, localTodoList, completeSlide)">
-                                <ion-icon name="trash">
-                                    supprimer
-                                </ion-icon>
-                            </button>
-                        </ion-item-options>
-                    </ion-item-sliding>
-                </ng-container>
-            </ng-container>
-        </ion-item-group>
 
     </ion-list>
     <button class="bottom-right-button" ion-fab (click)="createTodoList()">

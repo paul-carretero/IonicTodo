@@ -1,5 +1,20 @@
 <ion-header>
-  <HeaderComponent></HeaderComponent>
+  <ion-navbar color="dark">
+    <ion-buttons left>
+      <button ion-button round class="icon-sized" (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button ion-button round class="icon-sized" (click)="validate()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Contacts</ion-title>
+  </ion-navbar>
+  <ion-toolbar padding color="dark">
+    Selectionner les contacts à ajouter
+  </ion-toolbar>
 </ion-header>
 
 <ion-content padding>

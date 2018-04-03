@@ -118,19 +118,26 @@ export abstract class GenericPage {
       .getNavRequestSubject()
       .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page, navReq.data));
 
-    this.menuEvtSub = this.evtCtrl
-      .getMenuRequestSubject()
-      .subscribe(async (req: IMenuRequest) => {
-        switch (req.request) {
-          case MenuRequestType.SPEECH_SYNTH:
-            this.ttsCtrl.synthText(this.generateDescription());
-            break;
-          case MenuRequestType.HELP:
-            this.uiCtrl.presentHelpModal(this.generateHelp());
-            break;
-        }
-        this.menuEventHandler(req);
-      });
+    this.menuEvtSub = this.evtCtrl.getMenuRequestSubject().subscribe((req: IMenuRequest) => {
+      switch (req.request) {
+        case MenuRequestType.SPEECH_SYNTH:
+          this.ttsCtrl.synthText(this.generateDescription());
+          break;
+        case MenuRequestType.HELP:
+          const help = this.generateHelp();
+          if (help.messages.length > 1) {
+            this.uiCtrl.presentModal(help, 'HelpModalPage');
+          } else if (help.messages.length === 1) {
+            this.uiCtrl.alert_message(
+              "Aide sur l'application",
+              help.subtitle,
+              help.messages[0]
+            );
+          }
+          break;
+      }
+      this.menuEventHandler(req);
+    });
   }
 
   /**

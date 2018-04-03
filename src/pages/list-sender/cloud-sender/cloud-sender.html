@@ -32,7 +32,7 @@
     </ion-card-header>
     <ion-card-content>
       <ion-item>
-        <ion-label floating>mot de passe</ion-label>
+        <ion-label stacked>mot de passe</ion-label>
         <ion-input [(ngModel)]="password" type="password"></ion-input>
       </ion-item>
     </ion-card-content>
@@ -59,11 +59,15 @@
         </ion-item-options>
       </ion-item-sliding>
 
-      <ion-item-divider *ngIf="contactList.length > 0" color="light">Option:</ion-item-divider>
+      <ion-item-divider color="light">Options:</ion-item-divider>
       <ion-item *ngIf="contactList.length > 0">
         <ion-label>Envoyer un sms à vos contacts:</ion-label>
         <ion-toggle [(ngModel)]="sendSMS"></ion-toggle>
       </ion-item>
+      <button ion-item color="secondary" (click)="openCreateContact()" type="button">
+        Créer un contact
+        <ion-icon name="create" item-end></ion-icon>
+      </button>
     </ion-list>
   </ion-card>
 

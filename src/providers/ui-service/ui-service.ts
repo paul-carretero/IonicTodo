@@ -182,13 +182,13 @@ export class UiServiceProvider {
       .present();
   }
 
-  /**
+  /*
    * affiche une fenêtre d'information, pour de grand messages
    * @param {string} title le titre de la fenêtre d'alerte
    * @param {string} subtitle le sous-titre de la fenêtre d'alerte
    * @param {string} text le texte de le fenêtre d'alerte
    * @memberof UiServiceProvider
-   */
+   *
   public alert_message(
     title: string,
     subtitle: string,
@@ -213,35 +213,38 @@ export class UiServiceProvider {
       }
     }
     return alert;
-  }
+  }*/
 
-  private alert_debut(title: string, subtitle: string, text: string): Promise<number> {
-    return new Promise<number>(resolve => {
-      this.alertCtrl
-        .create({
-          title: title,
-          subTitle: subtitle,
-          message: text,
-          buttons: [
-            {
-              text: 'Suivant',
-              handler: () => {
-                resolve(1);
-              }
-            },
-            {
-              text: 'Quitter',
-              role: 'cancel',
-              handler: () => {
-                resolve(0);
-              }
-            }
-          ]
-        })
-        .present();
-    });
-  }
+  /**
+   * affiche une grande alert pour un message détaillé
+   *
+   * @param {string} title
+   * @param {string} subtitle
+   * @param {string} text
+   * @memberof UiServiceProvider
+   */
+  public alert_message(title: string, subtitle: string, text: string): void {
+    if (this.autoRead) {
+      this.synthCtrl.synthText(title);
+      this.synthCtrl.synthText(subtitle);
+      this.synthCtrl.synthText(text);
+    }
 
+    this.alertCtrl
+      .create({
+        title: title,
+        subTitle: subtitle,
+        message: text,
+        buttons: [
+          {
+            text: 'Quitter',
+            role: 'cancel'
+          }
+        ]
+      })
+      .present();
+  }
+  /*
   private alert_milieu(title: string, text: string): Promise<number> {
     return new Promise<number>(resolve => {
       this.alertCtrl
@@ -298,7 +301,7 @@ export class UiServiceProvider {
         })
         .present();
     });
-  }
+  }*/
 
   /**
    * Affiche un message 'toast' en bas de l'écran
@@ -375,7 +378,14 @@ export class UiServiceProvider {
     return this.alertCtrl.create();
   }
 
-  public presentHelpModal(data: { subtitle: string; messages: string[] }): void {
-    this.modalCtrl.create('HelpModalPage', { data: data }).present();
+  /**
+   * présente une page modal (help ou météo)
+   *
+   * @param {*} data
+   * @param {string} page
+   * @memberof UiServiceProvider
+   */
+  public presentModal(data: any, page: string): void {
+    this.modalCtrl.create(page, { data: data }).present();
   }
 }

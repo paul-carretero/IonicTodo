@@ -216,10 +216,6 @@ export class TodoEditPage extends GenericPage {
 
     if (this.todoRef != null) {
       header.subtitle = 'Menu édition';
-
-      this.deleteSub = this.todoService
-        .getTodoDeleteSubject(this.todoRef)
-        .subscribe(() => this.hasBeenRemoved(false));
       this.initPageForEdit(header);
     } else {
       header.title = 'Nouvelle Tâche';
@@ -240,11 +236,10 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   ionViewWillLeave(): void {
-    this.todoService.unsubDeleteSubject();
     if (!this.imgCacheClean && !this.isInCreation) {
       this.todoService.updateTodoPictures(this.todo);
     } else if (!this.imgCacheClean && this.isInCreation && this.todo.uuid != null) {
-      this.storageCtrl.deleteMedias(this.todo.uuid);
+      this.storageCtrl.deleteMedias(this.todo);
     }
   }
 
@@ -272,8 +267,9 @@ export class TodoEditPage extends GenericPage {
   /**************************************************************************/
 
   /**
-   * initialise le header de la page
-   * si il s'agit d'une édition, met les valeurs correspondante au todo existant dans le formulaire
+   * initialise le header de la page de manière statique (on ne veut pas que les champs change quand on écrit...)
+   * si il s'agit d'une édition, met les valeurs correspondante au todo existant dans le formulaire.
+   * initialise la deletesub an cas de suppr du todo
    *
    * @private
    * @param {IPageData} header
@@ -301,6 +297,12 @@ export class TodoEditPage extends GenericPage {
         }
         this.storageCtrl.refreshDownloadLink(this.todo);
         sub.unsubscribe();
+      });
+
+      this.deleteSub = this.todoService.getTodo(this.todoRef).subscribe(todo => {
+        if (todo == null) {
+          this.hasBeenRemoved(false);
+        }
       });
     }
   }
@@ -548,9 +550,13 @@ export class TodoEditPage extends GenericPage {
    * @memberof TodoEditPage
    */
   protected openContactPopup(): void {
-    this.navCtrl.push('ContactModalPage', {
-      contacts: this.todo.contacts
-    });
+    this.uiCtrl.presentModal(
+      {
+        contacts: this.todo.contacts,
+        email: false
+      },
+      'ContactModalPage'
+    );
   }
 
   /**
@@ -632,10 +638,10 @@ export class TodoEditPage extends GenericPage {
       const newContact = Global.getBlankContact();
       if (res != null && res.name != null && res.name !== '') {
         newContact.displayName = res.name;
-        if (res.email !== '' && res.email !== undefined) {
+        if (res.email !== '' && res.email != null) {
           newContact.email = res.email;
         }
-        if (res.mobile !== '' && res.mobile !== undefined) {
+        if (res.mobile !== '' && res.mobile != null) {
           newContact.mobile = res.mobile;
         }
 
@@ -730,7 +736,7 @@ export class TodoEditPage extends GenericPage {
    */
   protected get deadlineStr(): string {
     if (this.todo.deadline == null) {
-      return 'Non définie';
+      return 'Définir une deadline';
     }
     return moment(this.todo.deadline)
       .locale('fr')
@@ -747,7 +753,7 @@ export class TodoEditPage extends GenericPage {
    */
   protected get notifStr(): string {
     if (this.todo.notif == null) {
-      return 'Non définie';
+      return 'Définir une notification';
     }
     return moment(this.todo.notif)
       .locale('fr')

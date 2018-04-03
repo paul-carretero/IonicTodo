@@ -24,6 +24,14 @@ export class MeteoComponent implements OnInit {
   @Input() weather: ISimpleWeather;
 
   /**
+   * défini si l'affichage doit être de type boutton ou normal
+   *
+   * @type {boolean}
+   * @memberof MeteoComponent
+   */
+  @Input() isButton: boolean;
+
+  /**
    * le jour en format humain de la météo
    *
    * @protected
@@ -77,5 +85,9 @@ export class MeteoComponent implements OnInit {
     this.temp = this.weather.temp.toFixed(0);
 
     this.iconSrc = 'http://openweathermap.org/img/w/' + this.weather.icon + '.png';
+
+    if (this.isButton == null) {
+      this.isButton = false;
+    }
   }
 }

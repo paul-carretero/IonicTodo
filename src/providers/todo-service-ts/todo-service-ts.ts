@@ -1511,28 +1511,26 @@ export class TodoServiceProvider {
   /**
    * Permet de supprimer un todo
    *
-   * @param {DocumentReference} ref référence vers le todo à supprimer
-   * @param {string} todoUuid
+   * @param {ITodoItem} todo todo à supprimer
    * @returns {Promise<void>}
    * @memberof TodoServiceProvider
    */
-  public async deleteTodo(ref: DocumentReference, todoUuid: string): Promise<void> {
-    if (ref == null) {
-      return;
-    }
-    const todoDoc = new AngularFirestoreDocument(ref as any);
-    try {
-      const p = todoDoc.delete();
-      if (this.online) {
-        await p;
+  public async deleteTodo(todo: ITodoItem): Promise<void> {
+    if (todo != null && todo.ref != null && todo.uuid != null) {
+      const todoDoc = new AngularFirestoreDocument(todo.ref as any);
+      try {
+        const p = todoDoc.delete();
+        if (this.online) {
+          await p;
+        }
+        this.notifCtrl.onTodoDelete(todo.uuid);
+      } catch (error) {
+        console.log('Impossible de supprimer la tâche, tâche inexistante ?');
       }
-      this.notifCtrl.onTodoDelete(todoUuid);
-    } catch (error) {
-      console.log('Impossible de supprimer la tâche, tâche inexistante ?');
-    }
 
-    this.storageCtrl.deleteMedias(todoUuid);
-    this.deleteTodoSnap(todoUuid);
+      this.storageCtrl.deleteMedias(todo);
+      this.deleteTodoSnap(todo.uuid);
+    }
   }
 
   /**

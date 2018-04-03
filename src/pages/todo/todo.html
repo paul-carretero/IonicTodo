@@ -18,36 +18,27 @@
             </ion-card-content>
         </ion-card>
 
-        <ion-card *ngIf="todo.deadline != null || todo.notif != null">
-            <ion-card-header icon-start>
-                <ion-icon name="time"></ion-icon>
-                Date et Notification
-            </ion-card-header>
-            <ion-card-content>
-                <ion-list>
-                    <ion-item color="light" (click)="openCalendar()">
-                        <ion-icon name="calendar" item-start></ion-icon>
-                        {{deadlineStr}}
-                    </ion-item>
-                    <ion-item color="light">
-                        <ion-icon name="time" item-start></ion-icon>
-                        {{remainingDeadlineStr}}
-                    </ion-item>
-                    <ion-item color="light">
-                        <ion-icon name="alarm" item-start></ion-icon>
-                        {{notifStr}}
-                    </ion-item>
-
-                    <button *ngIf="!isInCalendar" ion-item (click)="exportToCalendar()" type="button" color="secondary">
-                        <ion-icon name="phone-portrait" item-start></ion-icon>
-                        Ajouter au calendrier
-                    </button>
-                    <button *ngIf="isInCalendar" ion-item (click)="deleteFromCaldendar()" type="button" color="danger">
-                        <ion-icon name="trash" item-start></ion-icon>
-                        Retirer au calendrier
-                    </button>
-                </ion-list>
-            </ion-card-content>
+        <ion-card class="button-wrapper" *ngIf="todo.deadline != null || todo.notif != null">
+            <ion-item color="light" (click)="openCalendar()" *ngIf="todo.deadline != null" class="deadline-thumb">
+                <ion-icon name="calendar" item-start></ion-icon>
+                <h2>{{deadlineStr}}</h2>
+                <p>
+                    {{remainingDeadlineStr}}
+                </p>
+                <ion-icon name="arrow-forward" item-end></ion-icon>
+            </ion-item>
+            <ion-item *ngIf="todo.notif != null">
+                <ion-icon name="alarm" item-start></ion-icon>
+                {{notifStr}}
+            </ion-item>
+            <button *ngIf="todo.deadline != null && !isInCalendar" ion-item (click)="exportToCalendar()" type="button" color="secondary">
+                <ion-icon name="phone-portrait" item-start></ion-icon>
+                Ajouter au calendrier
+            </button>
+            <button *ngIf="todo.deadline != null && isInCalendar" ion-item (click)="deleteFromCaldendar()" type="button" color="danger">
+                <ion-icon name="trash" item-start></ion-icon>
+                Retirer au calendrier
+            </button>
         </ion-card>
 
         <ion-card *ngIf="todo.contacts.length > 0">
@@ -74,7 +65,7 @@
                             <button ion-button color="secondary" *ngIf="contact.mobile" (click)="openSMS(contact)" class="sub-option">
                                 <ion-icon name="text"></ion-icon>
                             </button>
-                            <button ion-button color="secondary" (click)="openEmail(contact)" class="sub-option">
+                            <button ion-button color="secondary" *ngIf="contact.email" (click)="openEmail(contact)" class="sub-option">
                                 <ion-icon name="mail"></ion-icon>
                             </button>
                         </ion-item-options>
@@ -124,7 +115,7 @@
             <ion-item>{{todo.address}}</ion-item>
         </ion-card>
 
-        <meteo *ngIf="meteo" [weather]="meteo"></meteo>
+        <meteo *ngIf="meteo" [weather]="meteo" [isButton]="true" (click)="viewDetailWeathers()"></meteo>
 
         <ion-card style="height : 500px" #mapwrapper id="mapwrapper"></ion-card>
 

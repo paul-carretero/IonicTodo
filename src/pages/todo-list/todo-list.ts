@@ -533,7 +533,7 @@ export class TodoListPage extends GenericPage {
         if (ext) {
           this.todoService.removeTodoRef(this.listUUID, todo.ref);
         } else {
-          this.todoService.deleteTodo(todo.ref, todo.uuid);
+          this.todoService.deleteTodo(todo);
         }
       }
       closable.close();
@@ -686,18 +686,21 @@ export class TodoListPage extends GenericPage {
    * @returns {string}
    * @memberof GenericPage
    */
-  protected generateHelp(): {subtitle : string, messages : string[]} {
-    const aide : string[] = [];
-    const subtitle_page = "Cette page regroupe l'ensemble des tâches de la liste " + this.todoList.name + ". \n";
-    aide[0] = "Vos tâches sont regroupées en différentes catégories : vos tâches en cours, vos tâches terminées, vos tâches importées. \n";
-    aide[1]= "Vous pouvez afficher les détails d'une tâche en la sélectionnant. \n";
-    aide[2]= "Vous pouvez créer une nouvelle tâche en cliquant sur le bouton + bleu.\n ";
-    aide[3]= "Des actions supplémentaires sur la liste sont disponnibles dans les options en haut à droite. Si vous êtes connectés vous pouvez partager la liste.\n";
-    aide[4]= "Vous pouvez partager la liste de différentes façons";
-    aide[5] = "À l'aide des boutons en haut à droite vous pouvez rechercher une tâche, utiliser la reconnaissance vocale, demander à l'application de vous lire le contenu de la page, afficher le menu des options. \n";
-    aide[6]= "Des actions supplémentaires sont disponnibles dans le menu en haut à gauche.\n";
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    const aide: string[] = [];
+    const subtitle_page =
+      "Cette page regroupe l'ensemble des tâches de la liste " + this.todoList.name + '. \n';
+    aide[0] =
+      'Vos tâches sont regroupées en différentes catégories : vos tâches en cours, vos tâches terminées, vos tâches importées. \n';
+    aide[1] = "Vous pouvez afficher les détails d'une tâche en la sélectionnant. \n";
+    aide[2] = 'Vous pouvez créer une nouvelle tâche en cliquant sur le bouton + bleu.\n ';
+    aide[3] =
+      'Des actions supplémentaires sur la liste sont disponnibles dans les options en haut à droite. Si vous êtes connectés vous pouvez partager la liste.\n';
+    aide[4] = 'Vous pouvez partager la liste de différentes façons';
+    aide[5] =
+      "À l'aide des boutons en haut à droite vous pouvez rechercher une tâche, utiliser la reconnaissance vocale, demander à l'application de vous lire le contenu de la page, afficher le menu des options. \n";
+    aide[6] = 'Des actions supplémentaires sont disponnibles dans le menu en haut à gauche.\n';
 
-    return {subtitle: subtitle_page, messages: aide};
+    return { subtitle: subtitle_page, messages: aide };
   }
-
 }
