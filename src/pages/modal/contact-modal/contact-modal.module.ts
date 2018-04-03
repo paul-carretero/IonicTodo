@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
 import { ContactModalPage } from './contact-modal';
-import { ComponentsModule } from '../../components/components.module';
+import { ComponentsModule } from '../../../components/components.module';
 
 /**
  * ContactModalPageModule

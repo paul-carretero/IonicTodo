@@ -282,7 +282,6 @@ export class HomePage extends GenericPage {
     this.sharedListSub = this.todoService
       .getTodoList(ListType.SHARED)
       .subscribe((lists: ITodoList[]) => {
-        console.log(lists);
         const sharedtodoListP: Promise<ITodoList>[] = [];
         for (const list of lists) {
           if (list != null) {

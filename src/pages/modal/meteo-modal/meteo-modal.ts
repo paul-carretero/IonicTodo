@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavParams, ViewController } from 'ionic-angular';
 
-import { ISimpleWeather } from './../../model/weather';
+import { ISimpleWeather } from '../../../model/weather';
 
 @IonicPage()
 @Component({

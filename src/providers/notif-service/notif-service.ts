@@ -1,12 +1,15 @@
-import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
+import { ITodoSnapshot } from './../../model/todo-snap';
+import { Injectable } from '@angular/core';
+import { LocalNotifications } from '@ionic-native/local-notifications';
+
+import { Settings } from '../../model/settings';
+import { EventServiceProvider } from '../event/event-service';
+import { UiServiceProvider } from '../ui-service/ui-service';
 import { ITodoItem } from './../../model/todo-item';
 import { AuthServiceProvider } from './../auth-service/auth-service';
 import { DBServiceProvider } from './../db/db-service';
-import { Injectable } from '@angular/core';
-import { LocalNotifications } from '@ionic-native/local-notifications';
-import { UiServiceProvider } from '../ui-service/ui-service';
-import { EventServiceProvider } from '../event/event-service';
-import { Settings } from '../../model/settings';
+import { TodoServiceProvider } from './../todo-service-ts/todo-service-ts';
+import { MenuRequestType } from '../../model/menu-request-type';
 
 /**
  * gère les notifications native pour l'utilisateur et se synchronise avec les todo existant
@@ -116,7 +119,7 @@ export class NotifServiceProvider {
    * @param {ITodoItem[]} items
    * @memberof NotifServiceProvider
    */
-  private checkNowTodoForRedirect(items: ITodoItem[]): void {
+  private checkNowTodoForRedirect(items: ITodoSnapshot[]): void {
     const nowTodo = items.find(
       todo =>
         todo.complete === false &&
@@ -141,21 +144,30 @@ export class NotifServiceProvider {
    * @param {ITodoItem} todo
    * @memberof NotifServiceProvider
    */
-  private askForRedirect(todo: ITodoItem): void {
-    this.uiCtrl
-      .confirm(
+  private async askForRedirect(todo: ITodoSnapshot): Promise<void> {
+    if (todo.uuid !== this.evtCtrl.getCurrentContext(false)) {
+      const res = await this.uiCtrl.confirm(
         'Tâche imminante',
         'la tâche ' +
           todo.name +
           " se termine maintenant et n'est pas complétée Voir la tâche?"
-      )
-      .then(res => {
-        if (res) {
-          this.evtCtrl
-            .getNavRequestSubject()
-            .next({ page: 'TodoPage', data: { todoRef: todo.ref } });
+      );
+
+      if (res && todo != null && todo.listUuids != null && todo.listUuids.length > 0) {
+        if (this.evtCtrl.getCurrentContext(false) == null) {
+          this.evtCtrl.getNavRequestSubject().next({
+            page: 'TodoPage',
+            data: { todoRef: todo.ref, listUuid: todo.listUuids[0] }
+          });
+        } else if (this.evtCtrl.getCurrentContext(false) !== todo.uuid) {
+          this.evtCtrl.getMenuRequestSubject().next({
+            request: MenuRequestType.VIEW,
+            ref: todo.ref,
+            uuid: todo.listUuids[0]
+          });
         }
-      });
+      }
+    }
   }
 
   /**
@@ -222,9 +234,9 @@ export class NotifServiceProvider {
       id: id,
       title: todo.name,
       text: 'Rappel : La tâche ' + todo.name + ' se termine bientôt !',
-      data: { todoRef: todo.ref.path },
+      data: { todoUuid: todo.uuid },
       at: todo.notif,
-      icon: undefined
+      icon: 'http://carretero.ovh/icon.png'
     });
     return id;
   }
@@ -244,9 +256,24 @@ export class NotifServiceProvider {
     this.listenForAuthEvents();
 
     this.localNotifCtrl.on('click', (notification: any) => {
-      this.evtCtrl
-        .getNavRequestSubject()
-        .next({ page: 'TodoPage', data: { todoRef: notification.data.todoRef } });
+      if (notification.data != null && notification.data.todoUuid != null) {
+        const todos = this.todoCtrl.getAllTodos();
+        const todo = todos.find(t => t.uuid === notification.data.todoUuid);
+        if (todo != null && todo.listUuids != null && todo.listUuids.length > 0) {
+          if (this.evtCtrl.getCurrentContext(false) == null) {
+            this.evtCtrl.getNavRequestSubject().next({
+              page: 'TodoPage',
+              data: { todoRef: todo.ref, listUuid: todo.listUuids[0] }
+            });
+          } else if (this.evtCtrl.getCurrentContext(false) !== todo.uuid) {
+            this.evtCtrl.getMenuRequestSubject().next({
+              request: MenuRequestType.VIEW,
+              ref: todo.ref,
+              uuid: todo.listUuids[0]
+            });
+          }
+        }
+      }
     });
   }
 

@@ -2,4 +2,9 @@ page-todo-list {
   ion-content {
     background-color: lightgrey !important;
   }
+  ion-card-header {
+    background-color: color($colors, light, base);
+    border-bottom: 1px solid black;
+    margin-bottom: 5px;
+  }
 }
