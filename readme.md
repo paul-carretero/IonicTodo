@@ -52,7 +52,20 @@ Partages de listes
 - partage à des contacts natif (option pour envoyer un sms, option d'import auto des partage dont on est la cible)
 
 Reconnaissance vocale
+- 
+- Reconnaissance vocale de mots clés pour réaliser des actions liées aux listes et aux todos.
+- La reconnaissance vocale utilise un parser pour reconnaître les actions demandées et la liste ou tâche demandées.
+- Les actions peuvent être indépendentes de la page courante ou elles peuvent y être liées.
+- Il est possible de créer, de partager, d'envoyer, de visualiser, de supprimer une liste.
+- Il est possible d'ajouter une tâche dans une liste, de marquer une tâche comme complète.
+- Il est possible de visualiser, de supprimer une tâche.
+- Il est possible d'être redirigé vers les pages d'édition d'une liste ou d'une tâche.
+- Il est possible de demander de l'aide sur l'utilisation de la reconnaissance vocale.
+
+Synthèse vocale
 -
+- La synthèse vocale est utilisée en tant que retour utilisateur lors de l'utilisation de la reconnaissance vocale.
+- La synthèse vocale est utilisée pour lire le contenu de certaines pages : la page de l'ensemble des listes, la page d'une liste, la page d'une tâche, ...
 
 Notifications
 -

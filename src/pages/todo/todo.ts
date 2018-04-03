@@ -1108,7 +1108,7 @@ export class TodoPage extends GenericPage {
     let description: string = '';
     description = ' Détails de la tâche ' + this.todo.name + ' . ';
 
-    if (this.todo.desc != null) {
+    if (this.todo.desc != null && this.todo.desc !== '') {
       description += ' Description de la tâche : ' + this.todo.desc + ' . ';
     }
 
@@ -1124,7 +1124,7 @@ export class TodoPage extends GenericPage {
       description += 'La notification est prévue pour le ' + this.notifStr + ' . ';
     }
 
-    if (this.todo.address != null) {
+    if (this.todo.address != null && this.todo.address !== '') {
       description += 'La tâche à lieu à ' + this.todo.address + ' . ';
     }
 
