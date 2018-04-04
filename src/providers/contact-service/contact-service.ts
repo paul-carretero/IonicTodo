@@ -69,29 +69,17 @@ export class ContactServiceProvider {
    *
    * @param {ISimpleContact} contact
    * @param {string} message
-   * @param {boolean} displayLog
    * @returns {Promise<void>}
    * @memberof ContactServiceProvider
    */
-  public async sendSMS(
-    contact: ISimpleContact,
-    message: string,
-    displayLog: boolean
-  ): Promise<void> {
+  public async sendSMS(contact: ISimpleContact, message: string): Promise<void> {
     if (
       contact.mobile == null ||
       (contact.mobile.charAt(1) !== '6' && contact.mobile.charAt(1) !== '7')
     ) {
-      if (displayLog) {
-        this.uiCtrl.alert(
-          'Echec',
-          "Impossible d'envoyer un message à " + contact.displayName + ', aucun mobile connu'
-        );
-      } else {
-        console.log(
-          "Impossible d'envoyer un message à " + contact.displayName + ', aucun mobile connu'
-        );
-      }
+      console.log(
+        "Impossible d'envoyer un message à " + contact.displayName + ', aucun mobile connu'
+      );
     } else {
       const permsOKP = this.smsCtrl.hasPermission();
 
@@ -134,7 +122,7 @@ export class ContactServiceProvider {
         message += '\n';
         message += '--\n';
         message += MyName;
-        this.sendSMS(contact, message, false);
+        this.sendSMS(contact, message);
       }
     }
   }
@@ -159,7 +147,7 @@ export class ContactServiceProvider {
     message += '\n';
     message += '--\n';
     message += MyName;
-    this.sendSMS(contact, message, false);
+    this.sendSMS(contact, message);
   }
 
   /**
@@ -322,7 +310,7 @@ export class ContactServiceProvider {
       try {
         this.emailCtrl.open(email);
       } catch (error) {
-        console.log(error);
+        console.log("Impossible d'ouvrir la boîte mail");
       }
     }
   }

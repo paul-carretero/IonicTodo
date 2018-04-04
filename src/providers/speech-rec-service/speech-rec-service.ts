@@ -220,7 +220,6 @@ export class SpeechRecServiceProvider {
     for (const item of matches) {
       // on parse cette phrase
       const sentence: IParsedRequest = await this.parser.parse(item);
-      console.log(sentence);
 
       res_rec = this.reconnaissanceAction(sentence);
       if (res_rec.action_success) {

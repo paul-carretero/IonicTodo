@@ -35,5 +35,5 @@ export interface ITodoListPath {
    * @type {boolean}
    * @memberof ITodoListPath
    */
-  locked?: boolean;
+  locked: boolean;
 }

@@ -89,7 +89,7 @@ export class MapServiceProvider {
     try {
       weather = await weatherP;
     } catch (error) {
-      console.log(error);
+      console.log("Erreur: Impossible d'obtenir des données météos");
       return [];
     }
 

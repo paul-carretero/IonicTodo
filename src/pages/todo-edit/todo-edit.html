@@ -62,7 +62,7 @@
 
                 <ion-item-sliding *ngFor="let contact of this.todo.contacts">
                     <ion-item>
-                        {{contact.displayName}} ({{contact.email}})
+                        {{contact.displayName}} ({{contact.mobile}})
                     </ion-item>
                     <ion-item-options side="right">
                         <button ion-button color="danger" (click)="deleteContact(contact)">

@@ -164,7 +164,8 @@ export class Global {
     return {
       userUUID: null,
       listUUID: null,
-      shareByReference: false
+      shareByReference: false,
+      locked: false
     };
   }
 

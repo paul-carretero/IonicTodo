@@ -263,6 +263,81 @@ export class TodoEditPage extends GenericPage {
     }
   }
 
+  /**
+   * Permet de générer une description de la page, notament pour la synthèse vocale
+   *
+   * @override
+   * @protected
+   * @returns {string} une description textuelle de la page
+   * @memberof TodoEditPage
+   */
+  protected generateDescription(): string {
+    let description: string = '';
+
+    if (this.isInCreation) {
+      if (this.todo.name != null && this.todo.name !== '') {
+        description += 'La tâche ' + this.todo.name + " est en train d'être créée.";
+      } else {
+        description +=
+          "La tâche en cours de création n'a pas encore de nom défini, attention ce champs est requis";
+      }
+    } else {
+      if (this.todo.name != null && this.todo.name !== '') {
+        description += 'La tâche ' + this.todo.name + " est en train d'être éditer.";
+      } else {
+        description +=
+          "La tâche en cours d'édition n'a pas encore de nom défini, attention ce champs est requis";
+      }
+    }
+
+    if (this.todo.desc != null && this.todo.desc !== '') {
+      description += ' La description de la tâche : ' + this.todo.desc + ' . ';
+    } else {
+      description += " Aucune description de la tâche n'est spécifiée. ";
+    }
+
+    if (this.deadlineStr !== 'Non définie') {
+      description += ' La tâche doit être réalisée avant le ' + this.deadlineStr + ' . ';
+    } else {
+      description += " Aucune deadline n'est spécifiée. ";
+    }
+
+    if (this.notifStr !== 'Non définie') {
+      description += 'La notification est prévue pour le ' + this.notifStr + ' . ';
+    } else {
+      description += " Aucune notification n'est spécifiée.  ";
+    }
+
+    if (this.todo.address != null && this.todo.address !== '') {
+      description += 'La tâche à lieu à ' + this.todo.address + ' . ';
+    } else {
+      description += " Aucun lieu n'est associé à cette tâche. ";
+    }
+
+    return description;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {{ subtitle: string; messages: string[] }}
+   * @memberof TodoEditPage
+   */
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return {
+      subtitle: "Aide sur l'édition et création de Tâches OhMyTask",
+      messages: [
+        "Cette page vous permet d'éditer ou de créer une tâche OhMyTask",
+        'Vous devez au moins lui spécifier un nom et éventuelement une description',
+        "Vous pouvez spécifier une date de deadline et une date de notification. Tout les utilisateurs avec lesquels cette tâche est partagé recevront la notification si il lance l'application avant la date de notification",
+        'Vous pouvez associer à cette tâche des contacts de votre répertoire ou en créer. Vous pouvez également choisir de leur envoyer automatiquement un sms lors de la complétion de la tâche',
+        "Vous pouvez associer un lieu à la tâche, ce lieu servira de référence pour la météo à afficher ou point d'intérêt sur la carte par exemple",
+        "Vous pouvez ajouter des photos de votre gallerie ou en prendre directement. Attention contrairement aux autre champs les photos seront liées à la tâche lors de l'upload et non lors de la validation des modifications. Pour supprimer une photo, vous pouvez la faire glisser",
+        'Une fois les informations saisie conforme, vous pouvez valider la tâche (bouton du bas ou coche) ou annuler les modification (flèche de retour)'
+      ]
+    };
+  }
+
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
@@ -434,7 +509,12 @@ export class TodoEditPage extends GenericPage {
         this.uploadImage(base64, entry.uuid, content);
         this.fileCtrl
           .resolveLocalFilesystemUrl(uri)
-          .then(f => f.remove(() => {}, () => console.log('suppression PAS OK :/')));
+          .then(f =>
+            f.remove(
+              () => {},
+              () => console.log('Erreur dans la suppression du fichier temporaire')
+            )
+          );
       }
     }
 

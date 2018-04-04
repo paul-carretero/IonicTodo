@@ -9,6 +9,7 @@ import { UiServiceProvider } from '../../providers/ui-service/ui-service';
 import { GenericPage } from '../../shared/generic-page';
 import { ITodoListPath } from './../../model/todo-list-path';
 import { MenuRequestType } from '../../model/menu-request-type';
+import { ITodoList } from '../../model/todo-list';
 
 /**
  * page abstraite pour la gestion des fonctionalités lié à la génération d'un objet de liste exportable par valeur ou référence ou référence en lecture seule
@@ -74,7 +75,7 @@ export class GenericSharer extends GenericPage {
     protected readonly uiCtrl: UiServiceProvider
   ) {
     super(navCtrl, evtCtrl, ttsCtrl, authCtrl, uiCtrl);
-    this.request = navParams.get('request');
+    this.request = this.navParams.get('request');
     if (this.request != null && this.request.uuid != null) {
       this.listPath = this.todoCtrl.getListLink(this.request.uuid);
     }
@@ -209,9 +210,36 @@ export class GenericSharer extends GenericPage {
    * @override
    * @protected
    * @returns {boolean}
-   * @memberof GenericReceiver
+   * @memberof GenericSharer
    */
   protected networkRequired(): boolean {
     return true;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {string}
+   * @memberof GenericSharer
+   */
+  protected generateDescription(): string {
+    let res = '';
+    if (this.list.listUUID != null) {
+      const list: ITodoList = this.todoCtrl.getAListSnapshot(this.list.listUUID);
+      res = 'Vous avez choisi ';
+
+      if (this.choice === 'send') {
+        res += "d'envoyer";
+      } else {
+        res += 'de partager';
+        if (this.list.locked) {
+          res += ' en lecture seule ';
+        }
+      }
+      res += 'la liste ' + list.name;
+      res += '.';
+      res += this.shareSendDesc;
+    }
+    return res;
   }
 }

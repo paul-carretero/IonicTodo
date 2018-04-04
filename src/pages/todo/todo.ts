@@ -748,7 +748,7 @@ export class TodoPage extends GenericPage {
         this.map.setMyLocationButtonEnabled(true);
         this.mapLoaded = true;
       } catch (error) {
-        console.log(error);
+        console.log('Une erreur est survenue durant la création de la map');
       }
     }
   }
@@ -760,7 +760,7 @@ export class TodoPage extends GenericPage {
    * @returns {Promise<void>}
    * @memberof TodoPage
    */
-  private async resetMarker(): Promise<void> {
+  private resetMarker(): void {
     if (this.mapLoaded) {
       try {
         this.animateCamera();
@@ -768,7 +768,7 @@ export class TodoPage extends GenericPage {
         this.addCreateMarker();
         this.addCompleteMarker();
       } catch (error) {
-        console.log(error);
+        console.log("Une erreur est survenue durant l'animation de la map");
       }
     }
   }
@@ -1129,6 +1129,30 @@ export class TodoPage extends GenericPage {
     }
 
     return description;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {{ subtitle: string; messages: string[] }}
+   * @memberof TodoPage
+   */
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return {
+      subtitle: 'Aide sur les Tâches OhMyTask',
+      messages: [
+        'Cette page vous permet visualiser une tâche OhMyTask',
+        'Il vous est possible de spécifier le status de la tache en cochant ou décochant le bouton situé à droite de son nom',
+        'Si une deadline est spécifié alors celle ci sera afficher et cliquer dessus vous permettra de visualiser votre agenda de ce jour',
+        'si une notification est prévue, alors vous recevrez une notification sur votre téléphone à la date indiqué sauf si la tâche est complété',
+        'Si des photos sont disponibles alors leur titre et éventuelement leurs auteurs ainsi que leur lieux et dates de prise de vue sont affichés. Vous pouvez cliquer dessus pour les agrandir',
+        'Si des contacts ont été associé à la tâche alors vous pouvez les faire glisser pour les appeler, leur envoyer un sms ou un email. Si spécifié et si il possède un numéro de mobile, alors il recevront un sms lors de la complétion de la tâche',
+        "Vous avez la possibilité d'ajouter ou de retirer cette entrée de tâche dans votre calendrier. Attention pour pouvoir retirer la tâche du calendrier, celle ci ne doit pas avoit été modifier lors de la création",
+        'Si un lieu a été associé à la tâche alors la météo de ce jour sera afficher en dessous, si vous le souhaitez vous pouvez voir les prévision à 5 jour en cliquant sur la barre de météo',
+        "Une carte regroupant les différent point d'intérêt lié à cette tâche est disponible, cliquer sur un marqueur pour obtenir une description",
+        "Si ces informations ont pûs être généré, vous pouvez visualiser l'auteur de la créatione de la complétion de la tâche ainsi que les jours et lieu où ces opérations ont été réalisées"
+      ]
+    };
   }
 
   /**************************************************************************/

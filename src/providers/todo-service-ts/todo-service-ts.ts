@@ -540,6 +540,7 @@ export class TodoServiceProvider {
           todoValide: 0
         });
         this.todoLists.next([]);
+        this.sharedTodoLists.next([]);
       }
     });
   }
@@ -900,7 +901,8 @@ export class TodoServiceProvider {
       return {
         userUUID: this.authCtrl.getUserId(),
         listUUID: listUUID,
-        shareByReference: true
+        shareByReference: true,
+        locked: false
       };
     } else {
       const sharedSnap = this.currentUserData.getValue().todoListSharedWithMe;
@@ -1583,10 +1585,14 @@ export class TodoServiceProvider {
       return;
     }
 
-    const todosCollection = listDoc.collection('todo');
+    const todosCollection = listDoc.collection<ITodoItem>('todo');
+
     const sub = todosCollection.snapshotChanges().subscribe((snap: DocumentChangeAction[]) => {
       for (const dca of snap) {
-        dca.payload.doc.ref.delete();
+        const todo = dca.payload.doc.data() as ITodoItem;
+        if (todo != null) {
+          this.deleteTodo(todo);
+        }
       }
       sub.unsubscribe();
     });

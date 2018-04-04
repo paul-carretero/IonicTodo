@@ -160,6 +160,47 @@ export class AutoSmsPage extends GenericPage {
     }
   }
 
+  /**
+   * @override
+   * @protected
+   * @returns {{ subtitle: string; messages: string[] }}
+   * @memberof AutoSmsPage
+   */
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return {
+      subtitle: 'Envoi automatique de SMS',
+      messages: [
+        'Vous pouvez définie un envois automatique de sms en indiquant un contenu, une date et un ensemble de destinataires',
+        "Il sera nécessaire de garder l'application ouverte en tâche de fond pour activer cette fonctionalité",
+        "Si vous quitter l'application, les sms non envoyé et qui n'ont pas encore dépasser la date d'envoi seront restauré"
+      ]
+    };
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {string}
+   * @memberof AutoSmsPage
+   */
+  protected generateDescription(): string {
+    if (this.autoSmsList.length === 0) {
+      return "Vous n'avez encore plannifier aucun sms";
+    }
+
+    let res = 'Vous avez plannifier les sms suivant:';
+
+    for (const item of this.autoSmsList) {
+      res += ' Le ' + item.dateStr + ' pour :';
+      for (const contact of item.contacts) {
+        res += contact.displayName + ';';
+      }
+      res += '.';
+    }
+
+    return res;
+  }
+
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/
@@ -308,6 +349,14 @@ export class AutoSmsPage extends GenericPage {
     return this.date != null && this.message.length > 0 && this.contactList.length > 0;
   }
 
+  /**
+   * retourne la date affiché du formulaire en lisible
+   *
+   * @readonly
+   * @protected
+   * @type {string}
+   * @memberof AutoSmsPage
+   */
   protected get dateStr(): string {
     if (this.date == null) {
       return 'Définir une Date';

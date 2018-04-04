@@ -79,7 +79,7 @@ export class DBServiceProvider {
     try {
       await Promise.all(promises);
     } catch (error) {
-      console.log(JSON.stringify(error));
+      console.log(error);
     }
   }
 
@@ -198,7 +198,6 @@ export class DBServiceProvider {
     for (const todo of todos) {
       if (todo != null && todo.uuid != null && todo.notif != null) {
         const sql_insert = 'INSERT OR IGNORE INTO notif_buffer VALUES ( "' + todo.uuid + '" )';
-        console.log(sql_insert);
         promises.push(this.dbObject.executeSql(sql_insert, {}));
       }
     }
@@ -242,7 +241,6 @@ export class DBServiceProvider {
         user_uuid +
         '" )';
     }
-    console.log(sql);
     await this.dbObject.executeSql(sql, {});
   }
 
@@ -257,7 +255,6 @@ export class DBServiceProvider {
   public async deleteOutdatedNotif(now: number): Promise<void> {
     await this.ready;
     const sql_delete = 'DELETE FROM notif WHERE notif_ts < ' + now;
-    console.log(sql_delete);
     await this.dbObject.executeSql(sql_delete, {});
   }
 
@@ -271,7 +268,6 @@ export class DBServiceProvider {
    */
   public async getAndDeleteNotificationId(todo_uuid: string): Promise<number | null> {
     const sql = 'SELECT notif_id FROM notif WHERE todo_uuid = "' + todo_uuid + '" ';
-    console.log(sql);
     let res: number | null = null;
     await this.ready;
     const result = await this.dbObject.executeSql(sql, {});
@@ -279,7 +275,6 @@ export class DBServiceProvider {
       res = Number(result.rows.item(0).notif_id);
     }
     const sql_del = "DELETE FROM notif WHERE todo_uuid = '" + todo_uuid + "' ";
-    console.log(sql_del);
     await this.dbObject.executeSql(sql_del, {});
     return res;
   }
@@ -293,7 +288,6 @@ export class DBServiceProvider {
    */
   public async getNextNotifId(): Promise<number> {
     const sql = 'SELECT MAX(notif_id) as res FROM notif';
-    console.log(sql);
     const result = await this.dbObject.executeSql(sql, {});
     if (result.rows.length === 0) {
       return 1;
@@ -323,7 +317,6 @@ export class DBServiceProvider {
         user_uuid +
         "') ";
     }
-    console.log(sql);
     const result = await this.dbObject.executeSql(sql, {});
     for (let i = 0; i < result.rows.length; i++) {
       const n: number = result.rows.item(i).notif_id;
@@ -340,7 +333,6 @@ export class DBServiceProvider {
         user_uuid +
         "') ";
     }
-    console.log(sql);
     await this.dbObject.executeSql(sql, {});
 
     return match;

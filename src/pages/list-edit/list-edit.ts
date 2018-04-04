@@ -188,6 +188,64 @@ export class ListEditPage extends GenericPage {
     return true;
   }
 
+  /**
+   * @override
+   * @protected
+   * @returns {string}
+   * @memberof ListEditPage
+   */
+  protected generateDescription(): string {
+    let res = 'Vous êtes en train ';
+    if (this.listUUID == null) {
+      res += ' de créer une liste.';
+    } else {
+      res += "d'éditer une liste.";
+    }
+
+    if (this.currentList.name == null) {
+      res += "Le nom de la liste n'est pas encore défini, attention ce champs est requis. ";
+    } else {
+      res += 'Le nom de la liste est actuelement ' + this.currentList.name + '.';
+    }
+
+    if (this.currentList.icon === 'briefcase') {
+      res += 'La liste est défini comme une liste de travail';
+    } else if (this.currentList.icon === 'home') {
+      res += 'La liste est défini comme une liste de la maison';
+    } else if (this.currentList.icon === 'cart') {
+      res += 'La liste est défini comme une liste de course';
+    }
+
+    if (this.listType === ListType.LOCAL) {
+      res += "La liste en cours d'édition est locale cette machine";
+    } else if (this.listType === ListType.PRIVATE) {
+      res += "La liste en cours d'édition est privé sur votre compte";
+    } else {
+      res +=
+        "La liste en cours d'édition appartient à un autre utilisateur qui l'a partagé avec votre compte";
+    }
+
+    return res;
+  }
+
+  /**
+   * @override
+   * @protected
+   * @returns {{ subtitle: string; messages: string[] }}
+   * @memberof ListEditPage
+   */
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return {
+      subtitle: 'Edition ou Création de liste',
+      messages: [
+        "Cette page vous permet de créer ou d'éditer une liste, certaines liste partagées peuvent ne pas être éditable si leur auteur les a partagé en lecture seule",
+        "Vous devez choisir un nom de liste et vous pouvez choisir une icone pour l'associer a un thème (normal, travail, courses etc.)",
+        'Il existe trois type possible pour une liste. Le type privé, par défaut, représente une liste associé à votre compte. Le type local représente une liste associé à la machine actuelle. Le type partagé représente une liste créée par un autre utilisateur et partagé avec votre compte',
+        "Vous ne pouvez partager que des listes privée. Si vous changer le status d'une liste, les partages éventuel sont réinitialisés"
+      ]
+    };
+  }
+
   /**************************************************************************/
   /*********************** METHODES PRIVATES/INTERNES ***********************/
   /**************************************************************************/

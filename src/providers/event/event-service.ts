@@ -178,7 +178,6 @@ export class EventServiceProvider {
   }
 
   public forceRefreshNetwork(): void {
-    console.log('------check--------');
     if (this.netSubject.getValue() === false) {
       const status = this.netCtrl.type !== 'none';
       if (status) {

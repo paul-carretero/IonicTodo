@@ -664,8 +664,6 @@ export class TodoListPage extends GenericPage {
    */
   protected generateDescription(): string {
     let description: string = '';
-    //const list = this.todoService.getAListSnapshot(this.listUUID);
-
     if (
       this.todoItems.length + this.completedTodoItem.length + this.exportedTodoItems.length ===
       0

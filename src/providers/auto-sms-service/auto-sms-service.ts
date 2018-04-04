@@ -199,7 +199,7 @@ export class AutoSmsServiceProvider {
    */
   private smsSendHandler(plannedSms: IPlanifiedSms) {
     for (const contact of plannedSms.contacts) {
-      this.contactCtrl.sendSMS(contact, plannedSms.message, false);
+      this.contactCtrl.sendSMS(contact, plannedSms.message);
     }
 
     this.rmPlanifiedSms(plannedSms);

@@ -58,17 +58,17 @@
     </ion-card-header>
   </ion-card>
 
-  <ion-card padding *ngFor="let sms of autoSmsList">
-    <ion-card-header>
+  <ion-card *ngFor="let sms of autoSmsList">
+    <ion-toolbar color="light" class="entry-title">
       {{sms.dateStr}}
       <ion-buttons right>
-        <button small outline ion-button icon-start (click)="rmPlanifiedSms(sms)" class="float-right">
+        <button small outline ion-button icon-start (click)="rmPlanifiedSms(sms)">
           <ion-icon name="trash"></ion-icon>
           Suppr.
         </button>
       </ion-buttons>
-    </ion-card-header>
-    <ion-card-content>
+    </ion-toolbar>
+    <ion-card-content padding>
       {{sms.message}}
       <hr/>
       <ion-list>

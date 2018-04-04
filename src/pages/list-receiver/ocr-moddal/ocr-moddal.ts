@@ -246,4 +246,26 @@ export class OcrModdalPage extends GenericPage {
       });
     }, 400);
   }
+
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
+
+  /**
+   * @override
+   * @protected
+   * @returns {{ subtitle: string; messages: string[] }}
+   * @memberof OcrModdalPage
+   */
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return {
+      subtitle: "Aide sur l'import de liste par OCR",
+      messages: [
+        "Cette page vous permet d'importer des tâches que vous auriez sur un papier par reconnaissance de caractères",
+        "Vous devez prendre en photo la liste à numériser, ajuster le cadre et attendre l'analyse",
+        "Si l'analyse OCR est positive, alors une liste des tâches reconnues vous sera proposé. Il vous restera alors à selectionner celle que vous souhaitez importer",
+        "En cas d'échec, vous pourrez retenter l'analyse avec une nouvelle photo. De manière générale, les listes manuscrite offre de mauvaise performance, préférez les listes dactilographiée"
+      ]
+    };
+  }
 }

@@ -37,10 +37,10 @@ export interface ITodoList {
   /**
    * Icone (Cordova) de cette liste
    *
-   * @type {string}
+   * @type {('briefcase' | 'home' | 'cart' | 'list-box' | null)}
    * @memberof ITodoList
    */
-  icon: string | null;
+  icon: 'briefcase' | 'home' | 'cart' | 'list-box' | null;
 
   /**
    * Ordre de la liste par rapport aux autre liste (fonctionement similaire à un z-index)

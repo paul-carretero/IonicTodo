@@ -36,6 +36,7 @@ page-authentification {
   ion-segment {
     background-color: rgba(255, 255, 255, 0.7);
     height: 13%;
+    min-height: 30px !important;
   }
   .scrollable-content {
     height: 87%;

@@ -246,4 +246,28 @@ export class QrReaderPage extends GenericReceiver {
 
     this.timeoutNoData();
   }
+
+  /**************************************************************************/
+  /******************************* OVERRIDES ********************************/
+  /**************************************************************************/
+
+  /**
+   * @override
+   * @protected
+   * @returns {{ subtitle: string; messages: string[] }}
+   * @memberof QrReaderPage
+   */
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return {
+      subtitle: "Aide sur l'import de liste par QR Code",
+      messages: [
+        "Cette page vous permet d'importer une liste en scannant un QR Code",
+        "Pour cela il vous suffit de viser le QR Code à scanner dans le fenêtre de prévisualisation et de lancer le scan. Au bout de quelque instant un message vous informera du succès ou de l'échec de l'opération",
+        'Les listes peuvent avoir été partagé en partage, partage en lecture seule ou envoi.',
+        "Les partage et partage en lecture seul vous permette d'observer une unique liste avec l'auteur de partage C'est à dire de lier vos listes.",
+        'vos modification seront visible et inversement. Si vous importé une liste partagée en lecture seule, vous ne pourrez pas la modifier ou modifier les tâche associée. Vous pourrez toutefois validé une tâche que vous auriez complété',
+        "Les listes disponible en envoie sont cloner lors de l'import et vos modification se seront pas répercuter sur la liste original et inversement"
+      ]
+    };
+  }
 }

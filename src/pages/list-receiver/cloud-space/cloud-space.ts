@@ -198,4 +198,24 @@ export class CloudSpacePage extends GenericPage {
 
     return res;
   }
+
+  /**
+   * @override
+   * @protected
+   * @returns {{ subtitle: string; messages: string[] }}
+   * @memberof ListEditPage
+   */
+  protected generateHelp(): { subtitle: string; messages: string[] } {
+    return {
+      subtitle: 'Aide sur le Cloud OhMyTask',
+      messages: [
+        "Cette page vous présente les listes que d'autre utilisateur ont partagé sur le cloud OhMyTask",
+        'Les listes peuvent avoir été partagé en partage, partage en lecture seule ou envoi.',
+        "Les partage et partage en lecture seul vous permette d'observer une unique liste avec l'auteur de partage C'est à dire de lier vos listes.",
+        'vos modification seront visible et inversement. Si vous importé une liste partagée en lecture seule, vous ne pourrez pas la modifier ou modifier les tâche associée. Vous pourrez toutefois validé une tâche que vous auriez complété',
+        "Les listes disponible en envoie sont cloner lors de l'import et vos modification se seront pas répercuter sur la liste original et inversement",
+        'Certaines liste sont partagée par un mot de passe. Les liste restent disponible sur le cloud OhMyTask pendant 24h environ'
+      ]
+    };
+  }
 }

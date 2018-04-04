@@ -45,16 +45,12 @@ export class NfcProvider {
   public listenForEvents(): void {
     this.nfc
       .addNdefListener(
-        () => {
-          console.log('successfully attached ndef listener');
-        },
-        (err: any) => {
-          console.log('error attaching ndef listener', err);
-        }
+        () => console.log('Listener NDEF Initialisé'),
+        (err: any) => console.log("Echec de l'initialisation du listener NDEF", err)
       )
       .subscribe(event => {
-        console.log('received ndef message. the tag contains: ', event.tag);
-        console.log('decoded tag id', this.nfc.bytesToHexString(event.tag.id));
+        console.log('Message NDEF reçu, contenu: ', event.tag);
+        console.log('Id du tag décodée: ', this.nfc.bytesToHexString(event.tag.id));
 
         const payload = event.tag.ndefMessage[0].payload;
         const tagContent = this.nfc.bytesToString(payload).substring(3);
