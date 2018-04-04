@@ -1128,6 +1128,15 @@ export class TodoPage extends GenericPage {
       description += 'La tâche à lieu à ' + this.todo.address + ' . ';
     }
 
+    if (this.todo.pictures != null && this.todo.pictures.length > 0) {
+      description += 'Vous avez associé ' + this.todo.pictures.length + ' photos à la tâche. ';
+    }
+
+    if (this.todo.contacts != null && this.todo.contacts.length > 0) {
+      description +=
+        'Vous avez associé ' + this.todo.contacts.length + ' contacts à la tâche. ';
+    }
+
     return description;
   }
 

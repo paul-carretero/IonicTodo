@@ -5,11 +5,11 @@
 <ion-content padding>
   <form [formGroup]="newList" (ngSubmit)="defList()">
     <ion-item>
-      <ion-label stacked>Nom</ion-label>
+      <ion-label color="primary" stacked>Nom</ion-label>
       <ion-input autocomplete="on" autocorrect="on" type="text" formControlName="name" placeholder="Nom de la liste"></ion-input>
     </ion-item>
     <ion-item>
-      <ion-label>Type</ion-label>
+      <ion-label color="primary">Type</ion-label>
       <ion-select formControlName="icon">
         <ion-option selected value="list-box">Classique</ion-option>
         <ion-option value="cart">Shopping</ion-option>
@@ -18,7 +18,7 @@
       </ion-select>
     </ion-item>
     <ion-item *ngIf="localChoice">
-      <ion-label>Liste Locale:</ion-label>
+      <ion-label color="primary">Liste Locale:</ion-label>
       <ion-toggle formControlName="local"></ion-toggle>
     </ion-item>
     <button block ion-button type="submit" [disabled]="!newList.valid">
