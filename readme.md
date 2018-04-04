@@ -8,7 +8,7 @@ Création de l'espace de travail
 
 Préparation de l'espace de travail
 -
-> - `./ohmytask.sh rebuild`
+> - `./ohmytask.sh rebuild` (-aucune garantie-... dépendra des mises à jours éventuelles des plugins...)
 
 Lancement de l'application
 -
@@ -17,14 +17,23 @@ Lancement de l'application
 
 Lancement du serveur de documentation
 -
-> - `./ohmytask.sh doc` 
+> - `./ohmytask.sh doc`
+> - ouvrir `127.0.0.1:8080`
 
-# Todolist
-
-- gérer les messages d'aide (alert) sur les pages
-- créer les textes de synthèse vocale pour d'autres pages
-- tester l'application globalement et vérifier les logs
-- si possible dans le temps qu'il, créer une page de todo du jour
+# Fonctionnalités TL;DR
+- SSO Firebase et Google+
+- Cloud Firestore
+- Partage de listes: (référence ou valeur) & (qrcode, cloud, nfc, shakeToShare, pour un contact)
+- Photos par todos sur Firebase Storage (gallerie ou prises de vues)
+- Google Map et géolocalisation
+- Mode hors ligne - hors connexion
+- Publicités
+- Reconnaissance - Synthèse vocale
+- Notifications native
+- Meteo pour les tâches
+- OCR de tâches -  tâche copiable dans d'autre liste
+- SMS planifiés - gestion des contacts associés
+- Application paramétrable (localement)
 
 # Description des fonctionnalités mises en place
 
@@ -32,7 +41,7 @@ Listes de tâches
 -
 - OCR pour import de tâches
 - Notion de propriétaire: Local (machine, non partageable), utilisateur (privée pour l'utilisateur connecté), et partagé (appartient à un autre utilisateur qui a partagée la liste).
-- Ajout-Edition-Suppression (si local ou privée)- Suppression du partage (si liste partagée)
+- Ajout-Edition-Suppression (si local ou privée)- Suppression du partage, édition (si liste partagée)
 
 Todos
 -
@@ -40,12 +49,14 @@ Todos
 - peuvent être copier coller dans une autre liste par référence
 - Contiennent un nom, une description, une adresse, une deadline, une date de notification, une liste de contacts associés, une liste de photo, des information sur la création-complétion
 - Export vers le calendrier natif (ou suppression)
+- Autre propriétés technoque explicitées dans les paragraphes suivants
+- SMS à la complétions des contacts associés
 
 Partages de listes
 -
-- Partage de liste par référence, par référence en lecture seule (pas de modification des liste et todos, complété todo OK) et copie par valeur
+- Partage de liste par référence, par référence en lecture seule (pas de modification des liste et todos, complétées todo OK) et copie par valeur
 - QR Code export/import
-- NFC export/import depuis un Tag NFC
+- NFC export/import depuis un Tag NFC (expérimental)
 - ShakeToShare : partage de la liste courrante si deux evenement de shake ont lieu pas trop loin au meme moment
 - Cloud OhMyTask (partage et récupération de liste global protégé par mot de passe) identifié par auteur-lieu
 - Import de liste partagée (clone en local)
@@ -73,6 +84,8 @@ Notifications
 - synchronisation avec les date de notification des todos des liste partagé à la connexion
 - alert si deadline todo proche à la connexion
 - notification annulable
+- clique pour voir la tâche concernée
+- synchronisation par todo et par utilisateur
 
 Authoring et géolocalisation
 -
@@ -92,11 +105,17 @@ Configuration
 - activation - désactivation de l'import auto de liste addressé au compte courrant
 - activation - désactivation des bannières de publicités
 
+Meteo
+-
+- meteo des lieux des todos instantanée sur la page des todo
+- prévision 5 jours de la ville du lieu d'un todo (temps moyen de la journée)
+- API openweather
+
 Publicité
 -
 - Bannières de pubs en haut (désactivable, on est sympa)
 - Page Intersticiel ouvrable via le menu gauche (pas automatique, on est sympa x2)
-- Google AdMob
+- SDk Google AdMob
 
 Firebase Storage (photos)
 -
@@ -108,18 +127,47 @@ Firebase Storage (photos)
 
 Authentification
 -
+- Authentification ppar email-mot de passe
+- Authentification Google+
+- reset du mot de passe
+- mise à jour des informations du compte
+- statistique d'utilisation du compte
 
 Cloud Firestore
 -
+- Firebase Firestore et Firebase Storage utilisés pour le projet
+- Architecture firestore:
+> - `machine/{machineId}` => Document d'informations sur la machine, SMS sauvegardé notament
+> - `machine/{machineId}/list/` => Collections des listes locales d'un machine
+> - `machine/{machineId}/list/{listId}/` => Document des données d'une liste locale d'une machine
+> - `machine/{machineId}/list/{listId}/todo` => Collections des tâches d'une liste locale d'une machine
+> - `machine/{machineId}/list/{listId}/todo/{todoId}` => Document des données d'une tâche d'une liste locale d'une machine
+
+> - `user/{userId}` => Document d'informations sur un utilisateur authentifié (stats liste partagées etc.)
+> - `user/{userId}/list/` => Collections des listes locales d'un utilisateur
+> - `user/{userId}/list/{listId}/` => Document des données d'une liste locale d'un utilisateur
+> - `user/{userId}/list/{listId}/todo` => Collections des tâches d'une liste locale d'un utilisateur
+> - `user/{userId}/list/{listId}/todo/{todoId}` => Document des données d'une tâche d'une liste locale d'un utilisateur
+
+> - `timestamp/ts` => Timestamp serveur
+
+> - `cloud/` => Collections des partages de listes entre utilisateur
+> - `cloud/{cloudId}` => Document d'un partage de liste (publique ou privé)
+
+- Architecture Firebase Storage:
+> - `{todoId}/` => repertoire des images d'un todo
+> - `{todoId}/{imageId}` => image d'un todo
 
 UI
 -
-- listes re-orderable
-- description audio
-- menu aide
-- barre de recherche (filtre)
+- Listes re-orderable
+- Description audio
+- Aide pour chaque page
+- Barre de recherche (filtre)
+- Icone descriptive, code couleur
+- Menu vertical et onglets
 
-Mode Hors Ligne (== hors connexion)
+Mode Hors Ligne (AKA hors connexion)
 -
 - partage désactivé
 - identifié par machine
@@ -128,4 +176,30 @@ Mode Hors Ligne (== hors connexion)
 - cache firecloud (hors ligne possible)
 - accessible hors ligne
 
-# Limites
+Divers
+-
+- Envoi de SMS automatique
+- Plannification SMS
+- Surveillance de la connexion réseau => adaptation des choix utilisateur
+- Surveillance de la disponibilités des listes et tâche (si elles n'ont pas été supprimée par d'autre utilisateur avec lequel elle seraient partagées) => retour à Home avec un message
+
+
+# Limites (AKA Knows Bugs)
+
+Incompatibilité entre le plugin de prévisualisation (scan QR Code) et le plugin natif GoogleMap
+-
+- Les deux plugins exploitent la même technique de rendu (fond transparent du navigateur). Le plugin de preview est en Beta. Si le plugin de preview est chargé depuis la page de scan QRCode alors il ne sera plus possible d'afficher de map GoogleMap.
+- Fix immédiat: redémarrer l'application
+- Evolution envisagée: Changer de plugin de prévisualisation
+
+Notifications non mises à jour en temps réel si un AUTRE utilisateur modifie leur date de notification (contexte de listes partagées)
+-
+- la synchronisation étant couteuse, elle n'est faite que lors de la connexion d'un utilisateur. De plus la periode de disponibilité de l'application est supposé faible, il n'était de toutes façon pas envisageable de synchroniser les notification lorsque l'application est éteinte. Le comportement est tel qu'attendu si l'utilisateur modifie lui même une tâche.
+- Fix immédiat: se relogger
+- Evolution envisagée: -
+
+Page d'accueil non mise à jour en cas de complétion de tâche des listes (contexte de listes partagées)
+-
+- Afin de garantir un affichage fluide, les tâches ne sont pas mises à jour en temps réel sur la page d'accueil. Ainsi si un autre utilisateur compléte une tâches alors le status de la liste ne changera pas. Les tâches des listes sont synchronisé à chaque affichage de la page d'accueil ou lors de la mise à jour d'une des listes. (Les tâches sont bien automatiquement synchronisé dans les affichages d'une liste et dans l'affichage de tâches).
+- Fix immédiat: changer de page et revenir à la page home
+- Evolution envisagée: - maintenir l'état des tâches en temps réel (cf branche #home-realtime-update, obsolète mais illustrant une implémentation et ses limites). Solution abandonnée pour des problèmes de fluidité d'affichage.
