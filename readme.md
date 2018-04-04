@@ -183,7 +183,9 @@ Divers
 - Envoi de SMS automatique
 - Plannification SMS
 - Surveillance de la connexion réseau => adaptation des choix utilisateur
-- Surveillance de la disponibilités des listes et tâche (si elles n'ont pas été supprimée par d'autre utilisateur avec lequel elle seraient partagées) => retour à Home avec un message
+- Surveillance de la disponibilité des listes et tâche (si elles n'ont pas été supprimée par d'autre utilisateur avec lequel elle seraient partagées) => retour à Home avec un message
+- Code nettoyé avec TSLint
+- Documentation du code
 
 
 # Limites (AKA Knows Bugs)
