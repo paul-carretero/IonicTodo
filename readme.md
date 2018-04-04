@@ -31,7 +31,7 @@ Lancement du serveur de documentation
 - Reconnaissance - Synthèse vocale
 - Notifications native
 - Meteo pour les tâches
-- OCR de tâches -  tâche copiable dans d'autre liste
+- OCR de tâches -  tâche copiable dans d'autre listes
 - SMS planifiés - gestion des contacts associés
 - Application paramétrable (localement)
 
@@ -45,11 +45,11 @@ Listes de tâches
 
 Todos
 -
-- Appartient à une liste
-- peuvent être copier coller dans une autre liste par référence
-- Contiennent un nom, une description, une adresse, une deadline, une date de notification, une liste de contacts associés, une liste de photo, des information sur la création-complétion
+- Appartiennent à une liste
+- Peuvent être copier coller dans une autre liste par référence
+- Contiennent un nom, une description, une adresse, une deadline, une date de notification, une liste de contacts associés, une liste de photos, des informations sur la création-complétion
 - Export vers le calendrier natif (ou suppression)
-- Autre propriétés technoque explicitées dans les paragraphes suivants
+- Autre propriétés techniques explicitées dans les paragraphes suivants
 - SMS à la complétions des contacts associés
 
 Partages de listes
@@ -81,11 +81,11 @@ Synthèse vocale
 Notifications
 -
 - choix d'une date de notification dans la page d'édition des todos
-- synchronisation avec les date de notification des todos des liste partagé à la connexion
+- synchronisation avec les date de notification des todos des listes partagées à la connexion
 - alert si deadline todo proche à la connexion
-- notification annulable
+- notification annulable globalement
 - clique pour voir la tâche concernée
-- synchronisation par todo et par utilisateur
+- synchronisation par tâches et par utilisateur
 
 Authoring et géolocalisation
 -
@@ -114,8 +114,8 @@ Meteo
 Publicité
 -
 - Bannières de pubs en haut (désactivable, on est sympa)
-- Page Intersticiel ouvrable via le menu gauche (pas automatique, on est sympa x2)
-- SDk Google AdMob
+- Page Interstitiel ouvrable via le menu gauche (pas automatique, on est sympa x2)
+- SDK Google AdMob
 
 Firebase Storage (photos)
 -
@@ -127,7 +127,7 @@ Firebase Storage (photos)
 
 Authentification
 -
-- Authentification ppar email-mot de passe
+- Authentification par email-mot de passe
 - Authentification Google+
 - reset du mot de passe
 - mise à jour des informations du compte
@@ -136,9 +136,10 @@ Authentification
 Cloud Firestore
 -
 - Firebase Firestore et Firebase Storage utilisés pour le projet
+- Règles de sécurité basique
 - Architecture firestore:
-> - `machine/{machineId}` => Document d'informations sur la machine, SMS sauvegardé notament
-> - `machine/{machineId}/list/` => Collections des listes locales d'un machine
+> - `machine/{machineId}` => Document d'informations sur la machine, SMS sauvegardés notament
+> - `machine/{machineId}/list/` => Collections des listes locales d'une machine
 > - `machine/{machineId}/list/{listId}/` => Document des données d'une liste locale d'une machine
 > - `machine/{machineId}/list/{listId}/todo` => Collections des tâches d'une liste locale d'une machine
 > - `machine/{machineId}/list/{listId}/todo/{todoId}` => Document des données d'une tâche d'une liste locale d'une machine
@@ -152,7 +153,7 @@ Cloud Firestore
 > - `timestamp/ts` => Timestamp serveur
 
 > - `cloud/` => Collections des partages de listes entre utilisateur
-> - `cloud/{cloudId}` => Document d'un partage de liste (publique ou privé)
+> - `cloud/{cloudId}` => Document d'un partage de liste (sur le cloud OhMyTask ou privé)
 
 - Architecture Firebase Storage:
 > - `{todoId}/` => repertoire des images d'un todo
@@ -166,15 +167,16 @@ UI
 - Barre de recherche (filtre)
 - Icone descriptive, code couleur
 - Menu vertical et onglets
+- mise à jour auto de l'affichage & protection contre les erreurs utilisateur
 
 Mode Hors Ligne (AKA hors connexion)
 -
-- partage désactivé
-- identifié par machine
-- liste locale seulement
-- restriction des actions possible
-- cache firecloud (hors ligne possible)
-- accessible hors ligne
+- Partage désactivé
+- Identifié par machine
+- Liste locale seulement
+- Restriction des actions possible
+- Cache firecloud (hors ligne possible)
+- Accessible hors ligne
 
 Divers
 -
@@ -194,12 +196,12 @@ Incompatibilité entre le plugin de prévisualisation (scan QR Code) et le plugi
 
 Notifications non mises à jour en temps réel si un AUTRE utilisateur modifie leur date de notification (contexte de listes partagées)
 -
-- la synchronisation étant couteuse, elle n'est faite que lors de la connexion d'un utilisateur. De plus la periode de disponibilité de l'application est supposé faible, il n'était de toutes façon pas envisageable de synchroniser les notification lorsque l'application est éteinte. Le comportement est tel qu'attendu si l'utilisateur modifie lui même une tâche.
+- La synchronisation étant couteuse, elle n'est faite que lors de la connexion d'un utilisateur. De plus, la période de disponibilité de l'application est supposé faible, il n'était de toutes façons pas envisageable de synchroniser les notifications lorsque l'application est éteinte. Le comportement est tel qu'attendu si l'utilisateur modifie lui-même une tâche.
 - Fix immédiat: se relogger
 - Evolution envisagée: -
 
 Page d'accueil non mise à jour en cas de complétion de tâche des listes (contexte de listes partagées)
 -
-- Afin de garantir un affichage fluide, les tâches ne sont pas mises à jour en temps réel sur la page d'accueil. Ainsi si un autre utilisateur compléte une tâches alors le status de la liste ne changera pas. Les tâches des listes sont synchronisé à chaque affichage de la page d'accueil ou lors de la mise à jour d'une des listes. (Les tâches sont bien automatiquement synchronisé dans les affichages d'une liste et dans l'affichage de tâches).
+- Afin de garantir un affichage fluide, les tâches ne sont pas mises à jour en temps réel sur la page d'accueil. Ainsi si un autre utilisateur complète une tâche alors le statut de la liste ne changera pas. Les tâches des listes sont synchronisées à chaque affichage de la page d'accueil ou lors de la mise à jour d'une des listes. (Les tâches sont bien automatiquement synchronisées dans les affichages d'une liste et dans l'affichage de tâches).
 - Fix immédiat: changer de page et revenir à la page home
 - Evolution envisagée: - maintenir l'état des tâches en temps réel (cf branche #home-realtime-update, obsolète mais illustrant une implémentation et ses limites). Solution abandonnée pour des problèmes de fluidité d'affichage.
