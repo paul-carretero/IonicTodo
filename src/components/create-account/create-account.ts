@@ -202,6 +202,7 @@ export class CreateAccountComponent implements OnInit, OnDestroy {
         nameForm.setValue(this.account.displayName);
         photoForm.setValue(this.account.photoURL);
         passForm.setValidators(null);
+        emailForm.setValue(this.account.email);
         emailForm.disable();
         passForm.disable();
       }
