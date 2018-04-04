@@ -25,7 +25,10 @@ fi
 if [ $1 = "prod" ]
 	then
 	echo "╚═════════════════════════════════════════════╝"
-	ionic cordova run android --device --prod --aot --minifyjs --minifycss --optimizejs
+	cp -frv ./plugins_fixes/platforms ./
+	echo "Attention, veuillez modifier le fichier platforms/android/release-signing.properties en fonction de votre environement"
+	sudo ionic cordova run android --device --prod --release --aot --minifyjs --minifycss --optimizejs
+	sudo chown -R $USER .
 elif [ $1 = "doc" ]
 	then
 	echo "╚═════════════════════════════════════════════╝"
@@ -33,6 +36,8 @@ elif [ $1 = "doc" ]
 elif [ $1 = "debug" ]
 	then
 	echo "╚═════════════════════════════════════════════╝"
+	rm platforms/android/debug-signing.properties 2> /dev/null 
+	rm platforms/android/release-signing.properties 2> /dev/null
 	ionic cordova run android --device
 elif [ $1 = "rebuild" ]
 	then
@@ -54,8 +59,3 @@ else
 	echo "╚═════════════════════════════════════════════╝"
 	exit 1
 fi
-
-
-#ionic cordova run android --device --prod --aot --minifyjs --minifycss --optimizejs
-
-# echo "╝╗║╚╔═╣"
