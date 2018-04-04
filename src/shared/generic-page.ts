@@ -121,7 +121,11 @@ export abstract class GenericPage {
 
     GenericPage.navSub = this.evtCtrl
       .getNavRequestSubject()
-      .subscribe((navReq: INavRequest) => this.navCtrl.push(navReq.page, navReq.data));
+      .subscribe((navReq: INavRequest) => {
+        if (this.allowNavigate()) {
+          this.navCtrl.push(navReq.page, navReq.data);
+        }
+      });
 
     GenericPage.menuEvtSub = this.evtCtrl
       .getMenuRequestSubject()
@@ -361,6 +365,17 @@ export abstract class GenericPage {
    * @memberof GenericPage
    */
   protected basicAuthRequired(): boolean {
+    return true;
+  }
+
+  /**
+   * retourne true si l'on peut accépter les demande de navigation
+   *
+   * @protected
+   * @returns {boolean}
+   * @memberof GenericPage
+   */
+  protected allowNavigate(): boolean {
     return true;
   }
 }

@@ -145,4 +145,14 @@ export class AuthentificationPage extends GenericPage {
   protected basicAuthRequired(): boolean {
     return false;
   }
+
+  /**
+   * @override
+   * @protected
+   * @returns {boolean}
+   * @memberof AuthentificationPage
+   */
+  protected allowNavigate(): boolean {
+    return false;
+  }
 }
