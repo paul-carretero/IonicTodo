@@ -1,29 +1,26 @@
+import { OnDestroy } from '@angular/core/src/metadata/lifecycle_hooks';
+import { Subscription } from 'rxjs';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@firebase/auth-types';
-import { GooglePlus } from '@ionic-native/google-plus';
 import { AngularFireAuth } from 'angularfire2/auth';
-import { NavController } from 'ionic-angular';
 
 import { AuthServiceProvider } from '../../providers/auth-service/auth-service';
-import { DBServiceProvider } from '../../providers/db/db-service';
 import { UiServiceProvider } from '../../providers/ui-service/ui-service';
-import { LoginAccountComponent } from '../login-account/login-account';
-import { EventServiceProvider } from './../../providers/event/event-service';
+import { EventServiceProvider } from '../../providers/event/event-service';
 
 /**
  * composant permettant à un utilisateur non connecté de créer un compte sur l'application ou de le mettre à jour si il est connecté
  *
  * @export
  * @class CreateAccountComponent
- * @extends {LoginAccountComponent}
  * @implements {OnInit}
  */
 @Component({
   selector: 'create-account',
   templateUrl: 'create-account.html'
 })
-export class CreateAccountComponent extends LoginAccountComponent implements OnInit {
+export class CreateAccountComponent implements OnInit, OnDestroy {
   /**************************** PRIVATE FIELDS ******************************/
 
   /**
@@ -34,6 +31,15 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
    * @memberof CreateAccountComponent
    */
   private account: User | null;
+
+  /**
+   * Subscription à la connexion réseau
+   *
+   * @private
+   * @type {Subscription}
+   * @memberof CreateAccountComponent
+   */
+  private netSub: Subscription;
 
   /***************************** PUBLIC FIELDS ******************************/
 
@@ -46,42 +52,43 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
    */
   protected validText: 'Mettre à jour mon compte' | 'Créer mon compte';
 
+  /**
+   * formulaire d'édition ou de création du compte
+   *
+   * @protected
+   * @type {FormGroup}
+   * @memberof CreateAccountComponent
+   */
+  protected authForm: FormGroup;
+
+  /**
+   * status de la connexion réseau
+   *
+   * @protected
+   * @type {boolean}
+   * @memberof CreateAccountComponent
+   */
+  protected netStatus: boolean;
+
   /**************************************************************************/
   /****************************** CONSTRUCTOR *******************************/
   /**************************************************************************/
 
   /**
    * Creates an instance of CreateAccountComponent.
-   * @param {NavController} navCtrl
    * @param {AuthServiceProvider} authCtrl
    * @param {UiServiceProvider} uiCtrl
-   * @param {GooglePlus} googlePlus
    * @param {FormBuilder} formBuilder
-   * @param {DBServiceProvider} settingCtrl
    * @param {AngularFireAuth} fireAuthCtrl
-   * @param {EventServiceProvider} evtCtrl
    * @memberof CreateAccountComponent
    */
   constructor(
-    protected readonly navCtrl: NavController,
-    protected readonly authCtrl: AuthServiceProvider,
-    protected readonly uiCtrl: UiServiceProvider,
-    protected readonly googlePlus: GooglePlus,
-    protected readonly formBuilder: FormBuilder,
-    protected readonly settingCtrl: DBServiceProvider,
-    protected readonly fireAuthCtrl: AngularFireAuth,
-    protected readonly evtCtrl: EventServiceProvider
+    private readonly authCtrl: AuthServiceProvider,
+    private readonly uiCtrl: UiServiceProvider,
+    private readonly formBuilder: FormBuilder,
+    private readonly fireAuthCtrl: AngularFireAuth,
+    private readonly evtCtrl: EventServiceProvider
   ) {
-    super(
-      navCtrl,
-      authCtrl,
-      uiCtrl,
-      googlePlus,
-      formBuilder,
-      settingCtrl,
-      fireAuthCtrl,
-      evtCtrl
-    );
     this.authForm = this.formBuilder.group({
       email: ['', Validators.email],
       password: ['', Validators.minLength(6)],
@@ -102,8 +109,28 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
    */
   ngOnInit(): void {
     this.account = this.authCtrl.getUser();
-    super.ngOnInit();
     this.prepareForEdit();
+
+    this.netSub = this.evtCtrl.getNetStatusObs().subscribe(res => {
+      this.netStatus = res;
+      if (!this.netStatus) {
+        this.uiCtrl.alert(
+          'Information',
+          'Sans connexion réseau, il ne vous sera pas possible de vous authentifier ou de créer un compte'
+        );
+      }
+    });
+  }
+
+  /**
+   * termine le subscription aux mise à jour réseau
+   *
+   * @memberof CreateAccountComponent
+   */
+  ngOnDestroy(): void {
+    if (this.netSub != null) {
+      this.netSub.unsubscribe();
+    }
   }
 
   /**************************************************************************/
@@ -192,7 +219,7 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
     const emailForm = this.authForm.get('email');
     const passForm = this.authForm.get('password');
     const nameForm = this.authForm.get('name');
-    const photoForm = this.authForm.get('name');
+    const photoForm = this.authForm.get('photo');
 
     if (emailForm != null && passForm != null && nameForm != null && photoForm != null) {
       const email: string = emailForm.value;
@@ -212,8 +239,6 @@ export class CreateAccountComponent extends LoginAccountComponent implements OnI
 
         if (result) {
           this.uiCtrl.displayToast('Création de votre compte effectuée avec succès!', 1000);
-          this.uiCtrl.dismissLoading();
-          await this.firebaseLogin();
           const u = this.fireAuthCtrl.auth.currentUser;
           if (u != null) {
             try {

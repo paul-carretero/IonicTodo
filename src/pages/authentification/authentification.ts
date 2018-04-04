@@ -105,6 +105,7 @@ export class AuthentificationPage extends GenericPage {
       if (user != null && AuthentificationPage.autoRedirect) {
         AuthentificationPage.autoRedirect = false;
         this.navCtrl.parent.select(Global.HOMEPAGE);
+        this.choice = 'login';
       } else {
         AuthentificationPage.autoRedirect = true;
       }

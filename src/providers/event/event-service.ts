@@ -71,7 +71,7 @@ export class EventServiceProvider {
   private readonly searchSubject: BehaviorSubject<string>;
 
   /**
-   * True si on dispose d'une connexion aux intertubes, faux sinon
+   * True si on dispose d'une connexion aux interwebz, faux sinon
    *
    * @readonly
    * @private
@@ -161,7 +161,7 @@ export class EventServiceProvider {
       if (!this.netSubject.getValue()) {
         this.netSubject.next(true);
         this.uiCtrl.displayToast(
-          'vous êtes maintenant connecté aux intertubes en "' +
+          'vous êtes maintenant connecté aux interwebs en "' +
             this.netCtrl.type +
             '". Certaines fonctionalités sont de nouveau disponibles!'
         );
@@ -171,7 +171,7 @@ export class EventServiceProvider {
       if (this.netSubject.getValue()) {
         this.netSubject.next(false);
         this.uiCtrl.displayToast(
-          "vous n'êtes plus connecté aux intertubes, certaines fonctionalités sont désactivées :/"
+          "vous n'êtes plus connecté aux interwebs, certaines fonctionalités sont désactivées :/"
         );
       }
     });

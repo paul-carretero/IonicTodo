@@ -220,7 +220,7 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
       } catch (err) {
         this.uiCtrl.alert(
           'Erreur de connexion',
-          'Connexion à votre compte impossible' + 'Message : <br/>' + err
+          'Connexion à votre compte impossible, couple email/mot de passe incorrect ou compte inexistant'
         );
         this.uiCtrl.dismissLoading();
       }
@@ -253,10 +253,7 @@ export class LoginAccountComponent implements OnInit, OnDestroy {
           });
       }
     } catch (err) {
-      this.uiCtrl.alert(
-        'Erreur de connexion',
-        'Connexion à votre compte Google impossible' + 'Message : <br/>' + err
-      );
+      this.uiCtrl.alert('Erreur de connexion', 'Connexion à votre compte Google impossible');
       this.uiCtrl.dismissLoading();
     }
   }
