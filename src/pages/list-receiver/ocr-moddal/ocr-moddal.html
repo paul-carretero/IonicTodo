@@ -8,4 +8,13 @@
   </ion-card>
   <hr/>
   <img *ngIf="srcImage" #image id="image" [src]="srcImage" class="center" />
+  <hr/>
+
+  <ion-card class="button-wrapper">
+    <button ion-button block (click)="takePicture()">
+      <ion-icon class="button-icon" name="camera"></ion-icon>
+      Re-tenter un scan OCR
+    </button>
+  </ion-card>
+
 </ion-content>

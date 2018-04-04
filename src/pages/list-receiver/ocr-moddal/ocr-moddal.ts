@@ -130,24 +130,28 @@ export class OcrModdalPage extends GenericPage {
   }
 
   /**************************************************************************/
-  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /*********************** METHODES PUBLIQUE/TEMPLATE ***********************/
   /**************************************************************************/
 
   /**
    * démarre la capture d'une photo à reconnaitre par OCR
    *
-   * @private
+   * @protected
    * @memberof OcrModdalPage
    */
-  private takePicture(): void {
+  protected takePicture(): void {
     this.cameraCtrl.getPicture(this.cameraOpts).then(
       imageData => {
         this.srcImage = imageData;
         this.startOCR();
       },
-      () => this.uiCtrl.alert('Erreur', "Impossible d'acceder à la camera")
+      () => this.uiCtrl.alert('Abandon', 'Abandon de la prise de vue')
     );
   }
+
+  /**************************************************************************/
+  /*********************** METHODES PRIVATES/INTERNES ***********************/
+  /**************************************************************************/
 
   /**
    * à partir d'une chaine de caractère reconnu par l'application OCR, la fonction va:

@@ -43,7 +43,7 @@ export class CloudServiceProvider {
    * @static
    * @memberof CloudServiceProvider
    */
-  private static readonly MAX_SECONDS = 10;
+  private static readonly MAX_SECONDS = 15;
 
   /**
    * collection firestore contenant les partage liste cloud
